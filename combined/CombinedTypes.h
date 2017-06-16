@@ -29,7 +29,7 @@ namespace sp {
       kCCQE=1,
       kNCQE=2,
 
-      //resonant single pion production
+      // Resonant single pion production
       kCC1p1pi=3,
       kCC1n1pi=5,
       kNC1p1pi0=6,
@@ -47,9 +47,6 @@ namespace sp {
       kCC1pi1a=97
     };
 
-
-  static const double MPROT = 0.938;
-  static const double MEL = 0.0005;
 
 
 }
