@@ -48,6 +48,8 @@ namespace sp {
     };
 
 
+  static const double MPROT = 0.938;
+  static const double MEL = 0.0005;
 
 
 }

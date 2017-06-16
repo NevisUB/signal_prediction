@@ -1,0 +1,5 @@
+*.rootmap
+*.pcm
+*.so
+*.o
+*Dict.cxx
