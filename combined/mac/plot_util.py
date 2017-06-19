@@ -77,9 +77,10 @@ def StackedBackgrounds(df,query,var,xlo,xhi,dx):
 
         bkg_query = query + " & BkgdID==@bkgd_id"
         this_df  = df.query(bkg_query)
-
+        
         data_v.append(this_df[var].values)
-        weight_v.append(this_df[var].values)
+        weight_v.append(this_df['Weight'].values)
+
 
     fig,ax=plt.subplots(figsize=(10,6))
 

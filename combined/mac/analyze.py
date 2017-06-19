@@ -16,7 +16,7 @@ FNAME_v=sys.argv[1:]
 print "Got input files: ",FNAME_v
 
 print "Reading in events..."
-tree_df = pd.DataFrame(rn.root2array(FNAME_v,selection='Weight>0',start=0,stop=1000,step=1))
+tree_df = pd.DataFrame(rn.root2array(FNAME_v,selection='Weight>0',treename='MiniBooNE_CCQE'))
 
 print "Calculating Eqe..."
 tree_df['Eqe']    = tree_df.apply(lambda x : 1000.0*sp.CombinedFit_EnuQE_ryan(x['Energy'],x['CosTheta'],x['NuType']),axis=1)
@@ -35,7 +35,9 @@ xlo = 0
 xhi = 2000
 dx  = 100
 Efficiency1D(tree_df,query1,query2,"Energy",xlo,xhi,dx)
-#StackedBackgrounds(tree_df,query1,"Energy",xlo,xhi,dx)
+
+query3 = "PassOsc==1"
+StackedBackgrounds(tree_df,query3,"Energy",xlo,xhi,dx)
 
 # Eqe
 query1 = "PassOsc==1 & (NuType==3 | NuType==4) & NUANCEChan==1"
