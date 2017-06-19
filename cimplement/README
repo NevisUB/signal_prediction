@@ -1,4 +1,6 @@
-Should be farily strightforward
+Should be farily strightforward. For any defined selections (CCQE, DELTA..etc)
+and any defined variable s(curently does Evis, Enu, Cos Theta and tHits)
+forms stacked plots and makes cut "efficiencies"
 
 cd build
 cmake ..
