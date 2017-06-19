@@ -3,6 +3,7 @@
 #include <vector>
 #include <iterator>
 #include <algorithm>
+#include <getopt.h>
 
 #include "TClass.h"
 #include "TTree.h"
@@ -21,10 +22,51 @@
 #include "boone_fnc.h"
 #include "miniClass.h"
 
+#define no_argument 0
+#define required_argument 1
+#define optional_argument 2
 
-int main()
+
+int main(int argc, char* argv[])
 {
-	std::string location = "/rootfiles";
+
+
+	std::string rootlocation = "/rootfiles";
+	int iarg = 0;
+	opterr=1;
+	int index; 
+	/*************************************************************
+	 *************************************************************
+	 *		Command Line Argument Reading
+	 ************************************************************
+	 ************************************************************/
+
+	const struct option longopts[] = 
+	{
+		{"file", 		required_argument, 	0, 'f'},
+		{"help",		no_argument,	0, 'h'},
+		{0,			no_argument, 		0,  0},
+	};
+
+
+	while(iarg != -1)
+	{
+		iarg = getopt_long(argc,argv, "f:h", longopts, &index);
+
+		switch(iarg)
+		{
+			case 'f':
+				rootlocation = optarg;
+				break;
+			case '?':
+			case 'h':
+				std::cout<<"Allowed arguments:"<<std::endl;
+				std::cout<<"\t-f\t--file\t\tInput directy location of rootfiles"<<std::endl;
+				return 0;
+		}
+
+	}
+
 	std::string prefix = "output";
 	std::string postfix = ".root";	
 
@@ -76,7 +118,7 @@ int main()
 	float fNuanceFermiMomDir = 0;
 
 	TChain * chain = new TChain("MiniBooNE_CCQE","chain");
-	std::string fileName =location+"/"+prefix+"*"+postfix;
+	std::string fileName =rootlocation+"/"+prefix+"*"+postfix;
 	chain->Add(fileName.c_str());
 
 	chain->SetMakeClass(1);
@@ -138,7 +180,7 @@ int main()
 	int Nw0=0;
 
 	long entries = chain->GetEntries();
-	for (long entry = 0; entry < 10000; ++entry) {
+	for (long entry = 0; entry < entries; ++entry) {
 		chain->GetEntry(entry);
 
 		if (entry % 5000 == 0) {

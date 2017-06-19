@@ -1,0 +1,12 @@
+Should be farily strightforward
+
+cd build
+cmake ..
+make
+cd src
+
+./miniGen --file "PATHtoROOTfiles"
+
+this will produce an output withh all histograms and a few analysed bits.
+out.root.
+
