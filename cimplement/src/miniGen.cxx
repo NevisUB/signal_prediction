@@ -164,9 +164,9 @@ int main(int argc, char* argv[])
 
 	std::string signal = "CCQE_nue";	
 	std::vector<std::string> v_selection_names = {signal,"CCQE_numu","CCPIP","NCPI0","CHPI0","DELTA","Other"};
-	std::vector<std::string> v_variable_names = {"Enu","Evis","CosTheta","tHit"};
-	std::vector<double> lower = {0,0,-1,0};
-	std::vector<double> higher = {2,2,1,10000};
+	std::vector<std::string> v_variable_names = {"Enu","Evis","CosTheta","tHit","-Q^2"};
+	std::vector<double> lower = {0,0,-1,0,0};
+	std::vector<double> higher = {2,2,1,10000,2};
 	std::vector<int> cols = {kRed-6, kBlue-7, kMagenta+3,kOrange+1,kMagenta-3,kCyan+1,kGray};
 
 	miniClass myclass(v_variable_names, v_selection_names, signal, lower, higher);
@@ -199,6 +199,7 @@ int main(int argc, char* argv[])
 		myclass.Fill("Evis", sIBKGD, fPassOsc, fEnergy/1e3   ,fWeight);
 		myclass.Fill("Enu", sIBKGD, fPassOsc, fNuMomT  ,fWeight);
 		myclass.Fill("CosTheta", sIBKGD, fPassOsc, fCosTheta ,fWeight);
+		myclass.Fill("-Q^2", sIBKGD, fPassOsc, -fNuanceFourMomTransfer/1e6  ,fWeight);
 		myclass.Fill("tHit", sIBKGD, fPassOsc, fNHit  ,fWeight);
 
 
