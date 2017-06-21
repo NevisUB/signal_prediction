@@ -22,6 +22,30 @@ miniClass::miniClass(std::vector<std::string> varin, std::vector<std::string> se
 	pass_colors.resize(selin.size(),kBlack);
 	fail_colors.resize(selin.size(),kBlack);
 
+	Ntruth=0;
+	truth_var = vars[Ntruth];
+
+	for(int v =0; v<vars.size(); v++){ 
+		if(v==Ntruth) continue;
+		std::string nam ="Truth_"+vars[Ntruth]+"_Reco_"+vars[v];
+		TH2D tp = TH2D( (nam+"_pass").c_str() ,"", 20, low.at(Ntruth), high.at(Ntruth), 20,low.at(v),high.at(v));
+		TH2D tf = TH2D( (nam+"_fail").c_str() ,"", 20, low.at(Ntruth), high.at(Ntruth), 20,low.at(v),high.at(v));
+		TH2D ta = TH2D( (nam+"_all").c_str() ,"", 20, low.at(Ntruth), high.at(Ntruth), 20,low.at(v),high.at(v));
+		TH1D ttruth = TH1D((nam).c_str(), "", 20,low.at(Ntruth), high.at(Ntruth));
+		pass_fail2D tmppf2(vars[v], tp, tf ,ta, ttruth);
+		hists2D.push_back(tmppf2);
+	}
+
+}
+
+int miniClass::setTruthVar(std::string var){
+	for(int i=0; i<vars.size(); i++){
+		if(var == vars.at(i)){
+			Ntruth = i;
+		}
+	}
+
+	return Ntruth;
 
 }
 
@@ -38,7 +62,17 @@ int miniClass::setColors(std::vector<int> cols_pass, std::vector<int> cols_fail)
 			v1.at(i).fail.SetFillColor(fail_colors.at(i));
 
 		}
+
 	}
+
+	for(int i=0; i< hists.size();i++){
+		hists.at(i).at(Nsignal).pass.GetXaxis()->SetTitle("Events");
+		hists.at(i).at(Nsignal).fail.GetXaxis()->SetTitle("Events");
+
+		hists.at(i).at(Nsignal).pass.GetXaxis()->SetTitle(vars.at(i).c_str());
+		hists.at(i).at(Nsignal).fail.GetXaxis()->SetTitle(vars.at(i).c_str());
+	}
+
 
 }
 
@@ -64,6 +98,30 @@ int miniClass::Fill(std::string which_var, std::string which_sel, bool fPassOsc,
 	return 0;
 }
 
+
+int miniClass::Fill2D(std::string which_var, std::string which_sel, bool fPassOsc, double valueTruth, double value   , double fWeight){
+
+	if(which_sel == signal_name){
+		for(auto &pf2: hists2D){
+			if(pf2.v_name == which_var){
+				pf2.all.Fill(valueTruth,value,fWeight);
+				pf2.truth.Fill(valueTruth,fWeight);
+				if(fPassOsc){
+					pf2.pass.Fill(valueTruth,value,fWeight);
+
+				}else{
+					pf2.fail.Fill(valueTruth,value,fWeight);
+				}
+			}
+		}
+	}
+
+	return 0;
+
+}
+
+
+
 int miniClass::writeOut(std::string nam){
 
 	TFile *f2 = new TFile(nam.c_str(),"RECREATE" ); 
@@ -75,6 +133,77 @@ int miniClass::writeOut(std::string nam){
 		}
 	}
 
+	for(auto& v2: hists2D){
+		v2.pass.Write();
+		v2.fail.Write();
+	}
+
+
+	//For each Variable, Make a 2D colz histogram  before and after, aganst defined "Truth" variable
+	for(int i=0; i<hists2D.size(); i++){
+		TCanvas * temp =  new TCanvas(("c_"+hists2D.at(i).v_name).c_str(),"");
+
+
+
+		TH2D h_eff = hists2D.at(i).pass;
+		TH2D h_eff_log = hists2D.at(i).pass;
+
+
+		TMatrixT <double> meff(h_eff.GetNbinsX()+2 ,h_eff.GetNbinsY()+2 );
+		TMatrixT <double> meff2(h_eff.GetNbinsX()+2 ,h_eff.GetNbinsY()+2 );
+		TMatrixT <double> meff3(h_eff.GetNbinsX()+2 ,h_eff.GetNbinsY()+2 );
+
+
+		for(int r=0; r<=h_eff.GetNbinsX(); r++){
+			for(int c=0; c<=h_eff.GetNbinsY(); c++){
+
+				meff(r,c)  = 0;
+
+				h_eff_log.SetBinContent(r,c, log10(  h_eff.GetBinContent(r,c)/ hists2D.at(i).truth.GetBinContent(r)  ));			
+				h_eff.SetBinContent(r,c, (  h_eff.GetBinContent(r,c)/ hists2D.at(i).truth.GetBinContent(r)    )  );		
+			
+				double d =hists2D.at(i).truth.GetBinContent(r) ;  
+				double n =h_eff.GetBinContent(r,c);	
+
+				meff(r,c)  = d/n;
+
+			}
+		}
+
+		std::cout<<"Det: "<<hists2D.at(i).v_name<<" "<<meff.Determinant()<<" X: "<<h_eff.GetNbinsX()<<" Y: "<<h_eff.GetNbinsY()<<std::endl;	
+
+
+	//	meff.Write();
+
+		temp->Divide(2,2);
+		temp->cd(1);
+		
+		hists2D.at(i).pass.GetYaxis()->SetTitle(hists2D.at(i).v_name.c_str());
+		hists2D.at(i).pass.GetXaxis()->SetTitle(truth_var.c_str());
+		hists2D.at(i).pass.Draw("colz");
+
+
+		temp->cd(2);
+		hists2D.at(i).fail.GetYaxis()->SetTitle(hists2D.at(i).v_name.c_str());
+		hists2D.at(i).fail.GetXaxis()->SetTitle(truth_var.c_str());
+		hists2D.at(i).fail.Draw("colz");
+
+		temp->cd(3);
+		
+		h_eff_log.Sumw2();
+		//h_eff_log.Draw("colz");
+
+
+		temp->cd(4);
+		h_eff.Sumw2();
+		h_eff.Draw("colz");
+
+		temp->Write();
+	}
+
+
+
+
 
 
 	//For each Variable, Make a stacked histogram of all selections, before and after, along with selection "efficiency" and background "efficiency"
@@ -83,7 +212,7 @@ int miniClass::writeOut(std::string nam){
 		std::cout<<"Making stacked histograms for: "<<vnam<<std::endl;
 		THStack * spass = new THStack((vnam+"_pass").c_str(),"");
 		THStack * sfail = new THStack((vnam+"_fail").c_str(),"");
-		
+
 		double l =0.6;
 		double r = 0.89;
 
