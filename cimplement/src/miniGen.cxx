@@ -160,23 +160,36 @@ int main(int argc, char* argv[])
 	chain->SetBranchAddress("NuancePhiCM",&fNuancePhiCM);
 	chain->SetBranchAddress("NuanceFermiMomDir",&fNuanceFermiMomDir);
 
+	/**************************************************************
+	 *		Enough nonsense
+	 *
+	 * ************************************************************/
 
 
+
+
+	//Which of the selections are you defining as "Signal"
 	std::string signal = "CCQE_nue";	
-	std::vector<std::string> v_selection_names = {signal,"CCQE_numu","CCPIP","NCPI0","CHPI0","DELTA","Other"};
-	std::vector<std::string> v_variable_names = {"Enu","Evis","CosTheta","tHit","-Q^2"};
-	std::vector<double> lower = {0,0,-1,0,0};
-	std::vector<double> higher = {2,2,1,10000,2};
-	std::vector<int> cols = {kRed-6, kBlue-7, kMagenta+3,kOrange+1,kMagenta-3,kCyan+1,kGray};
+	//The rest..
+	std::vector<std::string> v_selection_names = {signal,"CCQE_numu","CCPIP","NCPI0","CHPI0","DELTA","NCQE_PI","Other"};
+	//What variables do you want to plot
+	std::vector<std::string> v_variable_names = {"Enu","Evis","CosTheta","Eqe","tHit","-Q^2","weight"};
+	//The upper and lower bounds for said variable histgrams
+	std::vector<double> lower = {0,0,-1,0,0,0,0};
+	std::vector<double> higher = {2,2,1,2,10000,2,3};
+	//The colors (can have different pass and fail, but meh)
+	std::vector<int> cols = {kRed-6, kBlue-7, kMagenta+3,kOrange+1,kMagenta-3,kCyan+1, kOrange+2  ,kGray};
 
+
+	//Initilise the class with all that
 	miniClass myclass(v_variable_names, v_selection_names, signal, lower, higher);
 
 
+	//Some simple counting variables
 	int Ne=0;
 	double NeW = 0.0;
 	int Nm=0;
 	double NmW =0.0;
-
 	int Nw0=0;
 
 	long entries = chain->GetEntries();
@@ -186,25 +199,43 @@ int main(int argc, char* argv[])
 		if (entry % 5000 == 0) {
 			std::cout << "At entry: " << entry << " out of " << entries << std::endl;
 		}
-
+	
+		//Dont lke negative or 0 weights..
 		if(fWeight<=0){Nw0++;continue;};
+
+
+		if(fWeight<=0 && fPassOsc){
+			std::cerr<<"ERROR; pass osc and negative wight"<<std::endl;
+			exit(EXIT_FAILURE);
+		}
 
 		if(fNuType ==NUE || fNuType ==NUEBAR){Ne++;NeW+=fWeight ;};
 		if(fNuType ==NUMU || fNuType ==NUMUBAR){Nm++;NmW += fWeight;};
 
-
+		//Whats the background Type? Needs to correspond to the above selection types.
 		int IBKGD = calcIBKGD(fNuType, fNUANCEChan);
 		std::string sIBKGD = stringCalcIBKGD( fNuType, fNUANCEChan);
 
+
+		//Fill all the respective histograms
+		double Mn = 1;
 		myclass.Fill("Evis", sIBKGD, fPassOsc, fEnergy/1e3   ,fWeight);
 		myclass.Fill("Enu", sIBKGD, fPassOsc, fNuMomT  ,fWeight);
+		myclass.Fill("Eqe", sIBKGD, fPassOsc, Mn*fEnergy/1e3/(Mn-fEnergy/1e3 +fEnergy/1e3*fCosTheta )  ,fWeight);
 		myclass.Fill("CosTheta", sIBKGD, fPassOsc, fCosTheta ,fWeight);
 		myclass.Fill("-Q^2", sIBKGD, fPassOsc, -fNuanceFourMomTransfer/1e6  ,fWeight);
 		myclass.Fill("tHit", sIBKGD, fPassOsc, fNHit  ,fWeight);
-
+		myclass.Fill("weight", sIBKGD, fPassOsc, fWeight  ,1.0);
+		
+		myclass.Fill2D("Evis",sIBKGD,fPassOsc, fNuMomT, fEnergy/1e3, fWeight);
+		myclass.Fill2D("CosTheta",sIBKGD,fPassOsc, fNuMomT, fCosTheta, fWeight);
+		myclass.Fill2D("Eqe",sIBKGD,fPassOsc, fNuMomT,  Mn*fEnergy/1e3/(Mn-fEnergy/1e3 +fEnergy/1e3*fCosTheta ), fWeight); 
+		myclass.Fill2D("-Q^2",sIBKGD,fPassOsc, fNuMomT, -fNuanceFourMomTransfer/1e6 ,fWeight);
+		myclass.Fill2D("tHit",sIBKGD,fPassOsc, fNuMomT, fNHit, fWeight);
+		
 
 	}
-
+	//Set the colors.
 	myclass.setColors(cols,cols);
 	myclass.writeOut("out.root");
 
