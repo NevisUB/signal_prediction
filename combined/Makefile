@@ -29,16 +29,16 @@ all: $(DICT).cxx $(SHLIB)
 # root class dictionary
 $(DICT).cxx: $(HEADERS) LinkDef.h
 	@echo '<< generating dict >>'
-	@echo rootcling -f $(DICT).cxx -s $(SHLIB) -rml $(SHLIB) -rmf $(ROOTMAP) $(CINTFLAGS) -c $(INCFLAGS) $(HEADERS) LinkDef.h
-	@rootcling -f $(DICT).cxx -s $(SHLIB) -rml $(SHLIB) -rmf $(ROOTMAP) $(CINTFLAGS) -c $(INCFLAGS) $(HEADERS) LinkDef.h
+	@echo rootcling -f $(DICT).cxx -s $(COMBINED_LIBDIR)/$(SHLIB) -rml $(SHLIB) -rmf $(COMBINED_LIBDIR)/$(ROOTMAP) $(CINTFLAGS) -c $(INCFLAGS) $(HEADERS) LinkDef.h
+	@rootcling -f $(DICT).cxx -s $(COMBINED_LIBDIR)/$(SHLIB) -rml $(SHLIB) -rmf $(COMBINED_LIBDIR)/$(ROOTMAP) $(CINTFLAGS) -c $(INCFLAGS) $(HEADERS) LinkDef.h
 
 # rule for making shareable library
 $(SHLIB): $(OBJECTS) $(DICT).cxx $(DICT).o
 	@echo '<< generating $(SHLIB) >>'
-	@echo $(SOMAKER) -o $(SHLIB) $(filter-out $(DICT).o, $(OBJECTS)) $(DICT).o $(SOFLAGS) $(LDFLAGS)
-	@$(SOMAKER) -o $(SHLIB) $(filter-out $(DICT).o, $(OBJECTS)) $(DICT).o $(SOFLAGS) $(LDFLAGS)
+	@echo $(SOMAKER) -o $(COMBINED_LIBDIR)/$(SHLIB) $(filter-out $(DICT).o, $(OBJECTS)) $(DICT).o $(SOFLAGS) $(LDFLAGS)
+	@$(SOMAKER) -o $(COMBINED_LIBDIR)/$(SHLIB) $(filter-out $(DICT).o, $(OBJECTS)) $(DICT).o $(SOFLAGS) $(LDFLAGS)
 
 
 clean:
-	@echo rm -f *.o *.so *Dict.cxx *.rootmap *.pcm
-	@rm -f *.o *.so *Dict.cxx *.rootmap *.pcm
+	@echo rm -f *.o $(COMBINED_LIBDIR)/*.so *Dict.cxx $(COMBINED_LIBDIR)/*.rootmap $(COMBINED_LIBDIR)/*.pcm
+	@rm -f *.o $(COMBINED_LIBDIR)/*.so *Dict.cxx $(COMBINED_LIBDIR)/*.rootmap $(COMBINED_LIBDIR)/*.pcm
