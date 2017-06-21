@@ -93,7 +93,7 @@ def StackedBackgrounds(df,query,var,xlo,xhi,dx):
                     label   = bkgd_v)
 
     ax.legend()
-    ax.set_xlabel("Evis",fontweight='bold')
+    ax.set_xlabel(var,fontweight='bold')
     ax.set_xlim(0,2000)
     ax.grid()
     

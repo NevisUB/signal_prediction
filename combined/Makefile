@@ -1,10 +1,15 @@
 CC=clang++
 SOMAKER=clang++
-CFLAGS=-g
+CFLAGS=-O3
 INCFLAGS =-I.
 INCFLAGS+=$(shell root-config --cflags)
+INCFLAGS += $(shell python-config --includes)
+INCFLAGS += -I$(shell python -c "import numpy; print numpy.get_include()")
+
 LDFLAGS=-L.
 LDFLAGS+=$(shell root-config --libs)
+LDFLAGS += -L$(shell python-config --prefix)/lib/
+LDFLAGS += $(shell python-config --ldflags)
 
 SOFLAGS=-fPIC
 SOFLAGS+=-g -shared

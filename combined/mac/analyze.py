@@ -46,3 +46,7 @@ xlo = 0
 xhi = 2000
 dx  = 100
 Efficiency1D(tree_df,query1,query2,"Eqe",xlo,xhi,dx)
+
+query3 == "PassOsc==1"
+StackedBackgrounds(tree_df,query3,"Eqe",xlo,xhi,dx)
+

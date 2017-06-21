@@ -48,6 +48,47 @@ namespace sp {
     };
 
 
+  enum GEANT3Type_t {
+    kINVALID=0,
+    kGAMMA=1,
+    kPOSITRON=2,
+    kELECTRON=3,
+    kNEUTRINO=4,
+    kMUONP=5,
+    kMUONM=6,
+    kPION0=7,
+    kPIONP=8,
+    kPIONM=9,
+    kKAON0LONG=10,
+    kKAONP=11,
+    kKAONM=12,
+    kNEUTRON=13,
+    kPROTON=14,
+    kANTIPROTON=15,
+    kKAON0SHORT=16,
+    kETA=17,
+    kLAMBDA=18,
+    kSIGMAP=19,
+    kSIGMA0=20,
+    kSIGMAM=21,
+    kXI0=22,
+    kXIM=23,
+    kOMEGAM=24,
+    kANTINEUTRON=25,
+    kANTILAMBDA=26,
+    kANTISIGMAM=27,
+    kANTISIGMA0=28,
+    kANTISIGMAP=29,
+    kANTIXI0=30,
+    kANTIXIP=31,
+    kANTIOMEGAP=32,
+    kDEUTERON=45,
+    kTRITON=46,
+    kALPHA=47,
+    kGEANTINO=48,
+    kHE3=49,
+    kCERENKOV=50
+  };
 
 }
 
