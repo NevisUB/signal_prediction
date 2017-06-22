@@ -23,6 +23,18 @@ namespace sp {
       kBDELTA
     };
 
+  enum TupleType_t
+    {
+      kINVALIDTYPE=0,
+      kDIRT,
+      kPI0,
+      kDELTA,
+      kNUEPIP,
+      kNUEKP,
+      kNUEK0,
+      kOTHER
+    };
+  
   enum NuanceType_t
     {
       kUNKNOWN=0,

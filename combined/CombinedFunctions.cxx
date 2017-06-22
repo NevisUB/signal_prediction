@@ -8,11 +8,6 @@
 
 namespace sp { 
 
-
-  
-
-  
-
   BkgdType_t CombinedFit_bkgd_type(const NuanceType_t evwt, const NuType_t inno) {
 
     BkgdType_t ibkgd = kBINVALID;
@@ -301,7 +296,8 @@ namespace sp {
     		      as_vector_float32(pfsp_z),
     		      as_vector_float32(pfsp_t));
   }
-    
+
+  
 
 }
 
