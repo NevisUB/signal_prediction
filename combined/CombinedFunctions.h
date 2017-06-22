@@ -58,7 +58,7 @@ namespace sp {
   		      const std::vector<float>& pfsp_z,
   		      const std::vector<float>& pfsp_t);
 
-
+  // python wrapper
   unsigned Pi0Details(const int nfsp,
 		      PyObject* ipfs,
 		      PyObject* vrtx_x,
@@ -69,8 +69,19 @@ namespace sp {
 		      PyObject* pfsp_z,
 		      PyObject* pfsp_t);
 
+  //
+  // Functions ported from CombinedFit_MakeStackHistograms.F
+  // https://goo.gl/3oWC45
+  //
   
+  StackedBkgdType_t StackHistoBkgd(const bool Event_is_dirt,
+				   const bool Event_is_pi0, 
+				   const NuanceType_t evwt, 
+				   const NuType_t nutype,   
+				   const GEANT3Type_t parent_id);
 
+
+  
 }
 
 #endif

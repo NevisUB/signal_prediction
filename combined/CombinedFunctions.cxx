@@ -296,6 +296,30 @@ namespace sp {
     		      as_vector_float32(pfsp_z),
     		      as_vector_float32(pfsp_t));
   }
+  
+
+  StackedBkgdType_t StackHistoBkgd(const bool Event_is_dirt, // tuple var 11
+				   const bool Event_is_pi0,  // tuple var 10
+				   const NuanceType_t evwt,  // tuple var 3
+				   const NuType_t nutype,    // tuple var 4
+				   const GEANT3Type_t parent_id) // tuple var 8
+
+  {
+    StackedBkgdType_t bkg = kBKGD_INVALID;
+    
+    if      (Event_is_dirt) return kBKGD_DIRT;
+    else if (Event_is_pi0)  return kBKGD_PI0;
+    else if (evwt == kCC1pNg or evwt == kNC1pNg) return kBKGD_DELTA;
+    else if (parent_id == kPIONP and nutype == kNUE) return kBKGD_NUEPIP;
+    else if (parent_id == kKAONP and nutype == kNUE) return kBKGD_NUEKP;
+    else if (parent_id == kKAON0LONG and nutype == kNUE) return kBKGD_NUEK0;
+    else return kBKGD_OTHER;
+    
+    return bkg;
+  }
+
+					      
+					      
 
   
 

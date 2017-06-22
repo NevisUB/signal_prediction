@@ -1,7 +1,29 @@
 #ifndef __COMBINEDTYPES_H__
 #define __COMBINEDTYPES_H__
 
+#include <limits>
+
 namespace sp {
+
+  /// Used as an invalid value identifier for long long
+  const long long          kINVALID_LONGLONG  = std::numeric_limits< long long          >::max();
+  /// Used as an invalid value identifier for unsigned long long
+  const unsigned long long kINVALID_ULONGLONG = std::numeric_limits< unsigned long long >::max();
+  /// Used as an invalid value identifier for size_t
+  const size_t             kINVALID_SIZE      = std::numeric_limits< size_t             >::max();
+  /// Used as an invalid value identifier for int
+  const int                kINVALID_INT       = std::numeric_limits< int                >::max();
+  /// Used as an invalid value identifier for unsigned int
+  const unsigned int       kINVALID_UINT      = std::numeric_limits< unsigned int       >::max();
+  /// Used as an invalid value identifier for unsigned short
+  const short              kINVALID_SHORT     = std::numeric_limits< short              >::max();
+  /// Used as an invalid value identifier for unsigned unsigned short
+  const unsigned short     kINVALID_USHORT    = std::numeric_limits< unsigned short     >::max();
+  /// Used as an invalid value idnetifier for single-point precision  
+  const float              kINVALID_FLOAT     = std::numeric_limits< float              >::max();
+  /// Used as an invalid value idnetifier for double-point precision
+  const double             kINVALID_DOUBLE    = std::numeric_limits< double             >::max();
+  
 
   // pyROOT doesn't like enum class...
   enum NuType_t
@@ -13,6 +35,7 @@ namespace sp {
       kNUEBAR
     };
 
+  // IBKG
   enum BkgdType_t
     {
       kBINVALID=0,
@@ -23,16 +46,17 @@ namespace sp {
       kBDELTA
     };
 
-  enum TupleType_t
+  
+  enum StackedBkgdType_t
     {
-      kINVALIDTYPE=0,
-      kDIRT,
-      kPI0,
-      kDELTA,
-      kNUEPIP,
-      kNUEKP,
-      kNUEK0,
-      kOTHER
+      kBKGD_INVALID=0,
+      kBKGD_DIRT,
+      kBKGD_PI0,
+      kBKGD_DELTA,
+      kBKGD_NUEPIP,
+      kBKGD_NUEKP,
+      kBKGD_NUEK0,
+      kBKGD_OTHER
     };
   
   enum NuanceType_t

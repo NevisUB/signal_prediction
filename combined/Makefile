@@ -46,4 +46,4 @@ $(SHLIB): $(OBJECTS) $(DICT).cxx $(DICT).o
 
 clean:
 	@echo rm -f *.o $(COMBINED_LIBDIR)/*.so *Dict.cxx $(COMBINED_LIBDIR)/*.rootmap $(COMBINED_LIBDIR)/*.pcm
-	@rm -f *.o $(COMBINED_LIBDIR)/*.so *Dict.cxx $(COMBINED_LIBDIR)/*.rootmap $(COMBINED_LIBDIR)/*.pcm
+	@rm -f $(COMBINED_BASEDIR)/*.o $(COMBINED_LIBDIR)/*.so $(COMBINED_BASEDIR)/*Dict.cxx $(COMBINED_LIBDIR)/*.rootmap $(COMBINED_LIBDIR)/*.pcm $(COMBINED_BASEDIR)/*.pcm $(COMBINED_BASEDIR)/*Dict.cxx_tmp
