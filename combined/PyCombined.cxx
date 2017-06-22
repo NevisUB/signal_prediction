@@ -11,8 +11,7 @@
 
 namespace sp {
 
-  void SetPyUtil()
-  {
+  void SetPyUtil() {
     static bool once=false;
     if(!once) { import_array(); once=true; }
   }
@@ -20,7 +19,7 @@ namespace sp {
   std::vector<int> as_vector_int32(PyObject* pyarray) {
     SetPyUtil();
 
-    float *carray;
+    int *carray;
     const int dtype = NPY_INT32;
     PyArray_Descr *descr = PyArray_DescrFromType(dtype);
     npy_intp dims[1];

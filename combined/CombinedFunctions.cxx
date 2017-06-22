@@ -8,32 +8,10 @@
 
 namespace sp { 
 
-  std::string Bkgd2String(const BkgdType_t bkgd) {
 
-    switch(bkgd) {
-    case kBINVALID: return "BINVALID";
-    case kBCCQE:    return "BCCQE";
-    case kBCCPIP:   return "BCCPIP";
-    case kBNCPI0:   return "BNCPI0";
-    case kBCHPI0:   return "BCHPI0";
-    case kBDELTA:   return "BDELTA";
-    default:        return "BINVALID";
-    }
-    
-    return "BINVALID";
-  }
+  
 
-  BkgdType_t String2Bkgd(const std::string& name) {
-
-    if (name == "BINVALID") return kBINVALID;
-    if (name == "BCCQE")    return kBCCQE;
-    if (name == "BCCPIP")   return kBCCPIP;
-    if (name == "BNCPI0")   return kBNCPI0;
-    if (name == "BCHPI0")   return kBCHPI0;
-    if (name == "BDELTA")   return kBDELTA;
-    
-    return kBINVALID;
-  }
+  
 
   BkgdType_t CombinedFit_bkgd_type(const NuanceType_t evwt, const NuType_t inno) {
 
@@ -187,7 +165,6 @@ namespace sp {
     // i loops over final state particles
     for(unsigned i = 0; i < nfsp; ++i) {
       it = (GEANT3Type_t)ipfs[i];
-
       if (it == kPION0) {
 	npi0 = npi0 + 1;
 	for(unsigned j = 0; j<3; ++j){
@@ -272,36 +249,36 @@ namespace sp {
     }      
 
     npi0 = std::max(npi0,nnpi0);
-
+    
     return npi0;
   }
 
   unsigned Pi0Details(const int nfsp,
-		      const std::vector<int>& ipfs,
-		      const std::vector<float>& vrtx_x,
-		      const std::vector<float>& vrtx_y,
-		      const std::vector<float>& vrtx_z,
-		      const std::vector<float>& pfsp_x,
-		      const std::vector<float>& pfsp_y,
-		      const std::vector<float>& pfsp_z,
-		      const std::vector<float>& pfsp_t) {
+  		      const std::vector<int>& ipfs,
+  		      const std::vector<float>& vrtx_x,
+  		      const std::vector<float>& vrtx_y,
+  		      const std::vector<float>& vrtx_z,
+  		      const std::vector<float>& pfsp_x,
+  		      const std::vector<float>& pfsp_y,
+  		      const std::vector<float>& pfsp_z,
+  		      const std::vector<float>& pfsp_t) {
 
-    int ldalitz;
-    std::vector<float> ppi(4,0);
-    std::vector<float> pgam_x(2,0);
-    std::vector<float> pgam_y(2,0);
-    std::vector<float> pgam_z(2,0);
-    std::vector<float> pgam_t(2,0);
-    std::vector<float> vtx(3,0);
+    static int ldalitz;
+    static std::vector<float> ppi(4,0);
+    static std::vector<float> pgam_x(2,0);
+    static std::vector<float> pgam_y(2,0);
+    static std::vector<float> pgam_z(2,0);
+    static std::vector<float> pgam_t(2,0);
+    static std::vector<float> vtx(3,0);
     
     return Pi0Details(nfsp,
-		      ipfs,
-		      vrtx_x,vrtx_y,vrtx_z,
-		      pfsp_x,pfsp_y,pfsp_z,pfsp_t,
-		      ldalitz,
-		      ppi,
-		      pgam_x,pgam_y,pgam_z,pgam_t,
-		      vtx);
+  		      ipfs,
+  		      vrtx_x,vrtx_y,vrtx_z,
+  		      pfsp_x,pfsp_y,pfsp_z,pfsp_t,
+  		      ldalitz,
+  		      ppi,
+  		      pgam_x,pgam_y,pgam_z,pgam_t,
+  		      vtx);
   }
 
   unsigned Pi0Details(const int nfsp,

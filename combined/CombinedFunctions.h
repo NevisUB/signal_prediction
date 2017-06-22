@@ -8,12 +8,6 @@
 
 namespace sp {
 
-  
-
-  std::string Bkgd2String(BkgdType_t bkgd);
-  BkgdType_t String2Bkgd(const std::string& name);
-
-
   //
   // Functions ported from EventLevelRoutines.F
   // https://goo.gl/N24LXp
@@ -55,14 +49,14 @@ namespace sp {
 
   
   unsigned Pi0Details(const int nfsp,
-		      const std::vector<int>& ipfs,
-		      const std::vector<float>& vrtx_x,
-		      const std::vector<float>& vrtx_y,
-		      const std::vector<float>& vrtx_z,
-		      const std::vector<float>& pfsp_x,
-		      const std::vector<float>& pfsp_y,
-		      const std::vector<float>& pfsp_z,
-		      const std::vector<float>& pfsp_t);
+  		      const std::vector<int>& ipfs,
+  		      const std::vector<float>& vrtx_x,
+  		      const std::vector<float>& vrtx_y,
+  		      const std::vector<float>& vrtx_z,
+  		      const std::vector<float>& pfsp_x,
+  		      const std::vector<float>& pfsp_y,
+  		      const std::vector<float>& pfsp_z,
+  		      const std::vector<float>& pfsp_t);
 
 
   unsigned Pi0Details(const int nfsp,
