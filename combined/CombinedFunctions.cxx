@@ -317,10 +317,32 @@ namespace sp {
     
     return bkg;
   }
+  
 
-					      
-					      
 
+  float StackedHistoBkdgWeight( const bool Event_is_dirt,   // tuple var 11
+			        const bool Event_is_pi0,    // tuple var 10
+				const NuanceType_t evwt,    // tuple var 3
+				const NuType_t nutype,      // tuple var 4
+				const GEANT3Type_t parent_id, // tuple var 8
+				const float in_weight,
+				const float Npi,
+				const float Nka,
+				const float Nbkg) 
+  {
+    float out_weight = in_weight;
+    
+    //out_weight *= FLUX_WEIGHT(INU_COCKT) * Nbkg;
+
+    if (!(Event_is_pi0 or Event_is_dirt or evwt == kNC1pNg)) {
+
+      if (parent_id == kPIONP) out_weight *= Npi;
+      if (parent_id == kKAONP) out_weight *= Nka;
+	  
+    }
+
+    return out_weight;
+  }
   
 
 }

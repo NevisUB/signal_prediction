@@ -80,7 +80,18 @@ namespace sp {
 				   const NuType_t nutype,   
 				   const GEANT3Type_t parent_id);
 
-
+  // Reweight of montecarlo based on number of pions, kaon, and background from fit?
+  float StackedHistoBkdgWeight( const bool Event_is_dirt,   // tuple var 11
+			        const bool Event_is_pi0,    // tuple var 10
+				const NuanceType_t evwt,    // tuple var 3
+				const NuType_t nutype,      // tuple var 4
+				const GEANT3Type_t parent_id, // tuple var 8
+				const float in_weight,
+				const float Npi,
+				const float Nka,
+				const float Nbkg);
+  
+  
   
 }
 
