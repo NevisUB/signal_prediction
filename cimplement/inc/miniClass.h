@@ -14,6 +14,7 @@
 //#include <TROOT.h>
 #include <TColor.h>
 #include <TMatrixT.h>
+#include <TVectorT.h>
 
 #include <ctime>
 #include <TFile.h>
@@ -33,11 +34,30 @@ struct pass_fail2D{
 	std::string name;
 	std::string v_name;
 	TH1D truth;
+	TH1D reco;
+
 	TH2D pass;
 	TH2D fail;
 	TH2D all;
-	pass_fail2D(std::string vname,  TH2D passin, TH2D failin , TH2D allin, TH1D truthin) : v_name(vname), pass(passin), fail(failin), all(allin), truth(truthin){}; 
+	pass_fail2D(std::string vname,  TH2D passin, TH2D failin , TH2D allin, TH1D truthin, TH1D recoin) : v_name(vname), pass(passin), fail(failin), all(allin), truth(truthin),reco(recoin) {}; 
 
+	TVectorT<double> getReco(){
+		int n = reco.GetNbinsX()+2;
+		TVectorT<double> tmp(n);
+		for(int i=0; i< n; i++){
+			tmp(i) = reco.GetBinContent(i);
+		}
+		return tmp;
+	};
+
+	TVectorT<double> getTruth(){
+		int n = truth.GetNbinsX()+2;
+		TVectorT<double> tmp(n);
+		for(int i=0; i< n; i++){
+			tmp(i) = truth.GetBinContent(i);
+		}
+		return tmp;
+	};
 };
 
 
@@ -49,6 +69,8 @@ class miniClass{
 	std::vector<std::vector<pass_fail>> hists;
 	std::vector<pass_fail2D> hists2D;
 
+	std::vector<double> low_bin;
+	std::vector<double> high_bin;
 
 
 	std::string signal_name;
