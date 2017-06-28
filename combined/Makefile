@@ -1,10 +1,15 @@
 CC=clang++
 SOMAKER=clang++
-CFLAGS=-g
+CFLAGS=-O3
 INCFLAGS =-I.
 INCFLAGS+=$(shell root-config --cflags)
+INCFLAGS += $(shell python-config --includes)
+INCFLAGS += -I$(shell python -c "import numpy; print numpy.get_include()")
+
 LDFLAGS=-L.
 LDFLAGS+=$(shell root-config --libs)
+LDFLAGS += -L$(shell python-config --prefix)/lib/
+LDFLAGS += $(shell python-config --ldflags)
 
 SOFLAGS=-fPIC
 SOFLAGS+=-g -shared
@@ -41,4 +46,4 @@ $(SHLIB): $(OBJECTS) $(DICT).cxx $(DICT).o
 
 clean:
 	@echo rm -f *.o $(COMBINED_LIBDIR)/*.so *Dict.cxx $(COMBINED_LIBDIR)/*.rootmap $(COMBINED_LIBDIR)/*.pcm
-	@rm -f *.o $(COMBINED_LIBDIR)/*.so *Dict.cxx $(COMBINED_LIBDIR)/*.rootmap $(COMBINED_LIBDIR)/*.pcm
+	@rm -f $(COMBINED_BASEDIR)/*.o $(COMBINED_LIBDIR)/*.so $(COMBINED_BASEDIR)/*Dict.cxx $(COMBINED_LIBDIR)/*.rootmap $(COMBINED_LIBDIR)/*.pcm $(COMBINED_BASEDIR)/*.pcm $(COMBINED_BASEDIR)/*Dict.cxx_tmp
