@@ -173,10 +173,10 @@ int main(int argc, char* argv[])
 	//The rest..
 	std::vector<std::string> v_selection_names = {signal,"CCQE_numu","CCPIP","NCPI0","CHPI0","DELTA","NCQE_PI","Other"};
 	//What variables do you want to plot
-	std::vector<std::string> v_variable_names = {"Enu","Evis","CosTheta","Eqe","tHit","-Q^2","weight"};
+	std::vector<std::string> v_variable_names = {"Enu","Evis","CosTheta","Eqe","tHit","-Q^2"};
 	//The upper and lower bounds for said variable histgrams
-	std::vector<double> lower = {0,0,-1,0,0,0,0};
-	std::vector<double> higher = {2,2,1,2,10000,2,3};
+	std::vector<double> lower = {0.0,0.0,-1,0.0,0,0};
+	std::vector<double> higher = {2.5,2.5,1,2.5,10000,2};
 	//The colors (can have different pass and fail, but meh)
 	std::vector<int> cols = {kRed-6, kBlue-7, kMagenta+3,kOrange+1,kMagenta-3,kCyan+1, kOrange+2  ,kGray};
 
@@ -191,6 +191,8 @@ int main(int argc, char* argv[])
 	int Nm=0;
 	double NmW =0.0;
 	int Nw0=0;
+
+	double gw = 1.0;// 1.0/3.0;
 
 	long entries = chain->GetEntries();
 	for (long entry = 0; entry < entries; ++entry) {
@@ -219,19 +221,19 @@ int main(int argc, char* argv[])
 
 		//Fill all the respective histograms
 		double Mn = 1;
-		myclass.Fill("Evis", sIBKGD, fPassOsc, fEnergy/1e3   ,fWeight);
-		myclass.Fill("Enu", sIBKGD, fPassOsc, fNuMomT  ,fWeight);
-		myclass.Fill("Eqe", sIBKGD, fPassOsc, Mn*fEnergy/1e3/(Mn-fEnergy/1e3 +fEnergy/1e3*fCosTheta )  ,fWeight);
-		myclass.Fill("CosTheta", sIBKGD, fPassOsc, fCosTheta ,fWeight);
-		myclass.Fill("-Q^2", sIBKGD, fPassOsc, -fNuanceFourMomTransfer/1e6  ,fWeight);
-		myclass.Fill("tHit", sIBKGD, fPassOsc, fNHit  ,fWeight);
-		myclass.Fill("weight", sIBKGD, fPassOsc, fWeight  ,1.0);
+		myclass.Fill("Evis", sIBKGD, fPassOsc, fEnergy/1e3   ,fWeight*gw);
+		myclass.Fill("Enu", sIBKGD, fPassOsc, fNuMomT  ,fWeight*gw);
+		myclass.Fill("Eqe", sIBKGD, fPassOsc, Mn*fEnergy/1e3/(Mn-fEnergy/1e3 +fEnergy/1e3*fCosTheta )  ,fWeight*gw);
+		myclass.Fill("CosTheta", sIBKGD, fPassOsc, fCosTheta ,fWeight*gw);
+		myclass.Fill("-Q^2", sIBKGD, fPassOsc, -fNuanceFourMomTransfer/1e6  ,fWeight*gw);
+		myclass.Fill("tHit", sIBKGD, fPassOsc, fNHit  ,fWeight*gw);
+	//	myclass.Fill("weight", sIBKGD, fPassOsc, fWeight*gw  ,1.0);
 		
-		myclass.Fill2D("Evis",sIBKGD,fPassOsc, fNuMomT, fEnergy/1e3, fWeight);
-		myclass.Fill2D("CosTheta",sIBKGD,fPassOsc, fNuMomT, fCosTheta, fWeight);
-		myclass.Fill2D("Eqe",sIBKGD,fPassOsc, fNuMomT,  Mn*fEnergy/1e3/(Mn-fEnergy/1e3 +fEnergy/1e3*fCosTheta ), fWeight); 
-		myclass.Fill2D("-Q^2",sIBKGD,fPassOsc, fNuMomT, -fNuanceFourMomTransfer/1e6 ,fWeight);
-		myclass.Fill2D("tHit",sIBKGD,fPassOsc, fNuMomT, fNHit, fWeight);
+		myclass.Fill2D("Evis",sIBKGD,fPassOsc, fNuMomT, fEnergy/1e3, fWeight*gw);
+		myclass.Fill2D("CosTheta",sIBKGD,fPassOsc, fNuMomT, fCosTheta, fWeight*gw);
+		myclass.Fill2D("Eqe",sIBKGD,fPassOsc, fNuMomT,  Mn*fEnergy/1e3/(Mn-fEnergy/1e3 +fEnergy/1e3*fCosTheta ), fWeight*gw); 
+		myclass.Fill2D("-Q^2",sIBKGD,fPassOsc, fNuMomT, -fNuanceFourMomTransfer/1e6 ,fWeight*gw);
+		myclass.Fill2D("tHit",sIBKGD,fPassOsc, fNuMomT, fNHit, fWeight*gw);
 		
 
 	}

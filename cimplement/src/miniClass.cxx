@@ -1,7 +1,10 @@
 #include "miniClass.h"
 
 
-miniClass::miniClass(std::vector<std::string> varin, std::vector<std::string> selin, std::string sigin, std::vector<double> low, std::vector<double> high) : vars(varin), selections(selin), signal_name(sigin) {
+miniClass::miniClass(std::vector<std::string> varin, std::vector<std::string> selin, std::string sigin, std::vector<double> low, std::vector<double> high) : vars(varin), selections(selin), signal_name(sigin), low_bin(low), high_bin(high) {
+
+	int nb =25;
+	int nbt = 25;
 
 	for(int i=0; i<selections.size(); i++){
 		if(signal_name == selections.at(i)){
@@ -12,7 +15,7 @@ miniClass::miniClass(std::vector<std::string> varin, std::vector<std::string> se
 	for(int v =0; v<vars.size(); v++){ 
 		std::vector<pass_fail> tmp;
 		for(int s =0; s< selections.size(); s++){
-			pass_fail tmppf(vars[v], selections[s], TH1D( (vars[v]+"_"+selections[s]+"_pass").c_str() ,"",20,low.at(v),high.at(v)), TH1D((vars[v]+"_"+selections[s]+"_fail").c_str() ,"",20,low.at(v), high.at(v)) );
+			pass_fail tmppf(vars[v], selections[s], TH1D( (vars[v]+"_"+selections[s]+"_pass").c_str() ,"",nb,low.at(v),high.at(v)), TH1D((vars[v]+"_"+selections[s]+"_fail").c_str() ,"",nb,low.at(v), high.at(v)) );
 			tmp.push_back(tmppf);
 		}
 		hists.push_back(tmp);
@@ -28,11 +31,12 @@ miniClass::miniClass(std::vector<std::string> varin, std::vector<std::string> se
 	for(int v =0; v<vars.size(); v++){ 
 		if(v==Ntruth) continue;
 		std::string nam ="Truth_"+vars[Ntruth]+"_Reco_"+vars[v];
-		TH2D tp = TH2D( (nam+"_pass").c_str() ,"", 20, low.at(Ntruth), high.at(Ntruth), 20,low.at(v),high.at(v));
-		TH2D tf = TH2D( (nam+"_fail").c_str() ,"", 20, low.at(Ntruth), high.at(Ntruth), 20,low.at(v),high.at(v));
-		TH2D ta = TH2D( (nam+"_all").c_str() ,"", 20, low.at(Ntruth), high.at(Ntruth), 20,low.at(v),high.at(v));
-		TH1D ttruth = TH1D((nam).c_str(), "", 20,low.at(Ntruth), high.at(Ntruth));
-		pass_fail2D tmppf2(vars[v], tp, tf ,ta, ttruth);
+		TH2D tp = TH2D( (nam+"_pass").c_str() ,"", nbt, low.at(Ntruth), high.at(Ntruth), nb,low.at(v),high.at(v));
+		TH2D tf = TH2D( (nam+"_fail").c_str() ,"", nbt, low.at(Ntruth), high.at(Ntruth), nb,low.at(v),high.at(v));
+		TH2D ta = TH2D( (nam+"_all").c_str() ,"", nbt, low.at(Ntruth), high.at(Ntruth), nb,low.at(v),high.at(v));
+		TH1D ttruth = TH1D((nam+"_t").c_str(), "", nbt,low.at(Ntruth), high.at(Ntruth));
+		TH1D treco = TH1D( (nam+"_r").c_str(), "", nb,low.at(v), high.at(v));
+		pass_fail2D tmppf2(vars[v], tp, tf ,ta, ttruth,treco);
 		hists2D.push_back(tmppf2);
 	}
 
@@ -86,10 +90,10 @@ int miniClass::Fill(std::string which_var, std::string which_sel, bool fPassOsc,
 
 				//std::cout<<"Filling: "<<which_sel<<" "<<which_var<<" pass: "<<fPassOsc<<std::endl;
 				if(fPassOsc){
-					v2.pass.Fill(value,fWeight);
+					v2.pass.Fill((double)value,(double)fWeight);
 
 				}else{
-					v2.fail.Fill(value,fWeight);
+					v2.fail.Fill((double)value,(double)fWeight);
 				}
 			}
 		}
@@ -104,13 +108,13 @@ int miniClass::Fill2D(std::string which_var, std::string which_sel, bool fPassOs
 	if(which_sel == signal_name){
 		for(auto &pf2: hists2D){
 			if(pf2.v_name == which_var){
-				pf2.all.Fill(valueTruth,value,fWeight);
-				pf2.truth.Fill(valueTruth,fWeight);
+				pf2.all.Fill((double)valueTruth,(double)value,(double)fWeight);
+				pf2.truth.Fill((double)valueTruth,(double)fWeight);
 				if(fPassOsc){
-					pf2.pass.Fill(valueTruth,value,fWeight);
-
+					pf2.pass.Fill((double)valueTruth,(double)value,(double)fWeight);
+					pf2.reco.Fill((double)value,(double)fWeight);
 				}else{
-					pf2.fail.Fill(valueTruth,value,fWeight);
+					pf2.fail.Fill((double)valueTruth,(double)value,(double)fWeight);
 				}
 			}
 		}
@@ -144,40 +148,158 @@ int miniClass::writeOut(std::string nam){
 		TCanvas * temp =  new TCanvas(("c_"+hists2D.at(i).v_name).c_str(),"");
 
 
-
 		TH2D h_eff = hists2D.at(i).pass;
+		h_eff.SetName( ("mig_"+hists2D.at(i).v_name).c_str());
 		TH2D h_eff_log = hists2D.at(i).pass;
 
+		TMatrixT <double> meffInv(h_eff.GetNbinsX()+2 ,h_eff.GetNbinsY()+2);
+		TMatrixT <double> meff(h_eff.GetNbinsX()+2 ,h_eff.GetNbinsY()+2);
+		TVectorT <double> vt = hists2D.at(i).getTruth();
+		TVectorT <double> vr = hists2D.at(i).getReco();
+		TVectorT <double> vr2(h_eff.GetNbinsX()+2);
 
-		TMatrixT <double> meff(h_eff.GetNbinsX()+2 ,h_eff.GetNbinsY()+2 );
-		TMatrixT <double> meff2(h_eff.GetNbinsX()+2 ,h_eff.GetNbinsY()+2 );
-		TMatrixT <double> meff3(h_eff.GetNbinsX()+2 ,h_eff.GetNbinsY()+2 );
 
+		for(int t=0; t<=h_eff.GetNbinsX()+1; t++){
+			for(int r=0; r<=h_eff.GetNbinsY()+1; r++){
 
-		for(int r=0; r<=h_eff.GetNbinsX(); r++){
-			for(int c=0; c<=h_eff.GetNbinsY(); c++){
+				meff(r,t)  = 0;
 
-				meff(r,c)  = 0;
+				//h_eff_log.SetBinContent(t,r, log10(  h_eff.GetBinContent(t,r)/ hists2D.at(i).truth.GetBinContent(t)  ));			
+				double d = hists2D.at(i).truth.GetBinContent(t);  
+				double n = hists2D.at(i).pass.GetBinContent(t,r);	
 
-				h_eff_log.SetBinContent(r,c, log10(  h_eff.GetBinContent(r,c)/ hists2D.at(i).truth.GetBinContent(r)  ));			
-				h_eff.SetBinContent(r,c, (  h_eff.GetBinContent(r,c)/ hists2D.at(i).truth.GetBinContent(r)    )  );		
-			
-				double d =hists2D.at(i).truth.GetBinContent(r) ;  
-				double n =h_eff.GetBinContent(r,c);	
-
-				meff(r,c)  = d/n;
+				h_eff.SetBinContent(r,t, n/d  );		
+				if( d/n != d/n){std::cout<<"ERROR: NAN "<<hists2D.at(i).v_name<<std::endl;}
+				meff(r,t)  = n/d;
 
 			}
 		}
 
-		std::cout<<"Det: "<<hists2D.at(i).v_name<<" "<<meff.Determinant()<<" X: "<<h_eff.GetNbinsX()<<" Y: "<<h_eff.GetNbinsY()<<std::endl;	
+		std::cout<<"Det: "<<hists2D.at(i).v_name<<" "<<meff.Determinant()<<" X: "<<meff.GetNrows()<<" Y: "<<meff.GetNcols()<<std::endl;	
 
 
-	//	meff.Write();
+
+		if(hists2D.at(i).v_name == "Eqe"){
+			hists2D.at(i).truth.Write();
+			hists2D.at(i).reco.Write();
+			hists2D.at(i).pass.Write();
+
+			meffInv = meff;
+			meffInv.Invert();
+			std::vector<int> tmp_colors = {kRed,kBlue,kGreen,kOrange};
+
+			meff.Write();
+			TRandom3 * rangen= new TRandom3(12128124);
+			//Generate 4 new poissonian "reco's"
+			std::vector<TH1D> treco;
+			std::vector<TH1D> ttruth;
+			for(int k=0;k<4;k++){
+				TH1D temp = hists2D.at(i).reco;
+				for(int p=0;p<=temp.GetNbinsX(); p++){
+					double fluc = rangen->Poisson( temp.GetBinContent(p));
+					temp.SetBinContent(p,fluc);
+				}
+
+				temp.SetLineColor(tmp_colors[k]);
+				temp.SetLineWidth(3);
+
+				treco.push_back(temp);
+			}
+
+			for(int k=0; k<4; k++){
+				int n = treco[k].GetNbinsX()+2;
+				TVectorT<double> tmp(n);
+				for(int y=0; y< n; y++){
+					tmp(y) = treco[k].GetBinContent(y);
+				}
+				TVectorT<double> temp_truth = meffInv*tmp;
+
+				TH1D temp = hists2D.at(i).reco;
+				for(int y=0; y< n; y++){
+					temp.SetBinContent(y,temp_truth(y));
+				}
+				temp.SetLineColor(tmp_colors[k]);
+				temp.SetLineWidth(3);
+
+				ttruth.push_back(temp);
+			}
+
+			
+			TVectorT<double> revR = hists2D.at(i).getReco();
+			TVectorT<double> revT = meffInv*revR;
+			TH1D h_rev = hists2D.at(i).reco;
+			std::cout<<"Start ReEngineer"<<std::endl;
+			for(int y=0; y< h_rev.GetNbinsX()+2; y++){
+				h_rev.SetBinContent(y, revT(y));
+				std::cout<<revT(y)<<" "<<hists2D.at(i).truth.GetBinContent(y)<<std::endl;
+			}
+	
+
+
+			TCanvas * test = new TCanvas("Eqe test","");
+			test->Divide(2,1);
+			test->cd(1);
+			hists2D.at(i).truth.SetMaximum(400);
+			hists2D.at(i).truth.SetStats(0);
+			hists2D.at(i).truth.SetLineWidth(3);
+			hists2D.at(i).truth.SetLineColor(kBlack);
+			h_rev.SetLineColor(kBlack);
+			hists2D.at(i).truth.GetXaxis()->SetTitle("Enu Truth [GeV]");
+
+			hists2D.at(i).truth.SetMarkerStyle(21);
+			hists2D.at(i).truth.Draw();
+			h_rev.Draw("same hist");
+			for(int y=0; y<4; y++){
+				ttruth.at(y).Draw("same hist");
+			}	
+
+
+			test->cd(2);
+			hists2D.at(i).reco.SetStats(0);
+			hists2D.at(i).reco.SetLineWidth(3);
+			hists2D.at(i).reco.SetLineColor(kBlack);
+			hists2D.at(i).reco.GetXaxis()->SetTitle("Eqe [GeV]");
+			hists2D.at(i).reco.SetMarkerStyle(21);
+			hists2D.at(i).reco.Draw();
+			for(int y=0; y<4; y++){
+				treco.at(y).Draw("same hist");
+			}	
+
+			test->Write();
+
+			TCanvas * test2 = new TCanvas("Eqe test2","");
+			test2->Divide(2,1);
+			test2->cd(1);
+			hists2D.at(i).truth.Draw();
+			h_rev.Draw("same hist");
+			test2->cd(2);
+			hists2D.at(i).reco.Draw();
+			test2->Write();
+	
+
+		}
+
+		vr2 = meff*vt;
+		std::cout <<"Test of Truth: "<<hists2D.at(i).v_name<<std::endl;
+		for(int p=0;p<vt.GetNrows(); p++){
+			std::cout<<std::setprecision (10)<< vt(p)<<" ";
+		}
+		std::cout<<"Test of migration: "<<hists2D.at(i).v_name<<std::endl;
+		std::cout<<"Real: ";
+		for(int p=0;p<vt.GetNrows(); p++){
+			std::cout<<std::setprecision (10)<<  vr(p)<<" ";
+		}
+		std::cout<<std::endl;
+		std::cout<<"Migr: ";
+		for(int p=0;p<vt.GetNrows(); p++){
+			std::cout<<vr2(p)<<" ";
+		}
+		std::cout<<std::endl;
+
 
 		temp->Divide(2,2);
 		temp->cd(1);
-		
+
 		hists2D.at(i).pass.GetYaxis()->SetTitle(hists2D.at(i).v_name.c_str());
 		hists2D.at(i).pass.GetXaxis()->SetTitle(truth_var.c_str());
 		hists2D.at(i).pass.Draw("colz");
@@ -189,11 +311,12 @@ int miniClass::writeOut(std::string nam){
 		hists2D.at(i).fail.Draw("colz");
 
 		temp->cd(3);
-		
+
 		h_eff_log.Sumw2();
+
 		//h_eff_log.Draw("colz");
 
-
+		h_eff.Write();
 		temp->cd(4);
 		h_eff.Sumw2();
 		h_eff.Draw("colz");
