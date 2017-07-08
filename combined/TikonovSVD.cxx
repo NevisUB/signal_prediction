@@ -1,18 +1,10 @@
-#ifndef __COMBINEDUNFOLD_CXX__
-#define __COMBINEDUNFOLD_CXX__
-#include <iostream>
-#include "CombinedUnfold.h"
+#ifndef __TIKONOVSVD_CXX__
+#define __TIKONOVSVD_CXX__
+
+#include "TikonovSVD.h"
 #include <Eigen/SVD>
 
 namespace sp {
-
-  Eigen::VectorXf to_vector_eigen(std::vector<float> vec) {
-    return Eigen::Map<Eigen::VectorXf>(vec.data(), vec.size());
-  }
-
-  std::vector<float> to_vector_std(const Eigen::VectorXf vec) {
-    return std::vector<float>(vec.data(), vec.data() + vec.size());
-  }
   
   void TikhonovSVD::Initialize(const Eigen::MatrixXf& A) {
 

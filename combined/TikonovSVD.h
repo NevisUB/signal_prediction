@@ -1,19 +1,13 @@
-#ifndef __COMBINEDUNFOLD_H__
-#define __COMBINEDUNFOLD_H__
+#ifndef __TIKONOVSVD_H__
+#define __TIKONOVSVD_H__
 
-#include "CombinedTypes.h"
-#include "Eigen/Dense"
-#include <vector>
+#include "SPTypes.h"
+#include <Eigen/Dense>
 
 namespace sp {
 
-  // why forced to make a copy?
-  Eigen::VectorXf to_vector_eigen(std::vector<float> vec);
-
-  std::vector<float> to_vector_std(const Eigen::VectorXf vec);
-  
-  
   class TikhonovSVD {
+
   public:
     TikhonovSVD() : _epsilon(1e-4) {}
     ~TikhonovSVD(){}
@@ -25,6 +19,7 @@ namespace sp {
     float _epsilon;
     
   private:
+
     Eigen::MatrixXf _C;
     Eigen::MatrixXf _C_inv;
     Eigen::MatrixXf _A;
@@ -42,7 +37,6 @@ namespace sp {
     const Eigen::MatrixXf& U() const { return _U; }
     const Eigen::MatrixXf& V() const { return _V; }
     const Eigen::VectorXf& s() const { return _s; }
-
 
   };
   

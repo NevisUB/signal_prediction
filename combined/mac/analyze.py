@@ -18,8 +18,8 @@ print "Got input files: ",FNAME_v
 print "Reading in events..."
 tree_df = pd.DataFrame(rn.root2array(FNAME_v,selection='Weight>0',treename='MiniBooNE_CCQE'))
 
-print "Calculating Eqe..."
-tree_df['Eqe']    = tree_df.apply(lambda x : 1000.0*sp.CombinedFit_EnuQE_ryan(x['Energy'],x['CosTheta'],x['NuType']),axis=1)
+print "Calculating Eqe under Nue assumption"
+tree_df['Eqe']    = tree_df.apply(lambda x : 1000.0*sp.CombinedFit_EnuQE_ryan(x['Energy'],x['CosTheta'],sp.kNUE),axis=1)
 
 print "Calculating backgrounds..."
 tree_df['BkgdID'] = tree_df.apply(lambda x : sp.CombinedFit_bkgd_type(x['NUANCEChan'],x['NuType']),axis=1)

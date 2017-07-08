@@ -10,7 +10,7 @@
 #pragma link C++ enum sp::BkgdType_t+;
 #pragma link C++ enum sp::NuanceType_t+;
 
-#pragma link C++ class sp::LoadCombined+;
+#pragma link C++ class sp::LoadSP+;
 
 #pragma link C++ class sp::TikhonovSVD+;
 

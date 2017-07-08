@@ -1,8 +1,9 @@
 #ifndef __COMBINEDFUNCTIONS_H__
 #define __COMBINEDFUNCTIONS_H__
 
+#include "SPTypes.h"
 #include "CombinedTypes.h"
-#include "PyCombined.h"
+#include "PySP.h"
 
 #include <string>
 

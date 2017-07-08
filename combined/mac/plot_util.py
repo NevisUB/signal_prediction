@@ -50,7 +50,10 @@ def Efficiency1D(df,query1,query2,var,xlo,xhi,dx,useweight=True):
     ydata = thist[0][0] / thist[0][1]
 
     yerr = np.sqrt(ydata*(1-ydata) / thist[0][1])
+
+    ydata = np.nan_to_num(ydata)
     yerr = np.nan_to_num(yerr)
+    
     xerr = np.ones(yerr.size) * bin_dq 
     ax.errorbar(xdata,ydata,xerr=xerr,yerr=yerr,fmt='o',lw=2,color='blue')
     

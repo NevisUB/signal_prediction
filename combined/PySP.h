@@ -1,5 +1,5 @@
-#ifndef __PYCOMBINED_H__
-#define __PYCOMBINED_H__
+#ifndef __PYSP_H__
+#define __PYSP_H__
 
 struct _object;
 typedef _object PyObject;
@@ -10,7 +10,6 @@ typedef _object PyObject;
 #endif
 #endif
 #include <vector>
-#include <Eigen/Dense>
 
 namespace sp {
 
@@ -21,8 +20,6 @@ namespace sp {
   std::vector<float> as_vector_float32(PyObject* pyarray);
   PyObject* as_array_float32(const std::vector<float>& vec);
 
-  Eigen::MatrixXf as_mat_float32(PyObject* pyarray);
-  PyObject* as_array_float32(const Eigen::MatrixXf& mat);
 }
 
 #endif
