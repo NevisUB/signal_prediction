@@ -5,8 +5,16 @@
 #include <Eigen/SVD>
 
 namespace sp {
+
+  Eigen::VectorXf to_vector_eigen(std::vector<float> vec) {
+    return Eigen::Map<Eigen::VectorXf>(vec.data(), vec.size());
+  }
+
+  std::vector<float> to_vector_std(const Eigen::VectorXf vec) {
+    return std::vector<float>(vec.data(), vec.data() + vec.size());
+  }
   
-  void TikhonovSVD::Unfold(const Eigen::MatrixXf& A) {
+  void TikhonovSVD::Initialize(const Eigen::MatrixXf& A) {
 
     //
     // Store A
@@ -21,10 +29,10 @@ namespace sp {
     Eigen::VectorXf diag_v(c_sz);
     Eigen::VectorXf sub_diag_v(c_sz-1);
 
-    for(size_t c_i = 0; c_i < c_sz; ++c_i) diag_v[c_i] = -2.0 + _tau;
+    for(size_t c_i = 0; c_i < c_sz; ++c_i) diag_v[c_i] = -2.0 + _epsilon;
     
-    diag_v[0]      = -1.0 + _tau;
-    diag_v[c_sz-1] = -1.0 + _tau;
+    diag_v[0]      = -1.0 + _epsilon;
+    diag_v[c_sz-1] = -1.0 + _epsilon;
 
     for(size_t c_i = 0; c_i < c_sz-1; ++c_i) sub_diag_v[c_i] = 1.0;
 
@@ -54,6 +62,22 @@ namespace sp {
     _U = bdc.matrixU();
     _V = bdc.matrixV();
     _s = bdc.singularValues();
+  }
+
+
+  Eigen::VectorXf TikhonovSVD::Unfold(const Eigen::VectorXf& b, size_t k) {
+
+    auto d = _U.transpose() * b;
+
+    if (k==kINVALID_SIZE) k = b.size();
+    
+    auto tau = _s(k) * _s(k);
+    
+    auto top = d.cwiseProduct(_s);
+    auto bot = _s.cwiseProduct(_s) + tau*Eigen::VectorXf::Ones(_s.size());
+    auto z = top.cwiseProduct(bot.cwiseInverse());
+    
+    return _C_inv * ( _V.transpose() * z);
   }
   
 }

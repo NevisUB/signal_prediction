@@ -15,8 +15,12 @@ typedef _object PyObject;
 namespace sp {
 
   void SetPyUtil();
+
   std::vector<int> as_vector_int32(PyObject* pyarray);
+
   std::vector<float> as_vector_float32(PyObject* pyarray);
+  PyObject* as_array_float32(const std::vector<float>& vec);
+
   Eigen::MatrixXf as_mat_float32(PyObject* pyarray);
   PyObject* as_array_float32(const Eigen::MatrixXf& mat);
 }

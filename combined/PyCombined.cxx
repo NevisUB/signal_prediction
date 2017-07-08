@@ -46,6 +46,21 @@ namespace sp {
     return std::vector<float>(carray,carray + dims[0]);
   }
 
+  PyObject* as_array_float32(const std::vector<float>& vec) {
+    SetPyUtil();
+        
+    npy_intp dims[1];
+    dims[0] = vec.size();
+    auto array = (PyArrayObject*)(PyArray_ZEROS(1,dims,NPY_FLOAT,0));
+    
+    float* data_ptr = (float*) PyArray_DATA(array);
+
+    memcpy(data_ptr, vec.data(), sizeof(float)*(vec.size()));
+
+    return PyArray_Return(array);
+  }
+  
+  
   Eigen::MatrixXf as_mat_float32(PyObject* pyarray) {
     SetPyUtil();
 
