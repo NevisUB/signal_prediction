@@ -5,6 +5,7 @@ INCFLAGS =-I.
 INCFLAGS+=$(shell root-config --cflags)
 INCFLAGS += $(shell python-config --includes)
 INCFLAGS += -I$(shell python -c "import numpy; print numpy.get_include()")
+INCFLAGS += -I$(EIGEN_INCDIR)
 
 LDFLAGS=-L.
 LDFLAGS+=$(shell root-config --libs)

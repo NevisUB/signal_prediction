@@ -12,5 +12,6 @@
 
 #pragma link C++ class sp::LoadCombined+;
 
+#pragma link C++ class sp::TikhonovSVD+;
 
 #endif
