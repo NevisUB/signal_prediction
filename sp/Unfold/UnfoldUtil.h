@@ -4,14 +4,22 @@
 #include <Eigen/Dense>
 #include <vector>
 
+#include "TH1F.h"
+#include "TH1D.h"
+
 namespace sp {
 
-  // why forced to make a copy?
-  Eigen::VectorXf to_vector_eigen(std::vector<float> vec);
 
-  std::vector<float> to_vector_std(const Eigen::VectorXf vec);
+  Eigen::VectorXf to_vector_eigen(const std::vector<float>& vec);
+  Eigen::VectorXd to_vector_eigen(const std::vector<double>& vec);
 
+  Eigen::VectorXf to_vector_eigen(const TH1F& th);
+  Eigen::VectorXd to_vector_eigen(const TH1D& th);
   
+  std::vector<float>  to_vector_std(const Eigen::VectorXf& vec);
+  std::vector<double> to_vector_std(const Eigen::VectorXd& vec);
+
+
 }
 
 #endif

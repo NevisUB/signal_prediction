@@ -6,6 +6,7 @@
 
 #pragma link C++ namespace sp+;
 
+#pragma link C++ class sp::LoadUnfold+;
 #pragma link C++ class sp::TikhonovSVD+;
 
 #endif

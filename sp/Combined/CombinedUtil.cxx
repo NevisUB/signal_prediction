@@ -4,7 +4,7 @@
 #include "CombinedUtil.h"
 
 namespace sp {
-  
+
   //
   // Convenience functions
   //
