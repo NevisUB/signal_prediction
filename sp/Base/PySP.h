@@ -15,10 +15,14 @@ namespace sp {
 
   void SetPyUtil();
 
-  std::vector<int> as_vector_int32(PyObject* pyarray);
-
-  std::vector<float> as_vector_float32(PyObject* pyarray);
+  std::vector<int>    as_vector_int32  (PyObject* pyarray);
+  std::vector<float>  as_vector_float32(PyObject* pyarray);
+  std::vector<double> as_vector_float64(PyObject* pyarray);
+  std::vector<double> as_vector_double (PyObject* pyarray);
+  
   PyObject* as_array_float32(const std::vector<float>& vec);
+  PyObject* as_array_float64(const std::vector<double>& vec);
+  PyObject* as_array_double (const std::vector<double>& vec);
 
 }
 

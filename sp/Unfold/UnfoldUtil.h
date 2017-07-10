@@ -7,6 +7,10 @@
 #include "TH1F.h"
 #include "TH1D.h"
 
+#include "TH2F.h"
+#include "TH2D.h"
+
+
 namespace sp {
 
 
@@ -21,6 +25,9 @@ namespace sp {
 
   std::vector<double> to_vector_std(const Eigen::VectorXd& vec);
   std::vector<double> to_vector_std(const TH1D& th);
+
+  Eigen::MatrixXf to_mat_eigen(const TH2F& th);
+  Eigen::MatrixXd to_mat_eigen(const TH2D& th);
   
 }
 

@@ -13,12 +13,16 @@
 #include <iostream>
 
 namespace sp {
+
+  void InitPyUnfold() {
+    static bool once=false;
+    if(!once) { import_array(); once=true; }
+  }
   
   Eigen::MatrixXf as_mat_float32(PyObject* pyarray) {
-    SetPyUtil();
-
+    InitPyUnfold();
+    
     float **carray;
-
     // Create C arrays from numpy objects:
     const int dtype = NPY_FLOAT;
     PyArray_Descr *descr = PyArray_DescrFromType(dtype);
@@ -37,7 +41,7 @@ namespace sp {
 
 
   PyObject* as_array_float32(const Eigen::MatrixXf& mat) {
-    SetPyUtil();
+    InitPyUnfold();
         
     npy_intp dims[2];
     dims[0] = mat.rows();
