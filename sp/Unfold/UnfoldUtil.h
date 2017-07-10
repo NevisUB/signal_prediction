@@ -28,7 +28,39 @@ namespace sp {
 
   Eigen::MatrixXf to_mat_eigen(const TH2F& th);
   Eigen::MatrixXd to_mat_eigen(const TH2D& th);
+
+
+  //
+  // Convenience wrappers
+  //
+
+  Eigen::MatrixXf Invert(const Eigen::MatrixXf& mat);
+  Eigen::MatrixXd Invert(const Eigen::MatrixXd& mat);
+
+  Eigen::MatrixXf Transpose(const Eigen::MatrixXf& mat);
+  Eigen::MatrixXd Transpose(const Eigen::MatrixXd& mat);
+
+  Eigen::MatrixXf Multiply(const Eigen::MatrixXf& mat1, const Eigen::MatrixXf& mat2);
+  Eigen::MatrixXd Multiply(const Eigen::MatrixXd& mat1, const Eigen::MatrixXd& mat2);
+
+  Eigen::MatrixXf Multiply(const Eigen::MatrixXf& mat1, const Eigen::VectorXf& vec1);
+  Eigen::MatrixXd Multiply(const Eigen::MatrixXd& mat1, const Eigen::VectorXd& vec1);
+
+  Eigen::VectorXf CMultiply(const Eigen::VectorXf& vec1, const Eigen::VectorXf& vec2);
+  Eigen::VectorXd CMultiply(const Eigen::VectorXd& vec1, const Eigen::VectorXd& vec2);
+
+  Eigen::VectorXf CInvert(const Eigen::VectorXf& vec1);
+  Eigen::VectorXd CInvert(const Eigen::VectorXd& vec1);
+
+  Eigen::MatrixXf Add(const Eigen::MatrixXf& mat1, const Eigen::MatrixXf& mat2);
+  Eigen::MatrixXd Add(const Eigen::MatrixXd& mat1, const Eigen::MatrixXd& mat2);
+  
+  Eigen::MatrixXf Subtract(const Eigen::MatrixXf& mat1, const Eigen::MatrixXf& mat2);
+  Eigen::MatrixXd Subtract(const Eigen::MatrixXd& mat1, const Eigen::MatrixXd& mat2);
+
   
 }
+
+
 
 #endif

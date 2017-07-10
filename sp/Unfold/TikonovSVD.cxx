@@ -3,7 +3,7 @@
 
 #include "TikonovSVD.h"
 #include <Eigen/SVD>
-
+#include <iostream>
 namespace sp {
   
   void TikhonovSVD::Initialize(const Eigen::MatrixXf& A) {
@@ -58,18 +58,18 @@ namespace sp {
 
 
   Eigen::VectorXf TikhonovSVD::Unfold(const Eigen::VectorXf& b, size_t k) {
+    
+    _d = _U.transpose() * b;
 
-    auto d = _U.transpose() * b;
-
-    if (k==kINVALID_SIZE) k = b.size();
+    if (k==kINVALID_SIZE) k = b.size() - 1;
     
     auto tau = _s(k) * _s(k);
     
-    auto top = d.cwiseProduct(_s);
+    auto top = _d.cwiseProduct(_s);
     auto bot = _s.cwiseProduct(_s) + tau*Eigen::VectorXf::Ones(_s.size());
     auto z = top.cwiseProduct(bot.cwiseInverse());
     
-    return _C_inv * ( _V.transpose() * z);
+    return _C_inv * ( _V * z);
   }
   
 }

@@ -2,6 +2,7 @@
 #define __PYUNFOLD_CXX__
 
 #include "PyUnfold.h"
+#include "UnfoldUtil.h"
 
 #ifndef NPY_NO_DEPRECATED_API
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
@@ -59,6 +60,10 @@ namespace sp {
     std::free(eigen_ptr);
     
     return PyArray_Return(array);
+  }
+
+  PyObject* as_array_float32(const Eigen::VectorXf& vec) {
+    return as_array_float32(to_vector_std(vec));
   }
   
 }

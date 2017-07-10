@@ -27,6 +27,7 @@ namespace sp {
     Eigen::MatrixXf _U;
     Eigen::MatrixXf _V;
     Eigen::VectorXf _s;
+    Eigen::VectorXf _d;
 
   public:
         
@@ -37,6 +38,7 @@ namespace sp {
     const Eigen::MatrixXf& U() const { return _U; }
     const Eigen::MatrixXf& V() const { return _V; }
     const Eigen::VectorXf& s() const { return _s; }
+    const Eigen::VectorXf& d() const { return _d; }    
 
   };
   

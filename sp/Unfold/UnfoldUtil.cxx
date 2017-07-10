@@ -62,6 +62,87 @@ namespace sp {
 													 th.GetNbinsX()+2);
     return mat.block(1,1,th.GetNbinsY(),th.GetNbinsX());
   }
+
+  //
+  //
+  //
+  Eigen::MatrixXf Invert(const Eigen::MatrixXf& mat){
+    return mat.inverse();
+  }
+  Eigen::MatrixXd Invert(const Eigen::MatrixXd& mat) {
+    return mat.inverse();
+  }
+
+  //
+  //
+  //
+  Eigen::MatrixXf Transpose(const Eigen::MatrixXf& mat){
+    return mat.transpose();
+  }
+  Eigen::MatrixXd Transpose(const Eigen::MatrixXd& mat) {
+    return mat.transpose();
+  }
+
+  //
+  //
+  //
+  Eigen::MatrixXf Multiply(const Eigen::MatrixXf& mat1, const Eigen::MatrixXf& mat2){
+    return mat1 * mat2;
+  }
+
+  Eigen::MatrixXd Multiply(const Eigen::MatrixXd& mat1, const Eigen::MatrixXd& mat2){
+    return mat1 * mat2;
+  }
+
+  Eigen::MatrixXf Multiply(const Eigen::MatrixXf& mat1, const Eigen::VectorXf& vec1){
+    return mat1 * vec1;
+  }
+
+  Eigen::MatrixXd Multiply(const Eigen::MatrixXd& mat1, const Eigen::VectorXd& vec1){
+    return mat1 * vec1;
+  }
+
+  //
+  //
+  //
+  Eigen::VectorXf CMultiply(const Eigen::VectorXf& vec1, const Eigen::VectorXf& vec2){
+    return vec1.cwiseProduct(vec2);
+  }
+
+  Eigen::VectorXd CMultiply(const Eigen::VectorXd& vec1, const Eigen::VectorXd& vec2){
+    return vec1.cwiseProduct(vec2);
+  }
+
+  Eigen::VectorXf CInvert(const Eigen::VectorXf& vec1) {
+    return vec1.cwiseInverse();
+  }
+
+  Eigen::VectorXd CInvert(const Eigen::VectorXd& vec1) {
+    return vec1.cwiseInverse();
+  }
+
+  //
+  //
+  //
+  Eigen::MatrixXf Add(const Eigen::MatrixXf& mat1, const Eigen::MatrixXf& mat2){
+    return mat1 + mat2;
+  }
+
+  Eigen::MatrixXd Add(const Eigen::MatrixXd& mat1, const Eigen::MatrixXd& mat2){
+    return mat1 + mat2;
+  }
+
+  //
+  //
+  //
+  Eigen::MatrixXf Subtract(const Eigen::MatrixXf& mat1, const Eigen::MatrixXf& mat2){
+    return mat1 - mat2;
+  }
+
+  Eigen::MatrixXd Subtract(const Eigen::MatrixXd& mat1, const Eigen::MatrixXd& mat2){
+    return mat1 - mat2;
+  }
+
   
 }
 
