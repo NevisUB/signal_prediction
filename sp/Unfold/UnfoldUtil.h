@@ -14,6 +14,16 @@
 namespace sp {
 
 
+  //
+  // Useful functions
+  //
+  Eigen::MatrixXf Cov(const Eigen::VectorXf& vec);
+  Eigen::MatrixXd Cov(const Eigen::VectorXd& vec);
+  
+  
+  //
+  // Conversion wrapper for python
+  //
   Eigen::VectorXf to_vector_eigen(const std::vector<float>& vec);
   Eigen::VectorXf to_vector_eigen(const TH1F& th);
 
@@ -31,7 +41,7 @@ namespace sp {
 
 
   //
-  // Convenience wrappers
+  // Arithmetic convenience wrappers for python
   //
 
   Eigen::MatrixXf Invert(const Eigen::MatrixXf& mat);

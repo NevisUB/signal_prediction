@@ -291,9 +291,16 @@ namespace sp {
     if      (Event_is_dirt) return kBKGD_DIRT;
     else if (Event_is_pi0)  return kBKGD_PI0;
     else if (evwt == kCC1pNg or evwt == kNC1pNg) return kBKGD_DELTA;
-    else if (parent_id == kPIONP and nutype == kNUE) return kBKGD_NUEPIP;
-    else if (parent_id == kKAONP and nutype == kNUE) return kBKGD_NUEKP;
-    else if (parent_id == kKAON0LONG and nutype == kNUE) return kBKGD_NUEK0;
+    else if ((parent_id == kPIONP or parent_id == kPIONM or parent_id == kMUONP or parent_id == kMUONM)
+	     and
+	     (nutype == kNUE or nutype== kNUEBAR)) return kBKGD_NUEPIP;
+    
+    else if ((parent_id == kKAONP or parent_id == kKAONM)
+	     and
+	     (nutype == kNUE or nutype== kNUEBAR)) return kBKGD_NUEKP;
+  
+    else if (parent_id == kKAON0LONG and (nutype == kNUE or nutype== kNUEBAR)) return kBKGD_NUEK0;
+  
     else return kBKGD_OTHER;
     
     return bkg;

@@ -1,5 +1,5 @@
-#ifndef __SPUTIL_H__
-#define __SPUTIL_H__
+#ifndef __LOADSP_H__
+#define __LOADSP_H__
 
 namespace sp {
   class LoadSP {

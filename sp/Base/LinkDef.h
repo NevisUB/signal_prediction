@@ -6,5 +6,6 @@
 
 #pragma link C++ namespace sp+;
 #pragma link C++ class sp::LoadSP+;
+#pragma link C++ class sp::SPIO+;
 
 #endif

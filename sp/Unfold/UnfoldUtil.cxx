@@ -5,6 +5,25 @@
 
 namespace sp {
 
+
+  //
+  //
+  //
+  Eigen::MatrixXf Cov(const Eigen::VectorXf& vec) {
+    Eigen::MatrixXf centered = vec.rowwise() - vec.colwise().mean();
+    float denom = centered.rows() > 1  ? centered.rows() - 1 : 1;
+    Eigen::MatrixXf cov = (centered.adjoint() * centered) / denom;
+    return cov;
+  }
+
+  Eigen::MatrixXd Cov(const Eigen::VectorXd& vec) {
+    Eigen::MatrixXd centered = vec.rowwise() - vec.colwise().mean();
+    double denom = centered.rows() > 1  ? centered.rows() - 1 : 1;
+    Eigen::MatrixXd cov = (centered.adjoint() * centered) / denom;
+    return cov;
+  }
+
+  
   //
   // Eigen::VectorXx
   //
