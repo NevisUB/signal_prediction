@@ -17,6 +17,9 @@ namespace sp {
 		      const std::vector<double>& bin_lo_v,
 		      const std::vector<double>& bin_hi_v);
 
+  float GeV2MeV(float gev); 
+  float MeV2GeV(float mev);
+
   // for now it has to be the same was as function definition...
   float Operate(const std::vector<float>& data, Operation_t operation);
   

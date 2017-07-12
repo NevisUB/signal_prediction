@@ -14,9 +14,9 @@ int main(int argc, char** argv) {
   a.add_reco_parameter(var_v,bins_lo_v,bins_hi_v);
 
   var_v[0] = "NuMomT";
-  bins_lo_v = {0,.100,.200,.300,.400,.500,.600,.700,.800,.900,1.0};
-  bins_hi_v = {0,.200,.300,.400,.500,.600,.700,.800,.900,1.0,1.1};
-  a.add_true_parameter(var_v,bins_lo_v,bins_hi_v);
+  bins_lo_v = {0,100,200,300,400,500,600,700,800,900,1000};
+  bins_hi_v = {0,200,300,400,500,600,700,800,900,1000,1100};
+  a.add_true_parameter(var_v,bins_lo_v,bins_hi_v,sp::kOP_GEV2MEV);
 
   var_v[0] = "CosTheta";
   bins_lo_v = {-1.0,-0.75,-0.5,-0.25,0.0,.25,.5,.75};

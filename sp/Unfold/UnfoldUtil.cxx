@@ -39,6 +39,10 @@ namespace sp {
     return ss.str();
   }
 
+
+  float GeV2MeV(float gev) { return (1000.0 * gev); }
+  float MeV2GeV(float mev) { return (mev / 1000.0); }
+
   // for now it has to be the same was as function definition...
   float Operate(const std::vector<float>& data, Operation_t operation) {
 
@@ -59,6 +63,14 @@ namespace sp {
     case kOP_Q2 : 
       { 
 	return CombinedFit_Q2_ryan(data[0],data[1],kNUE);
+      }
+    case kOP_MEV2GEV :
+      {
+	return MeV2GeV(data.front());
+      }
+    case kOP_GEV2MEV :
+      {
+	return GeV2MeV(data.front());
       }
     default:
       {

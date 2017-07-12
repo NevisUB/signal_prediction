@@ -12,11 +12,9 @@ namespace sp {
     _unfold_file_name(""),
     _in_tree(nullptr),
     _unfold_file(nullptr)
-  { std::cout << "S @ " << this << std::endl; }
+  { }
 
-  SPIO::~SPIO() {
-    std::cout << "~S @ " << this << std::endl;
-  }
+  SPIO::~SPIO() { }
   
   void SPIO::add_mc_in_file(const std::string& filename) {
     _in_mc_file_v.push_back(filename);
@@ -202,7 +200,7 @@ namespace sp {
 	}
 	else  {
 	  std::stringstream ss;
-	  ss << "response_" << true_id << "_" << reco_id << "_" << response.true_param->_name << "_" << response.reco_param->_name;
+	  ss << "response_" << "_" << response.true_param->_name << "_" << response.reco_param->_name;
 	  std::cout << "Made new " << ss.str() << std::endl;
 	  response.name = ss.str();
 	  std::cout << "Filling " << response.name << " response @ " << &response << std::endl;
@@ -272,15 +270,18 @@ namespace sp {
       float weight;
       bool passosc;
       int nutype;
-    
-      _in_tree->SetBranchAddress("Weight" , &weight);
-      _in_tree->SetBranchAddress("PassOsc", &passosc);
-      _in_tree->SetBranchAddress("NuType" , &nutype);
-    
+      int nuancechan;
+
+      _in_tree->SetBranchAddress("Weight"    , &weight);
+      _in_tree->SetBranchAddress("PassOsc"   , &passosc);
+      _in_tree->SetBranchAddress("NuType"    , &nutype);
+      _in_tree->SetBranchAddress("NUANCEChan", &nuancechan);
+
       std::cout << "READING: " << _in_n_entries << " entries from MC file" << std::endl;
       for(size_t entry = 0; entry < _in_n_entries; ++entry) {
 	_in_tree->GetEntry(entry);
-
+	
+	if (!passosc) continue;
 	if (entry>=10000) break;
 	if (weight<=0) continue;
 	

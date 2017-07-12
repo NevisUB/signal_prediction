@@ -7,6 +7,7 @@
 namespace sp {
 
   class SPManager {
+
   public:
     SPManager() {}
     ~SPManager() {}
@@ -15,15 +16,20 @@ namespace sp {
     void Process();
     void Finalize();
 
-    void AddAlgo(UnfoldAlgoBase* algo);
-    
   private:
     SPIO _spio;
-
     std::vector<UnfoldAlgoBase*> _algo_v;
+    //std::vector<std::tuple<Response*,
+
+  public:
+
+    // Setters
+    void AddAlgo(UnfoldAlgoBase* algo);
+
+    // Getters
+    SPIO& get_io() { return _spio; } 
+
   };
-
-
 }
 
 #endif
