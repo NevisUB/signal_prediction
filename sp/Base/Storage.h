@@ -10,6 +10,8 @@
 #include "TH2D.h"
 #include "TVectorD.h"
 #include "TMatrixD.h"
+#include <iostream>
+    
 
 namespace sp {
 
@@ -17,25 +19,24 @@ namespace sp {
   
   class Parameter : public TObject {
   public:
-    Parameter() : _hist(nullptr) {}
+
+    Parameter();
+
     Parameter(const std::string& name,
 	      const std::vector<double>& bin_lo_v,
-	      const std::vector<double>& bin_hi_v,
-	      std::vector<std::string> options_v = std::vector<std::string>());
+	      const std::vector<double>& bin_hi_v);
     
-    ~Parameter(){ if(_hist) delete _hist; _hist=nullptr;}
+    ~Parameter(){ std::cout << "~P @ "<< this  << std::endl;};
     
     std::string _name;
     std::vector<double> _bin_lo_v;
     std::vector<double> _bin_hi_v;
-    std::vector<double> _bin_w_v;
-    std::vector<double> _bin_v;
-    std::vector<std::string> options_v;
-    
-    bool _filled;
-    
-    TH1D* _hist;
 
+    bool _filled;
+    bool _from_file;
+
+    TH1D _hist;
+    
     // Not serialized
     Response* _response; //!
     float _data; //!
@@ -44,8 +45,6 @@ namespace sp {
       if (_name     != rhs._name)     return false;
       if (_bin_lo_v != rhs._bin_lo_v) return false;
       if (_bin_hi_v != rhs._bin_hi_v) return false;
-      if (_bin_v    != rhs._bin_v)    return false;
-      if (_filled   != rhs._filled)   return false;
       return true;
     }
 
@@ -55,10 +54,9 @@ namespace sp {
     }
 
     void Fill(float weight);
-    
     void dump();
 
-    ClassDef(Parameter,1); 
+    ClassDef(sp::Parameter,1); 
   };
 
   
@@ -66,16 +64,9 @@ namespace sp {
 
   public:
 
-    Response() :
-      name(""),
-      true_param(nullptr),
-      reco_param(nullptr),
-      response_h(nullptr)
-    {}
-
+    Response();
     Response(Parameter* true_p, Parameter* reco_p);
-    
-    ~Response(){ if(response_h) delete response_h; response_h=nullptr;}
+    ~Response(){ std::cout << "~R @ " << this << std::endl;}
     
     std::string name;
     
@@ -86,22 +77,23 @@ namespace sp {
     TVectorD true_v;
     TVectorD reco_v;
     
-    TH2D* response_h;
+    TH2D response_h;
     
+    bool from_file;
+
     inline bool operator==(const Response& rhs) const {
       if ( (*true_param) != *(rhs.true_param) ) return false;
       if ( (*reco_param) != *(rhs.reco_param) ) return false;
       return true;
     }
 
-    inline bool filled() const { return (true_param->_filled && reco_param->_filled); }
-    
     void Fill(float weight, bool passosc, int nutype);
     void Finalize();
     
-    void dump();
+    bool filled() const;
+    void dump() const;
 
-    ClassDef(Response,1); 
+    ClassDef(sp::Response,1); 
   };
   
 }

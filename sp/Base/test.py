@@ -6,11 +6,10 @@ import numpy as np
 sp.LoadSP()
 
 a = sp.SPIO()
-a.add_mc_in_file("/Users/vgenty/Desktop/signal_prediction/simplifyTreeOsc/output_osc_mc_detail_1.root")
+a.add_mc_in_file("/home/vgenty/filteredoutput_osc_mc_detail_1.root")
 a.set_mc_tree_name("MiniBooNE_CCQE")
 
 a.initialize()
-
 
 #
 # Evis spectrum
@@ -38,6 +37,14 @@ a.add_true_parameter(name,bins_lo_v,bins_hi_v);
 
 a.init_response_matrix();
 a.fill_responses();
+
+print a.Responses()
+
+for i,response in enumerate(a.Responses()):
+    print "===> @",i
+    print response.dump()
+    print
+
 a.write_unfold_file();
 
 print "Calling SPIO destructor"

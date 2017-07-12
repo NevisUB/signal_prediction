@@ -1,7 +1,7 @@
 #ifndef __PYSP_CXX__
 #define __PYSP_CXX__
 
-#import "PySP.h"
+#include "PySP.h"
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include <numpy/ndarrayobject.h>
 

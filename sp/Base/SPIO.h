@@ -16,7 +16,6 @@ namespace sp {
     SPIO();
     ~SPIO();
 
-
     //
     // Core methods
     //
@@ -47,6 +46,7 @@ namespace sp {
     //
     // Private variables
     //
+
   private:
 
     std::vector<std::string> _in_mc_file_v;
@@ -67,8 +67,8 @@ namespace sp {
 
     std::vector<Response> _response_v;
 
-    std::vector<Parameter*> _unfold_parameter_ptr_v;
-    std::vector<Response*> _unfold_response_ptr_v;
+    std::vector<const Parameter*> _unfold_parameter_ptr_v;
+    std::vector<const Response*> _unfold_response_ptr_v;
 
     //
     // Private functions
@@ -76,15 +76,16 @@ namespace sp {
   private:
     void prepare_unfold_file_parameters();
     void prepare_unfold_file_responses();
-    Parameter* search_unfold_parameters(const Parameter& in_param);
-    Response*  search_unfold_responses(const Response& in_response);
+    const Parameter* search_unfold_parameters(const Parameter& in_param);
+    const Response*  search_unfold_responses(const Response& in_response);
     
     //
     // Public convenience
     //
   public:
     void dump_branches();
-    
+    const std::vector<Response>& Responses() const { return _response_v; }
+
   };
   
 }
