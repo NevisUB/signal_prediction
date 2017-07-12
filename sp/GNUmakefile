@@ -1,4 +1,4 @@
-SUBDIRS :=  Base Combined Unfold
+SUBDIRS :=  Base Combined
 
 .phony: all clean
 

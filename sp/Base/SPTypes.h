@@ -2,6 +2,7 @@
 #define __SPTYPES_H__
 
 #include <limits>
+#include <cstddef>
 
 namespace sp {
 

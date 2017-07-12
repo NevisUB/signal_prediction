@@ -1,7 +1,7 @@
 #ifndef __PYCOMBINED_CXX__
 #define __PYCOMBINED_CXX__
 
-#import "PyCombined.h"
+#include "PyCombined.h"
 
 namespace sp {
 

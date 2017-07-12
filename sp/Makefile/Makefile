@@ -1,12 +1,12 @@
-CC=clang++
-SOMAKER=clang++
-CFLAGS=-g #-03
+CC=g++
+SOMAKER=g++
+CFLAGS=-g -fPIC -std=c++11 -Wall -O0
 
 INCFLAGS += $(shell root-config --cflags)
 LDFLAGS  += $(shell root-config --libs)
 
 SOFLAGS = -fPIC
-SOFLAGS += -g -shared
+SOFLAGS += -g -shared -O0
 CINTFLAGS = -p
 
 ROOTMAP = $(SHLIB:.so=.rootmap)
@@ -31,5 +31,4 @@ $(SHLIB): $(OBJECTS) $(DICT).cxx $(DICT).o
 
 clean:
 	@echo '<< cleaning >>'
-	@echo rm -f *.o *Dict.cxx *Dict.cxx_tmp *.pcm $(SP_LIBDIR)/$(PCM) $(SP_LIBDIR)/$(ROOTMAP) $(SP_LIBDIR)/$(SHLIB)
 	@rm -f *.o *Dict.cxx *Dict.cxx_tmp *.pcm $(SP_LIBDIR)/$(PCM) $(SP_LIBDIR)/$(ROOTMAP) $(SP_LIBDIR)/$(SHLIB)
