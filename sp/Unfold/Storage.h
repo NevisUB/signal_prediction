@@ -12,6 +12,7 @@
 #include "TMatrixD.h"
 #include <iostream>
     
+#include "UnfoldTypes.h"
 
 namespace sp {
 
@@ -22,15 +23,18 @@ namespace sp {
 
     Parameter();
 
-    Parameter(const std::string& name,
+    Parameter(const std::vector<std::string>& variable_v,
 	      const std::vector<double>& bin_lo_v,
-	      const std::vector<double>& bin_hi_v);
+	      const std::vector<double>& bin_hi_v,
+	      Operation_t op = kOP_INVALID);
     
     ~Parameter(){ std::cout << "~P @ "<< this  << std::endl;};
     
     std::string _name;
+    std::vector<std::string> _variable_v;
     std::vector<double> _bin_lo_v;
     std::vector<double> _bin_hi_v;
+    Operation_t _operation;
 
     bool _filled;
     bool _from_file;
@@ -38,11 +42,10 @@ namespace sp {
     TH1D _hist;
     
     // Not serialized
-    Response* _response; //!
-    float _data; //!
+    std::vector<float> _data_v;
     
     inline bool operator==(const Parameter& rhs) const {
-      if (_name     != rhs._name)     return false;
+      if (_variable_v != rhs._variable_v)  return false;
       if (_bin_lo_v != rhs._bin_lo_v) return false;
       if (_bin_hi_v != rhs._bin_hi_v) return false;
       return true;
@@ -53,7 +56,7 @@ namespace sp {
       return true;
     }
 
-    void Fill(float weight);
+    float Fill(float weight);
     void dump();
 
     ClassDef(sp::Parameter,1); 

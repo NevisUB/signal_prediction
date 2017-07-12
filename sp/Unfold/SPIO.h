@@ -6,6 +6,7 @@
 #include <string>
 #include "TChain.h"
 #include "TFile.h"
+#include "UnfoldTypes.h"
 
 namespace sp {
   
@@ -34,13 +35,15 @@ namespace sp {
 
     void set_unfold_in_file(const std::string& filename);
     
-    void add_true_parameter(const std::string& true_var_name,
+    void add_true_parameter(const std::vector<std::string>& true_var_name,
 			    const std::vector<double>& bin_lo_v,
-			    const std::vector<double>& bin_hi_v);
+			    const std::vector<double>& bin_hi_v,
+			    Operation_t op=kOP_INVALID);
     
-    void add_reco_parameter(const std::string reco_var_name,
+    void add_reco_parameter(const std::vector<std::string>& var_v,
 			    const std::vector<double>& bin_lo_v,
-			    const std::vector<double>& bin_hi_v);
+			    const std::vector<double>& bin_hi_v,
+			    Operation_t op=kOP_INVALID);
     
     
     //

@@ -4,11 +4,11 @@ CXXFLAGS += -I. $(shell root-config --cflags)
 
 LDFLAGS = -L.
 LDFLAGS += $(shell root-config --libs)
-LDFLAGS += -L$(SP_LIBDIR) -lSP_Base
+LDFLAGS += -L$(SP_LIBDIR) -lSP_Unfold
 
 CXX=g++
 
-PROGRAMS = test
+PROGRAMS = fill_unfold_file
 
 all:		$(PROGRAMS)
 
@@ -16,4 +16,4 @@ $(PROGRAMS):
 	@echo '<<compiling' $@'>>'
 	@$(CXX) $@.cxx -o $@ $(CXXFLAGS) $(LDFLAGS)
 clean:	
-	rm -f $(PROGRAMS)
+	rm -f $(PROGRAMS) *.dYSM

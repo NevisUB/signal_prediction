@@ -12,7 +12,7 @@ namespace sp {
     _unfold_file_name(""),
     _in_tree(nullptr),
     _unfold_file(nullptr)
-  {std::cout << "S @ " << this << std::endl;}
+  { std::cout << "S @ " << this << std::endl; }
 
   SPIO::~SPIO() {
     std::cout << "~S @ " << this << std::endl;
@@ -77,10 +77,13 @@ namespace sp {
   }
   
   
-  void SPIO::add_true_parameter(const std::string& true_var_name,
+  void SPIO::add_true_parameter(const std::vector<std::string>& var_v,
 				const std::vector<double>& bin_lo_v,
-				const std::vector<double>& bin_hi_v) {
-    Parameter in_param(true_var_name,bin_lo_v,bin_hi_v);
+				const std::vector<double>& bin_hi_v,
+				Operation_t op) {
+  
+    
+    Parameter in_param(var_v,bin_lo_v,bin_hi_v,op);
     
     const auto unfold_param = search_unfold_parameters(in_param);
 
@@ -96,10 +99,12 @@ namespace sp {
     std::cout << "From file? " << _true_parameter_v.back()._from_file << std::endl;
   }
   
-  void SPIO::add_reco_parameter(const std::string reco_var_name,
+  void SPIO::add_reco_parameter(const std::vector<std::string>& var_v,
 				const std::vector<double>& bin_lo_v,
-				const std::vector<double>& bin_hi_v)  {
-    Parameter in_param(reco_var_name,bin_lo_v,bin_hi_v);
+				const std::vector<double>& bin_hi_v,
+				Operation_t op) {
+
+    Parameter in_param(var_v,bin_lo_v,bin_hi_v,op);
 
     const auto unfold_param = search_unfold_parameters(in_param);
 
@@ -147,6 +152,7 @@ namespace sp {
       _unfold_parameter_ptr_v.push_back(ref);
       std::cout << "Found parameter @ ("<< param_id << "," << _unfold_parameter_ptr_v.back() << ")" << std::endl;
     }
+    std::cout << std::endl;
   }
 
 
@@ -170,10 +176,128 @@ namespace sp {
       _unfold_response_ptr_v.push_back(ref);
       std::cout << "Found response @ ("<< resp_id << "," << _unfold_response_ptr_v.back() << ")" << std::endl;
     }
+    std::cout << std::endl;
   }
   
   
+
+
+  bool SPIO::init_response_matrix() {
+    std::cout << std::endl;
+    std::cout << "Instantiate response matrix" << std::endl;
+    
+    for(size_t true_id = 0; true_id < _true_parameter_v.size(); ++true_id) {
+      auto& true_param = _true_parameter_v[true_id];
+      for(size_t reco_id = 0; reco_id < _reco_parameter_v.size(); ++reco_id) {
+	auto& reco_param = _reco_parameter_v[reco_id];
+
+	Response response(&true_param,&reco_param);
+
+	auto res = search_unfold_responses(response);
+	if (res) {
+	  std::cout << "Got from file: " << res->name << std::endl;
+	  std::cout << "Filling " << res->name << " response @ " << res << std::endl;
+	  _response_v.emplace_back(*res);
+	  _response_v.back().from_file = true;
+	}
+	else  {
+	  std::stringstream ss;
+	  ss << "response_" << true_id << "_" << reco_id << "_" << response.true_param->_name << "_" << response.reco_param->_name;
+	  std::cout << "Made new " << ss.str() << std::endl;
+	  response.name = ss.str();
+	  std::cout << "Filling " << response.name << " response @ " << &response << std::endl;
+	  _response_v.emplace_back(std::move(response));
+	}
+	auto& this_res = _response_v.back();
+
+	std::cout << "Set true_param for response @ " << &true_param << std::endl;
+	std::cout << "Set reco_param for response @ " << &reco_param << std::endl;
+	this_res.true_param = &true_param;
+	this_res.reco_param = &reco_param;
+
+	std::cout << "Now R @ " << &this_res << std::endl;	  
+      }
+    }
+    std::cout << std::endl;
+    return true;
+  }
+
+  const Response* SPIO::search_unfold_responses(const Response& in_response) {
+    std::cout << std::endl;
+    std::cout << "Search unfold responses for " << &in_response << std::endl;
+    for(size_t rid = 0; rid < _unfold_response_ptr_v.size(); ++rid) {
+      if (in_response == *(_unfold_response_ptr_v[rid])) {
+	std::cout << "Found response in file @ position " << rid << " return " << _unfold_response_ptr_v[rid] << std::endl;
+	return _unfold_response_ptr_v[rid];
+      }
+    }
+    std::cout << "No response found in file!" << std::endl;
+    std::cout << std::endl;
+    return nullptr;
+  }
+
+  
+  bool SPIO::fill_responses() {
+    std::cout << std::endl;
+    std::cout << "Fill responses" << std::endl;
+    std::vector<Response*> unfilled_response_v;
+    unfilled_response_v.reserve(_response_v.size());
+
+    for(auto& res : _response_v) {
+      if (res.filled()) continue;
+      std::cout << "... response @ " << &res << " unfilled!"  << std::endl;
+      unfilled_response_v.emplace_back(&res);
+      std::cout << "--> placed " << &res << " @ " << &unfilled_response_v.back() << " see: " << unfilled_response_v.back() << std::endl;
+    }
+    
+    if (unfilled_response_v.empty())  {
+      std::cout << "All responses filled!" << std::endl;
+      return true;
+    }
+
+    for(size_t rid = 0; rid < unfilled_response_v.size(); ++rid) {
+      auto response = unfilled_response_v[rid];
+      std::cout << std::endl;
+      std::cout << rid << ") @ response " << response << std::endl;
+      for(size_t vid = 0; vid < response->true_param->_variable_v.size(); ++vid) {
+	std::cout << "SET: " << response->true_param << " true branch " << response->true_param->_variable_v[vid] << " @ " << &response->true_param->_data_v[vid] << std::endl;
+	_in_tree->SetBranchAddress(response->true_param->_variable_v[vid].c_str(),&response->true_param->_data_v[vid]);
+      }
+
+      for(size_t vid = 0; vid < response->reco_param->_variable_v.size(); ++vid) {
+	std::cout << "SET: " << response->reco_param << " reco branch " << response->reco_param->_variable_v[vid] << " @ " << &response->reco_param->_data_v[vid] << std::endl;
+	_in_tree->SetBranchAddress(response->reco_param->_variable_v[vid].c_str(),&response->reco_param->_data_v[vid]);
+      }
+
+      float weight;
+      bool passosc;
+      int nutype;
+    
+      _in_tree->SetBranchAddress("Weight" , &weight);
+      _in_tree->SetBranchAddress("PassOsc", &passosc);
+      _in_tree->SetBranchAddress("NuType" , &nutype);
+    
+      std::cout << "READING: " << _in_n_entries << " entries from MC file" << std::endl;
+      for(size_t entry = 0; entry < _in_n_entries; ++entry) {
+	_in_tree->GetEntry(entry);
+
+	if (entry>=10000) break;
+	if (weight<=0) continue;
+	
+	response->Fill(weight,passosc,nutype);
+      }
+
+      response->Finalize();
+    }
+
+    std::cout << std::endl; 
+    return true;
+  }
+
   bool SPIO::write_unfold_file() {
+    std::cout << std::endl; 
+    std::cout << "Wire unfold file" << std::endl; 
+
     auto dir = (TDirectory*)_unfold_file->GetDirectory("Parameters");
     if (dir) dir->cd();
     else {
@@ -213,107 +337,10 @@ namespace sp {
     
     _unfold_file->Write();
     _unfold_file->Close();
+
+    std::cout << std::endl; 
     return true;
   }
-
-  bool SPIO::init_response_matrix() {
-    std::cout << std::endl;
-    std::cout << "Instantiate response matrix" << std::endl;
-    
-    for(size_t true_id = 0; true_id < _true_parameter_v.size(); ++true_id) {
-      auto& true_param = _true_parameter_v[true_id];
-      for(size_t reco_id = 0; reco_id < _reco_parameter_v.size(); ++reco_id) {
-	auto& reco_param = _reco_parameter_v[reco_id];
-
-	Response response(&true_param,&reco_param);
-
-	auto res = search_unfold_responses(response);
-	if (res) {
-	  std::cout << "Got from file: " << res->name << std::endl;
-	  std::cout << "Filling " << res->name << " response @ " << res << std::endl;
-	  _response_v.emplace_back(*res);
-	  _response_v.back().from_file = true;
-	}
-	else  {
-	  std::stringstream ss;
-	  ss << "response_" << true_id << "_" << reco_id << "_" << response.true_param->_name << "_" << response.reco_param->_name;
-	  std::cout << "Made new " << ss.str() << std::endl;
-	  response.name = ss.str();
-	  std::cout << "Filling " << response.name << " response @ " << &response << std::endl;
-	  _response_v.emplace_back(std::move(response));
-	}
-	auto& this_res = _response_v.back();
-
-	this_res.true_param = &true_param;
-	this_res.reco_param = &reco_param;
-
-	this_res.true_param->_response = &this_res;
-	this_res.reco_param->_response = &this_res;
-
-	std::cout << "Now R @ " << &this_res << std::endl;	  
-      }
-    }
-    return true;
-  }
-
-  const Response* SPIO::search_unfold_responses(const Response& in_response) {
-    for(size_t rid = 0; rid < _unfold_response_ptr_v.size(); ++rid) {
-      if (in_response == *(_unfold_response_ptr_v[rid])) {
-	std::cout << "Found response in file @ position " << rid << " return " << _unfold_response_ptr_v[rid] << std::endl;
-	return _unfold_response_ptr_v[rid];
-      }
-    }
-    std::cout << "No response found in file!" << std::endl;
-    return nullptr;
-  }
-
-  
-  bool SPIO::fill_responses() {
-
-    std::vector<Response*> unfilled_response_v;
-    unfilled_response_v.reserve(_response_v.size());
-
-    for(auto& res : _response_v) {
-      if (res.filled()) continue;
-      unfilled_response_v.emplace_back(&res);
-    }
-    
-    if (unfilled_response_v.empty()) 
-      { std::cout << "All responses filled!" << std::endl; return true; }
-
-    for(size_t rid = 0; rid< _response_v.size(); ++rid) {
-      auto& response = _response_v[rid];
-      _in_tree->SetBranchAddress(response.true_param->_name.c_str(),&response.true_param->_data);
-      _in_tree->SetBranchAddress(response.reco_param->_name.c_str(),&response.reco_param->_data);
-    }
-
-    float weight;
-    bool passosc;
-    int nutype;
-    
-    _in_tree->SetBranchAddress("Weight" , &weight);
-    _in_tree->SetBranchAddress("PassOsc", &passosc);
-    _in_tree->SetBranchAddress("NuType" , &nutype);
-    
-    std::cout << "READING: " << _in_n_entries << " entries from MC file" << std::endl;
-    for(size_t entry = 0; entry < _in_n_entries; ++entry) {
-      _in_tree->GetEntry(entry);
-
-      if (entry>=10000) break;
-      if (weight<=0) continue;
-
-      for(auto& res : unfilled_response_v)
-	res->Fill(weight,passosc,nutype);
-
-    }
-
-    for(auto& res : unfilled_response_v)
-      res->Finalize();
-    
-    return true;
-  }
-
-
   
 }
 

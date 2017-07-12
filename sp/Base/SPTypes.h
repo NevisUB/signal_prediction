@@ -24,6 +24,7 @@ namespace sp {
   const float              kINVALID_FLOAT     = std::numeric_limits< float              >::max();
   /// Used as an invalid value idnetifier for double-point precision
   const double             kINVALID_DOUBLE    = std::numeric_limits< double             >::max();
+
   
 }
 
