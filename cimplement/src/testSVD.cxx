@@ -70,9 +70,9 @@ int main(int argc, char* argv[])
 
 	std::cout<<"Starting "<<std::endl;	
 	TFile *f2 = TFile::Open("out.root");
-	TH1D * Hxini = (TH1D*)f2->Get("Truth_Enu_Reco_Eqe_t;1");
+	TH1D * truth_MC = (TH1D*)f2->Get("Truth_Enu_Reco_Eqe_t;1");
 	TH1D * Hbini = (TH1D*)f2->Get("Truth_Enu_Reco_Eqe_r;1");
-	TH2D * HAdet = (TH2D*)f2->Get("Truth_Enu_Reco_Eqe_pass;1");
+	TH2D * response_MC = (TH2D*)f2->Get("Truth_Enu_Reco_Eqe_pass;1");
 
 
 
@@ -85,14 +85,28 @@ int main(int argc, char* argv[])
 	f->Close();
 	std::cout<<"Closing is the problem?"<<std::endl;
 
-	
-	
-	
-	std::vector<TH1D*> v_bdat;
+
+
+	TH1D * LEE = (TH1D*)Hbini->Clone("LEE");
+	for(int i=0; i<=LEE->GetNbinsX(); i++){
+		LEE->SetBinContent(i,0.0);
+		if(i<3 && i != 0){
+			LEE->SetBinContent(i,33);
+		}
+	}
+
+		miniSVD * mylee =  new miniSVD(response_MC, LEE, truth_MC,10);
+		TH1D * hmm = mylee->unfold();
+		hmm->Print();
+		hmm->SetLineColor(kBlack);
+		hmm->SetLineWidth(3);
+
+
+	std::vector<TH1D*> vec_reco;
 	std::vector<TH1D*> v_ans;
 
 
-	TRandom3  * rang = new TRandom3();
+	TRandom3  * rang = new TRandom3(201);
 
 	int NN = 6;
 	for(int k=0; k<NN; k++){	
@@ -102,7 +116,7 @@ int main(int argc, char* argv[])
 		for(int i=0; i<=bdat->GetNbinsX(); i++){
 			bdat->SetBinContent(i, rang->Poisson(bdat->GetBinContent(i)));
 		}
-		v_bdat.push_back(bdat);
+		vec_reco.push_back(bdat);
 	}
 
 	TCanvas *c2 = new TCanvas();
@@ -110,12 +124,11 @@ int main(int argc, char* argv[])
 	for(int k=0;k<NN;k++){
 		
 			std::cout<<"On kth universe "<<k<<std::endl;	
-			miniSVD * mysvd =  new miniSVD(HAdet,v_bdat.at(k),Hxini);
-			mysvd->init(0.0001);
+			miniSVD * mysvd =  new miniSVD(response_MC, vec_reco.at(k) ,truth_MC, 2);
 			mysvd->unfold();	
 
 		
-	//	TSVDUnfold *ts = new TSVDUnfold(v_bdat.at(k), bini, xini, Adet);
+	//	TSVDUnfold *ts = new TSVDUnfold(vec_reco.at(k), bini, xini, Adet);
 		//TH1D *ans =ts->Unfold(3);
 		TH1D * ans = mysvd->unfold();
 		//ans->Print();
@@ -129,31 +142,42 @@ int main(int argc, char* argv[])
 
 	std::vector<int> tmp_colors ={kRed,kBlue,kGreen,kOrange,kCyan,kViolet};
 	TCanvas * c = new TCanvas();
-	c->Divide(2,1);
+	c->Divide(2,2);
 	c->cd(1);
-	Hxini->SetMarkerStyle(21);
-	Hxini->SetLineColor(kBlack);
-	Hxini->Draw("ap");
+	truth_MC->SetMarkerStyle(21);
+	truth_MC->SetLineColor(kBlack);
+	truth_MC->Draw();
 	for(int i= 0; i< NN; i++){
 			v_ans[i]->SetLineColor(tmp_colors[i]);
 			v_ans[i]->SetLineWidth(2);
 
 		v_ans[i]->Draw("hist same");
 	}
-	Hxini->Draw("same ap");
+	truth_MC->Draw("same ap");
 
 
 	c->cd(2);
 	Hbini->SetMarkerStyle(21);
 	Hbini->SetLineColor(kBlack);
-	Hbini->Draw("ap");
+	Hbini->Draw();
 	for(int i= 0; i< NN; i++){
-			v_bdat[i]->SetLineColor(tmp_colors[i]);
-			v_bdat[i]->SetLineWidth(3);
+			vec_reco[i]->SetLineColor(tmp_colors[i]);
+			vec_reco[i]->SetLineWidth(3);
 
-		v_bdat[i]->Draw("hist same");
+		vec_reco[i]->Draw("hist same");
 	}
 	Hbini->Draw("same ap");
+
+	c->cd(3);
+		std::cout<<"LEE unfolded: "<<std::endl;
+		for(int i=0; i<=hmm->GetNbinsX(); i++){
+			std::cout<<i<<" "<<hmm->GetBinContent(i)<<std::endl;
+		}
+
+		hmm->Draw("hist");	
+	c->cd(4);
+		LEE->Draw("hist");
+
 
 	c->SaveAs("foo.pdf","pdf");	
 	f2->Close();

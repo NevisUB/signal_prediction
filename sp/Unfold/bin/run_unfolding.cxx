@@ -29,7 +29,6 @@ int main(int argc, char** argv) {
   bins_hi_v = {0,200,300,400,500,600,700,800,900,1000,1100};
   a.add_reco_parameter(var_v,bins_lo_v,bins_hi_v,sp::kOP_EQE);
 
-
   a.init_response_matrix();
   a.fill_responses();
   a.write_unfold_file();

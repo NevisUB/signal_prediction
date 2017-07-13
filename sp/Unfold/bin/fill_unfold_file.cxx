@@ -4,7 +4,7 @@ int main(int argc, char** argv) {
 
   sp::SPIO a;
 
-  a.add_mc_in_file("/home/vgenty/filteredoutput_osc_mc_detail_1.root");
+  a.add_mc_in_file("/rootfiles/output_osc_mc_detail_1.root");
   a.set_mc_tree_name("MiniBooNE_CCQE");
   a.initialize();
   

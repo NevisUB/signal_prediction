@@ -7,8 +7,8 @@ int miniSVD::rotateRescale(TMatrixT<double> * tilde_A, TVectorT<double> *r, TMat
 		for(int j=0; j< A->GetNrows(); j++){
 			double denom = (*r)(i);
 			double num = ((*Q)*(*A))(i,j);
-			std::cout<<"denom "<<i<<" "<<j<<" "<<denom<<std::endl;
-			std::cout<<"nom "<<i<<" "<<j<<" "<<num<<" "<<std::endl;
+			//std::cout<<"denom "<<i<<" "<<j<<" "<<denom<<std::endl;
+			//std::cout<<"nom "<<i<<" "<<j<<" "<<num<<" "<<std::endl;
 			(*tilde_A)(i,j) = num/denom;
 			if(num/denom != num/denom){exit(EXIT_FAILURE);}
 
@@ -32,17 +32,17 @@ int miniSVD::rotateRescale(TVectorT<double> * tilde_b, TVectorT<double> *r, TMat
 
 }
 
-miniSVD::miniSVD(TMatrixT<double>* Ain, TVectorT<double>* bin, TVectorT<double> *xiniin){
+miniSVD::miniSVD(TMatrixT<double>* Ain, TVectorT<double>* bin, TVectorT<double> *xiniin, int k_regin){
 
 	A = Ain;
 	b=bin;
 	xini=xiniin;
 
-	miniSVD::init(0.001);
+	miniSVD::init(0.0001,k_regin);
 }
 
 
-miniSVD::miniSVD(TH2D *Ain, TH1D * bin, TH1D * xiniin){
+miniSVD::miniSVD(TH2D *Ain, TH1D * bin, TH1D * xiniin, int k_regin){
 	int nn = Ain->GetNbinsX()+2;
 	A= new TMatrixT<double>(nn,nn);
 	b = new TVectorT<double>(nn);
@@ -54,19 +54,20 @@ miniSVD::miniSVD(TH2D *Ain, TH1D * bin, TH1D * xiniin){
 		(*b)(i) = bin->GetBinContent(i);
 		(*xini)(i) = xiniin->GetBinContent(i);
 	for(int j=0; j<nn; j++){
-		(*A)(i,j) = Ain->GetBinContent(i,j);
+		(*A)(j,i) = Ain->GetBinContent(i,j);
 	}
 	}
 
 
-	miniSVD::init(0.001);
+	miniSVD::init(0.0001, k_regin);
 }
 
 
 
 
 
-int miniSVD::init(double xi){
+int miniSVD::init(double xi, int kin){
+	k_reg = kin;
 
 	//A b and xini will be loaded above here
 	b->Print();
@@ -143,6 +144,9 @@ int miniSVD::init(double xi){
 
 
 TH1D* miniSVD::unfold(){
+	TFile *f = new TFile("plots.root","RECREATE");
+	f->cd();
+
 
 	std::cout<<"Unfolding"<<std::endl;	
 	TMatrixT<double> tilde_A(nt,nt);
@@ -195,10 +199,35 @@ TH1D* miniSVD::unfold(){
 		std::cout<<i<<" "<<log10(fabs(d(i)))<<std::endl;
 	}	
 
-	int k=2;
+    Double_t x[nt], y[nt], y2[nt];
+    for (int i=0; i<nt; i++) {
+	          x[i] = i*1.0;
+		  y[i] = fabs(d(i)) ;
+		  y2[i] = s(i);
+    }
+       
+       TGraph *gr1 = new TGraph (nt, x, y);
+       gr1->SetTitle("|d_{i}|");
+       TGraph *gr2 = new TGraph (nt, x, y2);
+       gr2->SetTitle("Single Values");
+       TCanvas *c = new TCanvas();
+       c->Divide(2,1);
+       TPad *p1 = (TPad *)(c->cd(1)); 
+       p1->SetLogy();
+       gr1->Draw("AB");
+       TPad *p2 = (TPad *)(c->cd(2)); 
 
-	double tau = s(k)*s(k);
-	std::cout<<"Tau: "<<tau<<" for a k of "<<k<<std::endl;
+       p2->SetLogy();
+       gr2->SetMinimum(1e-3);
+       gr2->Draw("AB");
+
+
+       c->Write();
+
+        
+
+	double tau = s(k_reg)*s(k_reg);
+	std::cout<<"Tau: "<<tau<<" for a k of "<<k_reg<<std::endl;
 
 	std::cout<<"Calculating z, w Z and W"<<std::endl;
 	TVectorT<double> z(nt);
@@ -240,7 +269,7 @@ TH1D* miniSVD::unfold(){
 
 	xtau.Print();
 
-
+	f->Close();
 
 	return ans;
 

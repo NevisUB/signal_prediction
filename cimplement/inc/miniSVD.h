@@ -15,6 +15,8 @@
 #include <TColor.h>
 #include <TMatrixT.h>
 #include <TVectorT.h>
+#include <TGraph.h>
+
 
 #include <ctime>
 #include <TFile.h>
@@ -33,9 +35,9 @@ class miniSVD{
 	TVectorT<double> * b;
 	TVectorT<double> * xini;
 
-	miniSVD(TMatrixT<double>*, TVectorT<double>*, TVectorT<double>*);
-	miniSVD(TH2D *, TH1D *, TH1D *);
-
+	miniSVD(TMatrixT<double>*, TVectorT<double>*, TVectorT<double>*, int);
+	miniSVD(TH2D *, TH1D *, TH1D *,int);
+	int k_reg;
 	TH1D *ans;
 
 	TMatrixT<double> * C;
@@ -45,7 +47,7 @@ class miniSVD{
 	TMatrixT<double> * inv_X;
 
 
-	int init(double); //initilises C and inv_C and B ;
+	int init(double, int); //initilises C and inv_C and B ;
 	TH1D * unfold();
 
 	int rotateRescale(TMatrixT<double> * tilde_A, TVectorT<double> *r, TMatrixT<double> * Q, TMatrixT<double> * A );

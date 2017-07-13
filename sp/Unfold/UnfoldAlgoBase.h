@@ -11,7 +11,7 @@ namespace sp {
     virtual ~UnfoldAlgoBase() {}
 
     //
-    // Pure virtual mothods called by Manager
+    // Pure virtual moth-ods called by Manager
     // 
     virtual void Initialize();
     virtual void Unfold(const TMatrixD& A) = 0;
