@@ -13,7 +13,7 @@ namespace sp {
   void SPManager::Process() {
     for(const auto& response : _spio.Responses())
       for(auto algo : _algo_v) 
-	algo->Unfold(response.response);
+	algo->Unfold(response._response);
   } 
 
   void SPManager::Finalize() {}

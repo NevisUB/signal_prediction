@@ -1,6 +1,8 @@
 #ifndef __UNFOLDALGOBASE_H__
 #define __UNFOLDALGOBASE_H__
 
+#include "Response.h"
+
 namespace sp {
 
   class UnfoldAlgoBase { 

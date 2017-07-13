@@ -1,23 +1,16 @@
-#ifndef __STORAGE_H__
-#define __STORAGE_H__
+#ifndef __PARAMETER_H__
+#define __PARAMETER_H__
 
+#include <iostream>
 #include <string>
 #include <vector>
 
 #include "TObject.h"
-
 #include "TH1D.h"
-#include "TH2D.h"
-#include "TVectorD.h"
-#include "TMatrixD.h"
-#include <iostream>
-    
 #include "UnfoldTypes.h"
 
 namespace sp {
 
-  class Response;
-  
   class Parameter : public TObject {
   public:
 
@@ -62,43 +55,5 @@ namespace sp {
     ClassDef(sp::Parameter,1); 
   };
 
-  
-  class Response : public TObject{
-
-  public:
-
-    Response();
-    Response(Parameter* true_p, Parameter* reco_p);
-    ~Response(){ std::cout << "~R @ " << this << std::endl;}
-    
-    std::string name;
-    
-    Parameter* true_param;
-    Parameter* reco_param;
-
-    TMatrixD response;
-    TVectorD true_v;
-    TVectorD reco_v;
-    
-    TH2D response_h;
-    
-    bool from_file;
-
-    inline bool operator==(const Response& rhs) const {
-      if ( (*true_param) != *(rhs.true_param) ) return false;
-      if ( (*reco_param) != *(rhs.reco_param) ) return false;
-      return true;
-    }
-
-    void Fill(float weight, bool passosc, int nutype);
-    void Finalize();
-    
-    bool filled() const;
-    void dump() const;
-
-    ClassDef(sp::Response,1); 
-  };
-  
 }
-
 #endif
