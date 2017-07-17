@@ -6,6 +6,7 @@
 #include <TRandom3.h>
 #include <TCanvas.h>
 #include <TColor.h>
+#include <string.h>
 
 namespace sp {
 

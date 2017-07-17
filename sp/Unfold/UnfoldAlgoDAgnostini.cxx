@@ -14,7 +14,7 @@ namespace sp {
 		//what is the initial guess for bayes theorem;
 		u=t;
 		for(int a=0; a<n_t; a++){
-			u(a) = 20; 
+		//	u(a) = 20; 
 		}
 
 
