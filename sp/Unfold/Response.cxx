@@ -37,7 +37,6 @@ namespace sp {
 	void Response::Fill(float weight, bool passosc, int nutype) {
 		if(nutype == 3 || nutype == 4){
 			
-			
 			auto t_res = _true_param->Fill(weight);
 			
 			if(passosc){

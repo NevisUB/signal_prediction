@@ -7,7 +7,7 @@ int main(int argc, char** argv) {
 
   sp::SPIO a;
 
-  a.add_mc_in_file("/rootfiles/filtered_passosc.root");
+  a.add_mc_in_file("/rootfiles/filterd_ccqe_nue_nuebar.root");
   a.set_mc_tree_name("MiniBooNE_CCQE");
   a.initialize();
   

@@ -272,7 +272,7 @@ namespace sp {
       for(size_t entry = 0; entry < _in_n_entries; ++entry) {
 	_in_tree->GetEntry(entry);
 	
-	if (!passosc) continue;
+//	if (!passosc) continue;
 //	if (entry>=10000) break;
 	if (weight<=0) continue;
 

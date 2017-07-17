@@ -6,11 +6,14 @@ LDFLAGS = -L.
 LDFLAGS += $(shell root-config --libs)
 LDFLAGS += -L$(SP_LIBDIR) -lSP_Unfold
 
+
+
 CXX=g++
 
 PROGRAMS = unfold
 
-all:		$(PROGRAMS)
+all:	clean $(PROGRAMS)
+
 
 $(PROGRAMS):
 	@echo '<<compiling' $@'>>'
