@@ -276,7 +276,7 @@ namespace sp {
 	_in_tree->GetEntry(entry);
 	
 	if (!passosc) continue;
-	if (entry>=10000) break;
+	//if (entry>=10000) break;
 	if (weight<=0) continue;
 	
 	response->Fill(weight,passosc,nutype);

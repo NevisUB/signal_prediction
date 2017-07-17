@@ -8,6 +8,7 @@
 #include "TObject.h"
 #include "TH1D.h"
 #include "UnfoldTypes.h"
+#include "TVector.h"
 
 namespace sp {
 
@@ -33,7 +34,7 @@ namespace sp {
     bool _from_file;
 
     TH1D _hist;
-    
+   
     // Not serialized
     std::vector<float> _data_v;
     

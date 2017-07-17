@@ -8,7 +8,7 @@ LDFLAGS += -L$(SP_LIBDIR) -lSP_Unfold
 
 CXX=g++
 
-PROGRAMS = fill_unfold_file
+PROGRAMS = unfold
 
 all:		$(PROGRAMS)
 

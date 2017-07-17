@@ -137,7 +137,7 @@ int main(int argc, char* argv[])
 	tt->GetYaxis()->SetTitleOffset(1.45);
 	tt->SetMinimum(0);
 	tt->SetTitle("Intrinsic #nu_{e} CCQE only");
-	tt->SetMaximum(170);
+	tt->SetMaximum(600);
 
 	TLegend * leg = new TLegend(0.58,0.6,0.89,0.89);
 	leg->AddEntry(tt,"True E_{#nu} MC","lep");
@@ -195,7 +195,7 @@ int main(int argc, char* argv[])
 	Hbini->SetMarkerStyle(21);
 	Hbini->SetLineColor(kBlack);
 	Hbini->Draw();
-	Hbini->SetMaximum(100);
+	Hbini->SetMaximum(400);
 	Hbini->SetTitle("Reconstructed E_{QE}");
 	Hbini->GetXaxis()->SetTitle("E_{QE} [GeV]");
 	Hbini->GetYaxis()->SetTitle("Events");
@@ -219,7 +219,7 @@ int main(int argc, char* argv[])
 
 	c->cd(2)->SetBottomMargin(20);
 	v_ans_inv[0]->Draw("hist");
-	v_ans_inv[0]->SetMaximum(200);
+	v_ans_inv[0]->SetMaximum(2000);
 	v_ans_inv[0]->GetXaxis()->SetTitle("E_{#nu} [GeV]");
 	v_ans_inv[0]->GetYaxis()->SetTitle("Events");
 	v_ans_inv[0]->SetLineColor(tmp_colors[0]);
@@ -230,8 +230,6 @@ int main(int argc, char* argv[])
 	v_ans_inv[0]->GetYaxis()->SetLabelSize(0.04);
 
 
-	truth_MC->SetMarkerStyle(21);
-	truth_MC->SetLineColor(kBlack);
 	for(int i= 1; i< NN; i++){
 		v_ans_inv[i]->SetLineColor(tmp_colors[i]);
 		v_ans_inv[i]->SetLineWidth(1.5);
@@ -249,7 +247,7 @@ int main(int argc, char* argv[])
 	
 	c->cd(3);
 	v_ans_svd[0]->Draw("hist");
-	v_ans_svd[0]->SetMaximum(200);
+	v_ans_svd[0]->SetMaximum(2000);
 	v_ans_svd[0]->GetXaxis()->SetTitle("E_{#nu} [GeV]");
 	v_ans_svd[0]->GetYaxis()->SetTitle("Events");
 	v_ans_svd[0]->SetLineColor(tmp_colors[0]);
@@ -279,7 +277,7 @@ int main(int argc, char* argv[])
 
 	c->cd(4);
 	v_ans_bbb[0]->Draw("hist");
-	v_ans_bbb[0]->SetMaximum(200);
+	v_ans_bbb[0]->SetMaximum(2000);
 	v_ans_bbb[0]->GetXaxis()->SetTitle("E_{#nu} [GeV]");
 	v_ans_bbb[0]->GetYaxis()->SetTitle("Events");
 	v_ans_bbb[0]->SetLineColor(tmp_colors[0]);

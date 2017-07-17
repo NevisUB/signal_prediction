@@ -81,6 +81,21 @@ namespace sp {
   }
 
 
+
+  TVectorD hist2TVec(TH1D * hist){
+	 int dim = hist->GetNbinsX()+2;
+	 TVectorD tmp(dim);
+
+	for(int i = 0; i<dim; i++){
+		tmp[i] = hist->GetBinContent(i);
+	}
+
+	return tmp;	
+  }
+
+
+
+
 }
 
 #endif 

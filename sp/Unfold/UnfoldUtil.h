@@ -5,6 +5,8 @@
 #include "Combined/CombinedFunctions.h"
 #include "Base/SPErr.h"
 #include "UnfoldTypes.h"
+#include <TVector.h>
+#include <TH1D.h>
 
 namespace sp {
 
@@ -19,6 +21,9 @@ namespace sp {
 
   float GeV2MeV(float gev); 
   float MeV2GeV(float mev);
+
+
+  TVectorD hist2TVec(TH1D *);
 
   // for now it has to be the same was as function definition...
   float Operate(const std::vector<float>& data, Operation_t operation);

@@ -15,7 +15,9 @@
 #pragma link C++ class std::vector<sp::Parameter>+;
 #pragma link C++ class std::vector<sp::Response>+;
 #pragma link C++ class sp::SPIO+;
-
 #pragma link C++ class sp::SPManager+;
+#pragma link C++ class sp::UnfoldAlgoBase+;
+#pragma link C++ class sp::UnfoldAlgoDAgnostini+;
+#
 
 #endif

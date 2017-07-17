@@ -6,14 +6,14 @@
 namespace sp {
 
   void SPManager::Initialize() {
-    for(auto algo : _algo_v)
-      algo->Initialize();
+	  for(const auto &response : _spio.Responses())
+	    for(auto algo : _algo_v)
+      		algo->Initialize(&response);
   }
 
   void SPManager::Process() {
-    for(const auto& response : _spio.Responses())
-      for(auto algo : _algo_v) 
-	algo->Unfold(response._response);
+      //for(auto algo : _algo_v) 
+	//algo->Unfold();
   } 
 
   void SPManager::Finalize() {}
