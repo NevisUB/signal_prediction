@@ -4,34 +4,34 @@ import ROOT
 from ROOT import sp
 sp.LoadCombined()
 
-
 import matplotlib
-import matplotlib.pyplot
+from matplotlib import colors as mcolors
+matplotlib.rcParams['font.family'] = 'sans-serif'
+matplotlib.rcParams['font.sans-serif'] = ['Helvetica Neue']
+
+import matplotlib.pyplot as plt
 
 import numpy as np
 import pandas as pd
 
 import root_numpy as rn
 
-
-df=pd.DataFrame(rn.root2array([sys.argv[1]],
-                               treename='MiniBooNE_CCQE'))
+df = pd.DataFrame(rn.root2array([sys.argv[1]],treename='MiniBooNE_CCQE'))
 
 
-#df['Eqe']    = df.apply(lambda x : sp.CombinedFit_EnuQE_ryan(x['Energy'],x['CosTheta'],3),axis=1)
+df['Eqe'] = df.apply(lambda x : sp.CombinedFit_EnuQE_ryan(x['Energy'],x['CosTheta'],3),axis=1)
 
+
+print "...Computing Pi0..."
 df['Pi0'] = df.apply(lambda x : sp.Pi0Details(x['NFSP'],
                                               x['FSPType'],
                                               x['VertexX'],x['VertexY'],x['VertexZ'],
                                               x['MomX'],x['MomY'],x['MomZ'],x['MomT']),axis=1)
 
+print "...Computing Backgrounds..."
 df['Stacked'] = df.apply(lambda x : sp.StackHistoBkgd(0,bool(x['Pi0']),x['NUANCEChan'],x['NuType'],x['NuParentID']),axis=1)
 
-
-from matplotlib import colors as mcolors
-matplotlib.rcParams['font.family'] = 'sans-serif'
-matplotlib.rcParams['font.sans-serif'] = ['Helvetica Neue']
-
+print df['Stacked']
 
 bins=np.array([200,300,375,475,550,675,800,950,1100,1300,1500,3000])
 
@@ -62,35 +62,23 @@ color_v = ['#CF5E60',
            '#839E8F',
            '#999999']
 
-for bkgd,_ in enumerate(bkgd_v):
-
+for bkgd,bkgd_name in enumerate(bkgd_v):
+    bkgd += 2
+    
     this_df = df.query("PassOsc==1 & Stacked==@bkgd")
-    #data    = this_df.Eqe.values*1000.
-    data = this_df.RecoEnuQE.values*1000.
+    data    = this_df.Eqe.values*1000.
+    #data = this_df.RecoEnuQE.values*1000.
     weight  = this_df.Weight.values*0.157
-    hist=np.histogram(data,weights=weight,bins=bins)
-    hist=hist[0]
+    hist = np.histogram(data,weights=weight,bins=bins)
+    hist = hist[0]
     data_v.append(data)
     weight_v.append(weight)
     hist_v.append(hist)
+
+    print "\tFilled...",bkgd_name
     
    
-    
-fig,ax=plt.subplots(figsize=(12,6))
-
-n, b, p = ax.hist(data_v,
-                  weights = weight_v,
-                  color   = color_v,
-                  bins    = bins,
-                  stacked = True,
-                  histtype= 'stepfilled',
-                  label   = bkgd_v)
-       
-ax.legend()
-ax.set_xlabel("Eqe",fontweight='bold')
-ax.set_xlim(0,3000)
-ax.grid()
-plt.show()
+print "...Drawing..."
 
 fig,ax=plt.subplots(figsize=(10,6))
 hist_v=np.array(hist_v)
@@ -111,7 +99,7 @@ order   = [5,1,0,4,3,2]
 #
 # dirt
 #
-dirt = np.array([0.114947, 0.0846428, 0.0606367, 0.0492776, 0.030317, 0.0126265, 0.00633687, 0.00760151,0,0,0])
+dirt_v = np.array([0.114947, 0.0846428, 0.0606367, 0.0492776, 0.030317, 0.0126265, 0.00633687, 0.00760151,0,0,0])
 hist_v += [dirt_v]
 a = [bins.copy()[:-1] / 1000.0]*7
 order   = [5,6,1,0,4,3,2]
@@ -167,7 +155,7 @@ ax.set_yticklabels(plt.yticks()[0],fontweight='bold',fontsize=15)
 ax.xaxis.set_ticks_position('bottom')
 ax.yaxis.set_ticks_position('left')
 plt.tight_layout()
-plt.savefig("/Users/vgenty/Desktop/01.pdf")
+plt.savefig("stacked_background.pdf")
 
 plt.cla()
 plt.clf()
