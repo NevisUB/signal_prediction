@@ -4,6 +4,8 @@
 #include "Response.h"
 #include "UnfoldUtil.h"
 #include <TRandom3.h>
+#include <TCanvas.h>
+#include <TColor.h>
 
 namespace sp {
 
@@ -13,6 +15,7 @@ namespace sp {
 			int seed;
 
 			TH1D *hist_u;
+			TH1D *hist_r;
 
 			double regularization;
 			int n_r;
@@ -21,14 +24,15 @@ namespace sp {
 			TVectorD r;
 			TVectorD t;
 
-			TMatrixD N;
-			TMatrixD A;
+			TMatrixD N; //number of events
+			TMatrixD A;// response
 
 			TVectorD d;
 			TMatrixD D;
 
 			TVectorD u;
 			TMatrixD U;
+
 		public:
 			UnfoldAlgoBase() { 
 				name="BASE";
@@ -43,10 +47,15 @@ namespace sp {
 			//
 
 			virtual void Unfold() = 0;
-			virtual void Unfold(const TVectorD* d_in) = 0;
-			virtual void Unfold(const TVectorD* d_in, const TMatrixD* D_in) = 0;
 
 
+
+			void Unfold(const TVectorD* d_in);
+			void Unfold(const TVectorD* d_in, const TMatrixD* D_in);
+
+
+			//void TestRegularization(double low, double high)=0;
+			void TestUnfolding(std::string in);
 //
 			// Some generic useful functions on an alorithm
 			//
@@ -57,6 +66,10 @@ namespace sp {
 			void SetSeed(int);
 
 			TH1D GetHistU();
+			TH1D GetHistT();
+			TH1D GetHistR();
+			TH1D GetHistD();
+
 
 	};
 

@@ -14,8 +14,6 @@ namespace sp {
 			}
 
 			void Unfold();
-			void Unfold(const TVectorD* d) ;
-			void Unfold(const TVectorD* d, const TMatrixD * D);
 
 	};
 

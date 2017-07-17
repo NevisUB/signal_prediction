@@ -1,4 +1,4 @@
-#ifndef __UNFOLDALGODAGNOSTINI_CXX_
+#ifndef __UNFOLDALGODAGNOSTINI_CXX__
 #define __UNFOLDALGODAGNOSTNI_CXX__
 
 #include "UnfoldAlgoDAgnostini.h"
@@ -6,17 +6,18 @@
 namespace sp {
 
 
-	void UnfoldAlgoDAgnostini::Unfold(const TVectorD * data, const TMatrixD * Din){
+	void UnfoldAlgoDAgnostini::Unfold(){
+		
 		std::cout<<"sp::UnfoldAlgoDAgnostini::Unfold || Beginning unfolding with Algorithm: "<<name<<std::endl;
 
 		u.ResizeTo(n_t);
+		//what is the initial guess for bayes theorem;
 		u=t;
+		for(int a=0; a<n_t; a++){
+			u(a) = 20; 
+		}
 
-		U.ResizeTo(n_t,n_t);
-		U.Zero();
 
-		d.ResizeTo(n_r);
-		d = *data;
 
 		for(int k=0; k<regularization; k++){
 		std::cout<<"sp::UnfoldAlgoDAgnostini::Unfold || On Iteration "<<k<<" of "<<regularization<<std::endl;
@@ -52,20 +53,6 @@ namespace sp {
 			}//end of u loop
 
 		}//end of iterative loop
-
-	}
-
-	void UnfoldAlgoDAgnostini::Unfold(const TVectorD * data){
-		d.Zero();
-		d = *data;
-
-		this->Unfold();
-
-	}
-
-	void UnfoldAlgoDAgnostini::Unfold(){
-		this->Unfold(&d,&D);
-
 
 
 	}
