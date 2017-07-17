@@ -31,8 +31,6 @@ df['Pi0'] = df.apply(lambda x : sp.Pi0Details(x['NFSP'],
 print "...Computing Backgrounds..."
 df['Stacked'] = df.apply(lambda x : sp.StackHistoBkgd(0,bool(x['Pi0']),x['NUANCEChan'],x['NuType'],x['NuParentID']),axis=1)
 
-print df['Stacked']
-
 bins=np.array([200,300,375,475,550,675,800,950,1100,1300,1500,3000])
 
 data_v   = []
@@ -66,8 +64,8 @@ for bkgd,bkgd_name in enumerate(bkgd_v):
     bkgd += 2
     
     this_df = df.query("PassOsc==1 & Stacked==@bkgd")
-    data    = this_df.Eqe.values*1000.
-    #data = this_df.RecoEnuQE.values*1000.
+    #data    = this_df.Eqe.values*1000.
+    data = this_df.RecoEnuQE.values*1000.
     weight  = this_df.Weight.values*0.157
     hist = np.histogram(data,weights=weight,bins=bins)
     hist = hist[0]
