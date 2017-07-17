@@ -14,8 +14,7 @@ namespace sp {
 
   std::string to_name(Operation_t operation,
 		      const std::vector<std::string>& prefix_v,
-		      const std::vector<double>& bin_lo_v,
-		      const std::vector<double>& bin_hi_v);
+		      const std::vector<double>& bin_lo_v);
 
   float GeV2MeV(float gev); 
   float MeV2GeV(float mev);

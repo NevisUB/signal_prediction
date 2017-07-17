@@ -26,8 +26,7 @@ namespace sp {
 
   std::string to_name(Operation_t operation,
 		      const std::vector<std::string>& prefix_v,
-		      const std::vector<double>& bin_lo_v,
-		      const std::vector<double>& bin_hi_v) {
+		      const std::vector<double>& bin_lo_v) {
     
     std::stringstream ss;
     ss.precision(3);
@@ -35,7 +34,6 @@ namespace sp {
     ss << (unsigned)operation << "_";
     for(const auto& v : prefix_v) ss << v << "_";
     for(const auto& v : bin_lo_v) ss << v << "_";
-    for(const auto& v : bin_hi_v) ss << v << "_";
     return ss.str();
   }
 

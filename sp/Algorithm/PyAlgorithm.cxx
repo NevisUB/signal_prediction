@@ -1,8 +1,8 @@
-#ifndef __PYUNFOLD_CXX__
-#define __PYUNFOLD_CXX__
+#ifndef __PYALGORITHM_CXX__
+#define __PYALGORITHM_CXX__
 
-#include "PyUnfold.h"
-#include "UnfoldUtil.h"
+#include "PyAlgorithm.h"
+#include "AlgorithmUtil.h"
 
 #ifndef NPY_NO_DEPRECATED_API
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
@@ -15,13 +15,13 @@
 
 namespace sp {
 
-  void InitPyUnfold() {
+  void InitPyAlgorithm() {
     static bool once=false;
     if(!once) { import_array(); once=true; }
   }
   
   Eigen::MatrixXf as_mat_float32(PyObject* pyarray) {
-    InitPyUnfold();
+    InitPyAlgorithm();
     
     float **carray;
     // Create C arrays from numpy objects:
@@ -42,7 +42,7 @@ namespace sp {
 
 
   PyObject* as_array_float32(const Eigen::MatrixXf& mat) {
-    InitPyUnfold();
+    InitPyAlgorithm();
         
     npy_intp dims[2];
     dims[0] = mat.rows();

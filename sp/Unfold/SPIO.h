@@ -43,13 +43,11 @@ namespace sp {
     // add a true parameter
     void add_true_parameter(const std::vector<std::string>& true_var_name,
 			    const std::vector<double>& bin_lo_v,
-			    const std::vector<double>& bin_hi_v,
 			    Operation_t op=kOP_INVALID);
 
     // add a reco parameter    
     void add_reco_parameter(const std::vector<std::string>& var_v,
 			    const std::vector<double>& bin_lo_v,
-			    const std::vector<double>& bin_hi_v,
 			    Operation_t op=kOP_INVALID);
     
   private:
@@ -77,7 +75,6 @@ namespace sp {
 
     std::vector<const Parameter*> _unfold_parameter_ptr_v;
     std::vector<const Response*> _unfold_response_ptr_v;
-
 
   private:
     //

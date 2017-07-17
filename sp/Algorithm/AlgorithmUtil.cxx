@@ -1,7 +1,7 @@
-#ifndef __UNFOLDUTIL_CXX__
-#define __UNFOLDUTIL_CXX__
+#ifndef __ALGORITHMUTIL_CXX__
+#define __ALGORITHMUTIL_CXX__
 
-#include "UnfoldUtil.h"
+#include "AlgorithmUtil.h"
 
 namespace sp {
 

@@ -10,7 +10,6 @@ namespace sp {
     _name(""), 
     _variable_v(std::vector<std::string>()),
     _bin_lo_v(std::vector<double>()),
-    _bin_hi_v(std::vector<double>()),
     _operation(kOP_INVALID),
     _filled(false),
     _from_file(false),
@@ -22,12 +21,10 @@ namespace sp {
   
   Parameter::Parameter(const std::vector<std::string>& variable_v,
 		       const std::vector<double>& bin_lo_v,
-		       const std::vector<double>& bin_hi_v,
 		       Operation_t op) :
     _name(""),
     _variable_v(variable_v),
     _bin_lo_v(bin_lo_v),
-    _bin_hi_v(bin_hi_v),
     _operation(op),
     _filled(false),
     _from_file(false),
@@ -35,7 +32,7 @@ namespace sp {
   {
 	  
     std::cout << "P @ " << this << std::endl;
-    _name = to_name(op,variable_v,bin_lo_v,bin_hi_v);
+    _name = to_name(op,variable_v,bin_lo_v);
 	  
     _hist = TH1D(concatenate(variable_v).c_str(),"",(int)(bin_lo_v.size()-1),_bin_lo_v.data());
     _hist.SetDirectory(0);
@@ -63,10 +60,6 @@ namespace sp {
     for(auto v : _bin_lo_v) std::cout << v << ",";
     std::cout << "]" << std::endl;
     
-    std::cout << "bin_hi_v: [";
-    for(auto v : _bin_hi_v) std::cout << v << ",";
-    std::cout << "]" << std::endl;
-
     std::cout << "TH1D pointer : " << &_hist << std::endl;
     std::cout << "TH1D n_entries : " << _hist.GetEntries() << std::endl;
 

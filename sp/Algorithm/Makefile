@@ -1,5 +1,5 @@
-DICT  = SP_UnfoldDict
-SHLIB = libSP_Unfold.so
+DICT  = SP_AlgorithmDict
+SHLIB = libSP_Algorithm.so
 SOURCES = $(filter-out $(DICT).cxx, $(wildcard *.cxx))
 FMWK_HEADERS = LinkDef.h $(DICT).h
 HEADERS = $(filter-out $(FMWK_HEADERS), $(wildcard *.h))
