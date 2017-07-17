@@ -70,12 +70,11 @@ namespace sp {
   
   void SPIO::add_true_parameter(const std::vector<std::string>& var_v,
 				const std::vector<double>& bin_lo_v,
-				const std::vector<double>& bin_hi_v,
 				Operation_t op) {
   
     std::cout << std::endl;
-    std::cout << "Requeted to add true parameter" << std::endl;
-    Parameter in_param(var_v,bin_lo_v,bin_hi_v,op);
+    std::cout << "Requested to add true parameter" << std::endl;
+    Parameter in_param(var_v,bin_lo_v,op);
     
     const auto unfold_param = search_unfold_parameters(in_param);
 
@@ -92,11 +91,10 @@ namespace sp {
   
   void SPIO::add_reco_parameter(const std::vector<std::string>& var_v,
 				const std::vector<double>& bin_lo_v,
-				const std::vector<double>& bin_hi_v,
 				Operation_t op) {
     std::cout << std::endl;
-    std::cout << "Requeted to add reco parameter" << std::endl;
-    Parameter in_param(var_v,bin_lo_v,bin_hi_v,op);
+    std::cout << "Requested to add reco parameter" << std::endl;
+    Parameter in_param(var_v,bin_lo_v,op);
 
     const auto unfold_param = search_unfold_parameters(in_param);
 
@@ -122,7 +120,7 @@ namespace sp {
     return nullptr;
   }
   
-
+  
   void SPIO::prepare_unfold_file_parameters() {
     std::cout << std::endl;
     std::cout << "Scan existing Paramters" << std::endl;
@@ -169,7 +167,6 @@ namespace sp {
     }
     std::cout << std::endl;
   }
-  
   
 
 

@@ -19,7 +19,6 @@ namespace sp {
 
     Parameter(const std::vector<std::string>& variable_v,
 	      const std::vector<double>& bin_lo_v,
-	      const std::vector<double>& bin_hi_v,
 	      Operation_t op = kOP_INVALID);
     
     ~Parameter(){ std::cout << "~P @ "<< this  << std::endl;};
@@ -27,7 +26,6 @@ namespace sp {
     std::string _name;
     std::vector<std::string> _variable_v;
     std::vector<double> _bin_lo_v;
-    std::vector<double> _bin_hi_v;
     Operation_t _operation;
 
     bool _filled;
@@ -41,7 +39,6 @@ namespace sp {
     inline bool operator==(const Parameter& rhs) const {
       if (_variable_v != rhs._variable_v)  return false;
       if (_bin_lo_v != rhs._bin_lo_v) return false;
-      if (_bin_hi_v != rhs._bin_hi_v) return false;
       return true;
     }
 

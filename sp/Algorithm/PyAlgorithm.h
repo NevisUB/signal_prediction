@@ -1,5 +1,5 @@
-#ifndef __PYUNFOLD_H__
-#define __PYUNFOLD_H__
+#ifndef __PYALGORITHM_H__
+#define __PYALGORITHM_H__
 
 #include "Base/PySP.h"
 
@@ -7,7 +7,7 @@
 
 namespace sp {
 
-  void InitPyUnfold();
+  void InitPyAlgorithm();
   
   Eigen::MatrixXf as_mat_float32(PyObject* pyarray);
   PyObject* as_array_float32(const Eigen::MatrixXf& mat);

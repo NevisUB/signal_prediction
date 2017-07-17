@@ -4,6 +4,7 @@
 #include "TikonovSVD.h"
 #include <Eigen/SVD>
 #include <iostream>
+
 namespace sp {
   
   void TikhonovSVD::Initialize(const Eigen::MatrixXf& A) {

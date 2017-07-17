@@ -1,5 +1,5 @@
-#ifndef __UNFOLDUTIL_H__
-#define __UNFOLDUTIL_H__
+#ifndef __ALGORITHMUTIL_H__
+#define __ALGORITHMUTIL_H__
 
 #include <Eigen/Dense>
 #include <vector>
