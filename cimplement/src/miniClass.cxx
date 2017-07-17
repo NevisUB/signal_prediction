@@ -3,8 +3,8 @@
 
 miniClass::miniClass(std::vector<std::string> varin, std::vector<std::string> selin, std::string sigin, std::vector<double> low, std::vector<double> high) : vars(varin), selections(selin), signal_name(sigin), low_bin(low), high_bin(high) {
 
-	int nb =25;
-	int nbt = 25;
+	int nb =12;
+	int nbt = 12;
 
 	for(int i=0; i<selections.size(); i++){
 		if(signal_name == selections.at(i)){

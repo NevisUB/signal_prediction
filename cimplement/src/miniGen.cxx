@@ -175,8 +175,8 @@ int main(int argc, char* argv[])
 	//What variables do you want to plot
 	std::vector<std::string> v_variable_names = {"Enu","Evis","CosTheta","Eqe","tHit","-Q^2"};
 	//The upper and lower bounds for said variable histgrams
-	std::vector<double> lower = {0.0,0.0,-1,0.0,0,0};
-	std::vector<double> higher = {2.5,2.5,1,2.5,10000,2};
+	std::vector<double> lower = {0.3,0.3,-1,0.3,0,0};
+	std::vector<double> higher = {1.5,1.5,1,1.5,10000,2};
 	//The colors (can have different pass and fail, but meh)
 	std::vector<int> cols = {kRed-6, kBlue-7, kMagenta+3,kOrange+1,kMagenta-3,kCyan+1, kOrange+2  ,kGray};
 

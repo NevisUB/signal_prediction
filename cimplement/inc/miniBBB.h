@@ -1,5 +1,5 @@
-#ifndef MINISVD_H_
-#define MINISVD_H_
+#ifndef MINIBBB_H_
+#define MINIBBB_H_
 
 #include <cmath>
 #include <vector>
@@ -23,21 +23,24 @@
 #include <TRandom3.h>
 #include <TDecompSVD.h>
 
-class miniSVD{
+class miniBBB{
 	
 	public:
 	int nr;
 	int nt;
 
-	TMatrixT<double> * A;
+	TMatrixT<double> * A;//This A is number of events
+	TMatrixT<double> * K;// This is proper repsonce
 	
 	TMatrixT<double> * B;
 	TVectorT<double> * b;
 	TVectorT<double> * xini;
+	TVectorT<double> * truthpass;
+	TVectorT<double> * recomc;
 
-	miniSVD(TMatrixT<double>*, TVectorT<double>*, TVectorT<double>*, int);
-	miniSVD(TH2D *, TH1D *, TH1D *,int);
-	int k_reg;
+	miniBBB(TMatrixT<double>*, TVectorT<double>*, TVectorT<double>*);
+	miniBBB(TH2D *, TH1D *, TH1D *, TH1D *, TH1D *);
+
 	TH1D *ans;
 
 	TMatrixT<double> * C;
@@ -47,8 +50,9 @@ class miniSVD{
 	TMatrixT<double> * inv_X;
 
 
-	int init(double, int); //initilises C and inv_C and B ;
+	int init(double); //initilises C and inv_C and B ;
 	TH1D * unfold();
+	TH1D * unfold(int);
 
 	int rotateRescale(TMatrixT<double> * tilde_A, TVectorT<double> *r, TMatrixT<double> * Q, TMatrixT<double> * A );
 	int rotateRescale(TVectorT<double> * tilde_b, TVectorT<double> *r, TMatrixT<double> * Q, TVectorT<double> * b );
