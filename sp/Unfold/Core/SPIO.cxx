@@ -170,7 +170,6 @@ namespace sp {
   }
   
 
-
   bool SPIO::init_response_matrix() {
     std::cout << std::endl;
     std::cout << "Instantiate response matrix" << std::endl;
@@ -264,19 +263,17 @@ namespace sp {
       _in_tree->SetBranchAddress("Weight"  , &weight);
       _in_tree->SetBranchAddress("PassOsc" , &passosc);
       
-      if(_model) {
-	_in_tree->SetBranchAddress("NuType"    , &_model->NuType);
-	_in_tree->SetBranchAddress("NUANCEChan", &_model->NUANCEChan);
-      }
+      if (!_model) throw sperr("No Model specified");
+
+      _in_tree->SetBranchAddress("NuType"    , &_model->NuType);
+      _in_tree->SetBranchAddress("NUANCEChan", &_model->NUANCEChan);
 
       std::cout << "READING: " << _in_n_entries << " entries from MC file" << std::endl;
       for(size_t entry = 0; entry < _in_n_entries; ++entry) {
 	_in_tree->GetEntry(entry);
 	
-	// check the model
-	if (_model && _model->Valid())
-	
-	response->Fill(weight,passosc);
+	if (_model->Valid())
+	  response->Fill(weight,passosc);
       }
 
       response->Finalize();

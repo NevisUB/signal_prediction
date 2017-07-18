@@ -28,8 +28,8 @@ int main(int argc, char** argv) {
   bins_lo_v = {0,100,200,300,400,500,600,700,800,900,1000};
   a.add_reco_parameter(var_v,bins_lo_v,sp::kOP_EQE);
   
-  sp::ModelNueCCQE model;
-  a.set_model(&model);
+  // sp::ModelNueCCQE model;
+  // a.set_model(&model);
 
   a.init_response_matrix();
   a.fill_responses();
