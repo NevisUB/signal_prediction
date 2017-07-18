@@ -1,6 +1,6 @@
-#include "Unfold/SPIO.h"
-#include "Unfold/SPManager.h"
-#include "Unfold/UnfoldAlgoDAgnostini.h"
+#include "Unfold/Core/SPIO.h"
+#include "Unfold/Core/SPManager.h"
+#include "Unfold/Algo/UnfoldAlgoDAgnostini.h"
 #include "TCanvas.h"
 
 int main(int argc, char** argv) {

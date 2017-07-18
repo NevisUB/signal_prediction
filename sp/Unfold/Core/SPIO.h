@@ -7,6 +7,8 @@
 #include "TChain.h"
 #include "TFile.h"
 #include "UnfoldTypes.h"
+#include "SPModelBase.h"
+
 
 namespace sp {
   
@@ -50,6 +52,8 @@ namespace sp {
 			    const std::vector<double>& bin_lo_v,
 			    Operation_t op=kOP_INVALID);
     
+    void set_model(SPModelBase* model) { _model = model; }
+
   private:
     //
     // Private variables
@@ -74,7 +78,9 @@ namespace sp {
     std::vector<Response> _response_v;
 
     std::vector<const Parameter*> _unfold_parameter_ptr_v;
-    std::vector<const Response*> _unfold_response_ptr_v;
+    std::vector<const Response*>  _unfold_response_ptr_v;
+
+    SPModelBase* _model;
 
   private:
     //
@@ -92,7 +98,6 @@ namespace sp {
 
     // given a response, search the file to check if it exists
     const Response*  search_unfold_responses(const Response& in_response);
-    
 
   public:
     //

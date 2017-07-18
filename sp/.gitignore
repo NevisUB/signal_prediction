@@ -7,3 +7,4 @@
 *.F
 *.out
 .ipynb_checkpoints
+*.ipynb

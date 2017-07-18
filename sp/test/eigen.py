@@ -1,5 +1,5 @@
 from ROOT import sp
-sp.LoadCombined()
+sp.LoadAlgorithm()
 
 import numpy as np
 

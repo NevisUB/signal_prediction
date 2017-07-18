@@ -21,7 +21,7 @@ namespace sp {
 	      const std::vector<double>& bin_lo_v,
 	      Operation_t op = kOP_INVALID);
     
-    ~Parameter(){ std::cout << "~P @ "<< this  << std::endl;};
+    ~Parameter(){}
     
     std::string _name;
     std::vector<std::string> _variable_v;

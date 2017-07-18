@@ -15,9 +15,8 @@ namespace sp {
     _from_file(false),
     _hist(TH1D()), 
     _data_v(std::vector<float>())
-  { 
-    std::cout << "P @ " << this << std::endl; 
-  }
+  { }
+
   
   Parameter::Parameter(const std::vector<std::string>& variable_v,
 		       const std::vector<double>& bin_lo_v,
@@ -67,5 +66,6 @@ namespace sp {
     std::cout << "Filled: " << _filled << std::endl;
     std::cout << std::endl;
   }
+
 }
 #endif

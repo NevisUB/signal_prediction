@@ -11,7 +11,8 @@ namespace sp {
     _mc_tree_name(""),
     _unfold_file_name(""),
     _in_tree(nullptr),
-    _unfold_file(nullptr)
+    _unfold_file(nullptr),
+    _model(nullptr)
   {}
 
   SPIO::~SPIO() {}
@@ -260,25 +261,22 @@ namespace sp {
 
       float weight;
       bool passosc;
-      int nutype;
-      int nuancechan;
-
-      _in_tree->SetBranchAddress("Weight"    , &weight);
-      _in_tree->SetBranchAddress("PassOsc"   , &passosc);
-      _in_tree->SetBranchAddress("NuType"    , &nutype);
-      _in_tree->SetBranchAddress("NUANCEChan", &nuancechan);
+      _in_tree->SetBranchAddress("Weight"  , &weight);
+      _in_tree->SetBranchAddress("PassOsc" , &passosc);
+      
+      if(_model) {
+	_in_tree->SetBranchAddress("NuType"    , &_model->NuType);
+	_in_tree->SetBranchAddress("NUANCEChan", &_model->NUANCEChan);
+      }
 
       std::cout << "READING: " << _in_n_entries << " entries from MC file" << std::endl;
       for(size_t entry = 0; entry < _in_n_entries; ++entry) {
 	_in_tree->GetEntry(entry);
 	
-//	if (!passosc) continue;
-//	if (entry>=10000) break;
-	if (weight<=0) continue;
-
-
-	// if( model.usValid()}		
-	response->Fill(weight,passosc,nutype);
+	// check the model
+	if (_model && _model->Valid())
+	
+	response->Fill(weight,passosc);
       }
 
       response->Finalize();

@@ -7,7 +7,6 @@
 #include "TVectorD.h"
 #include "TMatrixD.h"
 
-
 namespace sp {
 
   class Response : public TObject{
@@ -16,7 +15,7 @@ namespace sp {
 
     Response();
     Response(Parameter* true_p, Parameter* reco_p);
-    ~Response(){ std::cout << "~R @ " << this << std::endl;}
+    ~Response(){}
     
     std::string _name;
     
@@ -34,7 +33,7 @@ namespace sp {
       return true;
     }
 
-    void Fill(float weight, bool passosc, int nutype);
+    void Fill(float weight, bool passosc);
     void Finalize();
     
     bool filled() const;

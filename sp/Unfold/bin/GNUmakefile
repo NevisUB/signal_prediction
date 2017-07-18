@@ -4,13 +4,11 @@ CXXFLAGS += -I. $(shell root-config --cflags)
 
 LDFLAGS = -L.
 LDFLAGS += $(shell root-config --libs)
-LDFLAGS += -L$(SP_LIBDIR) -lSP_Unfold
+LDFLAGS += -L$(SP_LIBDIR) -lSP_UnfoldCore -lSP_UnfoldAlgo
 
+CXX = g++
 
-
-CXX=g++
-
-PROGRAMS = unfold
+PROGRAMS = fill_unfold_file unfold
 
 all:	clean $(PROGRAMS)
 

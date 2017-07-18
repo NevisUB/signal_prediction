@@ -52,15 +52,14 @@ namespace sp {
       }
     case kOP_EQE : 
       { 
-	float res = CombinedFit_EnuQE_ryan(data[0],data[1],kNUE);
+	float res = CombinedFit_EnuQE_ryan(data.at(0),data.at(1),kNUE);
 	res *= 1000.0;
-	//std::cout << "EQE: (" << data[0] << "," << data[1] << ") = " << res << std::endl;
 	return res;
       }
 
     case kOP_Q2 : 
       { 
-	return CombinedFit_Q2_ryan(data[0],data[1],kNUE);
+	return CombinedFit_Q2_ryan(data.at(0),data.at(1),kNUE);
       }
     case kOP_MEV2GEV :
       {
@@ -77,18 +76,16 @@ namespace sp {
     }
     return kINVALID_FLOAT;
   }
-
-
-
+  
   TVectorD hist2TVec(TH1D * hist){
-	 int dim = hist->GetNbinsX()+2;
-	 TVectorD tmp(dim);
+    int dim = hist->GetNbinsX()+2;
+    TVectorD tmp(dim);
 
-	for(int i = 0; i<dim; i++){
-		tmp[i] = hist->GetBinContent(i);
-	}
+    for(int i = 0; i<dim; i++){
+      tmp[i] = hist->GetBinContent(i);
+    }
 
-	return tmp;	
+    return tmp;	
   }
 
 

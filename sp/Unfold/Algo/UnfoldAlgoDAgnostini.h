@@ -1,7 +1,7 @@
 #ifndef __UNFOLDALGODAGNOSTINI_H__
 #define __UNFOLDALGODAGNOSTINI_H__
 
-#include "UnfoldAlgoBase.h"
+#include "Unfold/Core/UnfoldAlgoBase.h"
 
 namespace sp {
 
