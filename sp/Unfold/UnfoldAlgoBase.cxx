@@ -19,6 +19,8 @@ namespace sp {
 
 		D.ResizeTo(n_r,n_r); D.Zero();	
 		U.ResizeTo(n_t,n_t); U.Zero();
+		UD.ResizeTo(n_t,n_t); UD.Zero();
+		UA.ResizeTo(n_t,n_t); UA.Zero();
 
 
 		std::cout<<"sp::UnfoldAlgoBase::Initialize || Initilizing truth MC."<<std::endl;
@@ -131,7 +133,7 @@ namespace sp {
 	TH1D UnfoldAlgoBase::GetErrU(){
 		
 		for(int i=0; i<n_t; i++){
-			hist_u->SetBinContent(i , fabs(U(i,i)));
+			hist_u->SetBinContent(i , fabs(sqrt(U(i,i))));
 		}
 
 		return *hist_u;

@@ -1,6 +1,7 @@
 #include "Unfold/SPIO.h"
 #include "Unfold/SPManager.h"
 #include "Unfold/UnfoldAlgoDAgnostini.h"
+#include "Unfold/UnfoldAlgoInverse.h"
 #include "TCanvas.h"
 
 int main(int argc, char** argv) {
@@ -37,7 +38,10 @@ int main(int argc, char** argv) {
   std::cout<<"Begininning"<<std::endl;
 
  
-  sp::UnfoldAlgoDAgnostini alg;
+  sp::UnfoldAlgoDAgnostini alg; 
+//  sp::UnfoldAlgoInverse alg;
+
+
   alg.Initialize( &a.Responses().at(0) );
   alg.SetRegularization(5);
 //  alg.GenPoissonNoise();
@@ -77,9 +81,6 @@ int main(int argc, char** argv) {
 
   alg.Setd(&mini_signal);
 
-  for(int i=0; i< alg.n_r; i++){
-		std::cout<<"d: "<<i<<" "<<alg.d(i)<<std::endl;
-  } 
   alg.Unfold();
 
   TH1D ans =  alg.GetHistU();
@@ -107,36 +108,60 @@ int main(int argc, char** argv) {
 
   c->Write();
 
-  TCanvas *c2 =  new TCanvas();
-  c2->cd();
+  TCanvas *c2 =  new TCanvas("","",1200,800);
+  c2->Divide(3,2);
 
 
-  std::vector<int> cols = {kCyan,kGreen+3, kOrange-3, kMagenta-3, kGreen-6,kBlue-7,kRed-7};
+  std::vector<int> cols = {kBlue-7,kGreen-6,kRed-7, kOrange-3, kMagenta-3, kGreen+3};
   std::vector<TH1D> us(6);
+  std::vector<TH1D> us_stat(6);
 
+  std::vector<std::string> eeee = {"E","E1","E2","E3","E4","E0","E4"};
+  for(int k=0; k<6; k++){
 
-
-  for(int k=1; k<7; k++){
-
-	  alg.SetRegularization(k);
+  	  c2->cd(k+1);
+	  alg.SetRegularization(k+1);
 	  alg.Unfold();
 
-	  us.at(k-1) = alg.GetHistU();
-	  us.at(k-1).SetLineColor(cols.at(k));
-	  us.at(k-1).Scale(1,"width");
-	  if(k==1){ us.at(k-1).Draw();
-	  }else{
-		  us.at(k-1).Draw(" same");
-	  } 
+	  std::vector<double> errA(alg.n_t,0.0);
+	  std::vector<double> err(alg.n_t,0.0);
+
+	  for(int i=0;i<err.size(); i++){
+		 err.at(i) = sqrt(alg.U(i,i));
+		 errA.at(i) = sqrt(alg.UA(i,i)+alg.U(i,i));
+
+		 std::cout<<"u= "<<alg.u(i)<<" +/-(stat) "<<sqrt(alg.u(i))<<" +/-(statD) "<<err.at(i)<<" +/- (sysA) "<<errA.at(i)<<std::endl;
+	  }
+
+
+	  us.at(k) = alg.GetHistU();
+	  us.at(k).SetError(&errA[0]);
+	  us.at(k).SetLineColor(cols.at(k));
+	  us.at(k).SetLineWidth(2);
+	  us.at(k).SetFillColor(cols.at(k));
+	  us.at(k).GetXaxis()->SetRange(1,10);
+	  us.at(k).Scale(1,"width");
+	  us.at(k).Draw("E2");
+
+	  us.at(k).SetMinimum(0);
+	  us.at(k).SetMaximum(8);//has to be after!
+
+	  us_stat.at(k) = alg.GetHistU();
+	  us.at(k).SetError(&err[0]);
+	  us_stat.at(k).SetLineColor(kBlack);
+	  us_stat.at(k).SetLineWidth(2);
+	  us_stat.at(k).Scale(1,"width");
+	  us_stat.at(k).Draw("same e1");
+
+	  truth.SetLineColor(kBlack);
+  	  truth.SetMarkerStyle(21);
+	  truth.SetMarkerColor(kBlack);
+          truth.Draw("same");
+
 
 
   }
-  truth.SetLineColor(kBlack);
-  truth.SetMarkerStyle(21);
-  truth.Draw("same");
-
   c2->Write();
-
 
   
 

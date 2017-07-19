@@ -33,6 +33,8 @@ namespace sp {
 
 			TVectorD u;
 			TMatrixD U;
+			TMatrixD UA;
+			TMatrixD UD;
 
 		public:
 			UnfoldAlgoBase() { 
