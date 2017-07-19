@@ -305,6 +305,26 @@ namespace sp {
 
 	}
 
+	void UnfoldAlgoBase::TestRegularization(std::string filename, double low_kreg, double high_kreg, double step_kreg){
+		TCanvas * c = new TCanvas();
 
+		std::cout<<"UnfoldAlgoBase::TestRegularization() || Starting test from k="<<low_kreg<<" to "<<high_kreg<<" in steps of "<<step_kreg<<std::endl;
+		
+		for(double k=low_kreg; k<=high_kreg; k+=step_kreg){
+			std::cout<<"UnfoldAlgoBase::TestRegularization() || On k="<<k<<std::endl;
+	
+				this->SetRegularization(k);
+				this->Unfold();
+
+
+
+
+		}
+			
+
+
+
+		c->SaveAs( (filename+".pdf").c_str(),"pdf");		
+	}
 }
 #endif

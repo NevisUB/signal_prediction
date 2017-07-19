@@ -57,7 +57,7 @@ namespace sp {
 			void Unfold(const TVectorD* d_in, const TMatrixD* D_in);
 
 
-			//void TestRegularization(double low, double high)=0;
+			void TestRegularization( std::string filename, double low, double high, double step);
 			void TestUnfolding(std::string in);
 //
 			// Some generic useful functions on an alorithm

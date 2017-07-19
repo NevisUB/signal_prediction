@@ -115,48 +115,53 @@ int main(int argc, char** argv) {
   std::vector<int> cols = {kBlue-7,kGreen-6,kRed-7, kOrange-3, kMagenta-3, kGreen+3};
   std::vector<TH1D> us(6);
   std::vector<TH1D> us_stat(6);
+  std::vector<int> kreg = {1,2,3,4,5,6};
+  //std::vector<int> kreg = {1,2,5,8,10,100};
 
-  std::vector<std::string> eeee = {"E","E1","E2","E3","E4","E0","E4"};
   for(int k=0; k<6; k++){
 
   	  c2->cd(k+1);
-	  alg.SetRegularization(k+1);
+	  alg.SetRegularization(kreg.at(k));
 	  alg.Unfold();
 
 	  std::vector<double> errA(alg.n_t,0.0);
+	  std::vector<double> errD(alg.n_t,0.0);
 	  std::vector<double> err(alg.n_t,0.0);
+	  std::vector<double> errS(alg.n_t,0.0);
 
 	  for(int i=0;i<err.size(); i++){
-		 err.at(i) = sqrt(alg.U(i,i));
-		 errA.at(i) = sqrt(alg.UA(i,i)+alg.U(i,i));
-
-		 std::cout<<"u= "<<alg.u(i)<<" +/-(stat) "<<sqrt(alg.u(i))<<" +/-(statD) "<<err.at(i)<<" +/- (sysA) "<<errA.at(i)<<std::endl;
+		 errD.at(i) = sqrt(alg.U(i,i));
+		 errA.at(i) = sqrt(alg.UA(i,i));
+		 errS.at(i) = sqrt(alg.u(i));
+		 err.at(i) = sqrt(alg.UA(i,i)+alg.U(i,i));
+		 std::cout<<"u= "<<alg.u(i)<<" +/-(stat) "<<errS.at(i)<<" +/-(D) "<<errD.at(i)<<" +/-(A) "<<errA.at(i)<<" +/-(AD) "<<err.at(i)<<std::endl;
 	  }
 
 
 	  us.at(k) = alg.GetHistU();
-	  us.at(k).SetError(&errA[0]);
+	  us.at(k).SetError(&err[0]);
 	  us.at(k).SetLineColor(cols.at(k));
 	  us.at(k).SetLineWidth(2);
 	  us.at(k).SetFillColor(cols.at(k));
-	  us.at(k).GetXaxis()->SetRange(1,10);
 	  us.at(k).Scale(1,"width");
 	  us.at(k).Draw("E2");
 
 	  us.at(k).SetMinimum(0);
+	  us.at(k).GetXaxis()->SetRange(1,10);
 	  us.at(k).SetMaximum(8);//has to be after!
 
 	  us_stat.at(k) = alg.GetHistU();
-	  us.at(k).SetError(&err[0]);
+	  us_stat.at(k).SetError(&errA[0]);
 	  us_stat.at(k).SetLineColor(kBlack);
 	  us_stat.at(k).SetLineWidth(2);
 	  us_stat.at(k).Scale(1,"width");
-	  us_stat.at(k).Draw("same e1");
+	  us_stat.at(k).Draw("same E1");
 
 	  truth.SetLineColor(kBlack);
+	  truth.SetLineWidth(2);
   	  truth.SetMarkerStyle(21);
 	  truth.SetMarkerColor(kBlack);
-          truth.Draw("same");
+          truth.Draw("same hist");
 
 
 
