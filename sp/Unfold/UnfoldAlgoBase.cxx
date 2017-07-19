@@ -17,8 +17,8 @@ namespace sp {
 		u.ResizeTo(n_t);
 		d.ResizeTo(n_r);
 
-		D.ResizeTo(n_r,n_r);	
-		U.ResizeTo(n_t,n_t);	
+		D.ResizeTo(n_r,n_r); D.Zero();	
+		U.ResizeTo(n_t,n_t); U.Zero();
 
 
 		std::cout<<"sp::UnfoldAlgoBase::Initialize || Initilizing truth MC."<<std::endl;
@@ -60,6 +60,19 @@ namespace sp {
 
 
 	};
+
+	void UnfoldAlgoBase::Setd(TVectorD * din){
+		if( din->GetNrows() != n_r){
+			std::cout<<"sp::UnfoldAlgoBase::Setd || ERROR: Passed a d_in that is size: "<<din->GetNrows()<<" but n_r is "<<n_r<<std::endl;
+			exit(EXIT_FAILURE);
+		}
+		d.ResizeTo(n_r);
+		for(int i=0; i<n_r;i++){
+			d(i) = (*din)(i);
+		}
+
+
+	}
 
 
 	void UnfoldAlgoBase::SetRegularization(double reg){
@@ -104,6 +117,27 @@ namespace sp {
 		return *hist_u;
 	}
 
+	TH2D UnfoldAlgoBase::GetCovU(){
+		TH2D tmp("","",n_t,0,n_t,n_t,0,n_t);
+		for(int i=0; i<n_t; i++){
+		for(int j=0; j<n_t; j++){
+			tmp.SetBinContent(i+1,j+1 , U(i,j));
+		}
+		}
+
+		return tmp;
+	}
+
+	TH1D UnfoldAlgoBase::GetErrU(){
+		
+		for(int i=0; i<n_t; i++){
+			hist_u->SetBinContent(i , fabs(U(i,i)));
+		}
+
+		return *hist_u;
+	}
+
+
 	TH1D UnfoldAlgoBase::GetHistT(){
 
 		for(int i=0; i<n_t; i++){
@@ -142,7 +176,7 @@ namespace sp {
 		std::vector<int> tmp_colors ={kOrange-3, kMagenta-3, kGreen-6,kBlue-7,kRed-7};
 
 		TCanvas * c = new TCanvas();
-		c->Divide(2,1);
+		c->Divide(2,2);
 		c->cd(1);	
 
 		tmpR.SetMarkerStyle(21);
@@ -211,6 +245,31 @@ namespace sp {
 
 		}
 
+		c->cd(3);
+		TH2D covU = this->GetCovU();
+		double mm=0;
+		double mx=0;
+
+		for(int a=1; a<n_t; a++){
+		for(int b=1; b<n_t; b++)
+		{
+			double ank = covU.GetBinContent(a,b)/(u(a-1)*u(b-1));
+			covU.SetBinContent(a,b ,ank);
+			std::cout<<"Frac: "<<a<<" "<<b<<" "<<covU.GetBinContent(a,b)/(u(a-1)*u(b-1))<<std::endl;
+			if(ank < mm) mm=ank;
+			if(ank>mx) mx=ank;
+		}
+		}
+		std::cout<<"Max: "<<mx<<" Min: "<<mm<<std::endl;
+			covU.Draw("COLZ3");	
+
+
+		c->cd(4)->SetLogy();
+		TH1D errU = this->GetErrU();
+		errU.SetLineColor(kBlack);
+		errU.Draw("hist");
+
+
 
 		c->SaveAs( (filename+".pdf").c_str(),"pdf");	
 
@@ -221,6 +280,8 @@ namespace sp {
 
 
 	void UnfoldAlgoBase::Unfold(const TVectorD * data, const TMatrixD * Din){
+		D.ResizeTo(n_r,n_r);
+		D=*Din;
 
 		d.ResizeTo(n_r);
 		d = *data;
@@ -231,6 +292,12 @@ namespace sp {
 	void UnfoldAlgoBase::Unfold(const TVectorD * data){
 		d.Zero();
 		d = *data;
+
+		D.ResizeTo(n_r,n_r);
+		D.Zero();
+		for(int i=0; i<n_r; i++){
+			D(i,i)=d(i);
+		}
 
 		this->Unfold();
 

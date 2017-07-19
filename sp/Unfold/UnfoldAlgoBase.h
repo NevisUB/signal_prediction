@@ -66,10 +66,17 @@ namespace sp {
 			double GetRegularization();
 			void SetSeed(int);
 
+			void Setd(TVectorD* d_in);
+
+
 			TH1D GetHistU();
 			TH1D GetHistT();
 			TH1D GetHistR();
 			TH1D GetHistD();
+
+
+			TH2D GetCovU();
+			TH1D GetErrU();
 
 
 	};
