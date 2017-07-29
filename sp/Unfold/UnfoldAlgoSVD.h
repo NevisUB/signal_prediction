@@ -2,16 +2,22 @@
 #define __UNFOLDALGOSVD_H__
 
 #include "UnfoldAlgoBase.h"
-
+#include <TDecompSVD.h>
 namespace sp {
 
 	class UnfoldAlgoSVD : public UnfoldAlgoBase {
 
 		private:
 		public:
-			UnfoldAlgoSVD() : UnfoldAlgoBase() {
-				name = "SVD";
-			}
+		
+			UnfoldAlgoSVD();
+		
+			TMatrixD C;
+			TMatrixD invC;
+
+			double xi;
+
+
 
 			void Unfold();
 

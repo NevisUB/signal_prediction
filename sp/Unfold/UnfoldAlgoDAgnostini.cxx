@@ -7,20 +7,24 @@ namespace sp {
 
 
 	void UnfoldAlgoDAgnostini::Unfold(){
-		TMatrixT<double> meas_error_prop(n_t, n_r);
+		std::cout<<"sp::UnfoldAlgoDAgnostini::Unfold || Beginning unfolding with Algorithm: "<<name<<std::endl;
+
+		TMatrixT<double> dudd(n_t, n_r);
 		TVectorT<double> u_last(n_t);
 
 		std::vector<std::vector<std::vector<double>>> dudA_last(n_t, std::vector<std::vector<double>>(n_r, std::vector<double>(n_t,0)));
-
 		std::vector<std::vector<std::vector<double>>> covA(n_r, std::vector<std::vector<double>>(n_t, std::vector<double>(n_r,0)));//thre indicies, as we have ignored inter truth correlations i think
+
+
+		std::cout<<"sp::UnfoldAlgoDAgnostini::Unfold || Calculating covariance on Response. MUST CHECK WARNING."<<std::endl;
 		//This is necessary to propagate the errors on A through..
 		for(int r=0;r<n_r; r++){
 			for(int a=0;a<n_t; a++){
 				for(int s=0;s<n_r; s++){
 					if(r==s){
-						covA.at(r).at(a).at(s) = 1.0/t(a) *A(a,r)*(1-A(a,r)); 
+						covA.at(r).at(a).at(s) = 1.0/t(a) *A(r,a)*(1-A(r,a)); 
 					}else{
-						covA.at(r).at(a).at(s) = - 1.0/t(a)*A(a,r)*A(a,s); 
+						covA.at(r).at(a).at(s) = - 1.0/t(a)*A(r,a)*A(s,a); 
 					}
 
 				}
@@ -30,40 +34,28 @@ namespace sp {
 
 
 
-		D.ResizeTo(n_r,n_r);
-		D.Zero();
-		for(int i=0; i<n_r; i++){
-			D(i,i)=d(i);
-		}
 
 
-		std::cout<<"sp::UnfoldAlgoDAgnostini::Unfold || Beginning unfolding with Algorithm: "<<name<<std::endl;
-
+		std::cout<<"sp::UnfoldAlgoDAgnostini::Unfold || Setting initial guess."<<std::endl;
 		u.ResizeTo(n_t);
 		//what is the initial guess for bayes theorem;
 		u=t;
 
+		std::cout<<"sp::UnfoldAlgoDAgnostini::Unfold || Truth is : ";
 		double ntruth =0;
-		for(int i=0; i<n_r; i++){
-			ntruth+=t(i);
+		for(int a=0; a<n_t; a++){
+			ntruth+=t(a);
+			std::cout<<t(a)<<" ";
 		}
+		std::cout<<std::endl;
 
 		u_last = u;
 		for(int a=0; a<n_t; a++){
+			// UNCOMMENT  this for flat prior 
 			//u(a) = ntruth/((double)n_t); 
 		}
 
-		TVectorT<double> ep(n_t);
-		ep.Zero();
-		for(int b=0; b<n_t; b++){
-			for(int l=0; l<n_r; l++){
-				ep(b) += A(l,b) ;
-			}
-		}
-
-
-
-
+	
 
 		for(int k=0; k<regularization; k++){
 			std::cout<<"sp::UnfoldAlgoDAgnostini::Unfold || On Iteration "<<k<<" of "<<regularization<<std::endl;
@@ -78,17 +70,17 @@ namespace sp {
 					double de =0;
 
 					for(int b=0;b<n_t; b++){
-						de += (A)(i,b)*u(b);
+						de += A(i,b)*u(b);
 					}
 
 					Munfold(a,i) += A(i,a)*u(a)/(ep(a)*de) ;
 
-					if(ep(a)==0){
-						std::cout<<"sp::UnfoldAlgoDAgnostini::Unfold || WARNING efficiency is: "<<ep(a)<<" leading to NAN's"<<std::endl;
-					}
-
+				
 					if(de==0){
-						std::cout<<"sp::UnfoldAlgoDAgnostini::Unfold || WARNING denominator is: "<<de <<" leading to NAN's"<<std::endl;
+						std::cout<<"sp::UnfoldAlgoDAgnostini::Unfold || ERROR denominator is: "<<de <<" leading to NAN's"<<std::endl;
+						std::cout<<"sp::UnfoldAlgoDAgnostini::Unfold || ERROR This means the current reconstructed variable in this iteration is 0 for bin "<<i<<std::endl;
+						std::cout<<"sp::UnfoldAlgoDAgnostini::Unfold || ERROR suggestion is to merge the last two reco bins, and repeat"<<std::endl;
+						exit(EXIT_FAILURE);
 					}
 				}
 
@@ -100,20 +92,28 @@ namespace sp {
 			/***************************************
 			 *	For each iteration, need to keep track of covariance and error matrix better
 			 * ************************************/
-			TMatrixT<double> meas_error_prop_tmp(n_t, n_r);
-			meas_error_prop_tmp = Munfold;
+			TMatrixT<double> dudd_cur(n_t, n_r);
+			dudd_cur = Munfold;
 
 			std::cout<<"sp::UnfoldAlgoDAgnostini::Unfold || Begininning calculation of covariance matrix due to measurement uncertainty D."<<std::endl;
 			if(k !=0){
 				for(int a=0; a<n_t; a++){
 					for(int i =0; i<n_r; i++){
 						//already have munfold in
-						meas_error_prop_tmp(a,i) += u(a)/u_last(a)*meas_error_prop(a,i);
+
+						if(u_last(a)==0){
+							std::cout<<"sp::UnfoldAlgoDAgnostini::Unfold || WARNING: u_last(a) is zero, leading to infinity in dudd_cur: "<<dudd_cur(a,i)<<" @ a = "<<a<<". Previous dudd(a,i)= "<<dudd(a,i)<<" and u(i): "<<u(a)<<std::endl;
+						}	
+
+
+							dudd_cur(a,i) += u(a)/u_last(a)*dudd(a,i);
+
+
 						for(int j=0; j< n_r; j++){
 							for(int b=0; b< n_t; b++){
 
 
-								meas_error_prop_tmp(a,i)-= d(j)*ep(b)/u_last(b)*Munfold(a,j)*Munfold(b,j)*meas_error_prop(b,i);
+								dudd_cur(a,i)-= d(j)*ep(b)/u_last(b)*Munfold(a,j)*Munfold(b,j)*dudd(b,i);
 
 
 							}
@@ -132,34 +132,20 @@ namespace sp {
 
 			TMatrixT<double> tt(n_t,n_r);
 			TMatrixT<double> tr(n_r,n_t);
-			tr.Transpose(meas_error_prop_tmp);
+			tr.Transpose(dudd_cur);
 
 			for(int a =0; a<n_t; a++){
 				for(int i=0; i<n_r; i++){
-					//		std::cout<<"M "<<a<<" "<<i<<" "<<meas_error_prop_tmp(a,i)<<" "<<D(a,i)<<" "<<tt(a,i)<<std::endl;
+					//		std::cout<<"M "<<a<<" "<<i<<" "<<dudd_cur(a,i)<<" "<<D(a,i)<<" "<<tt(a,i)<<std::endl;
 
 				}
 			}
 
 
 			U.Zero();
-			U = meas_error_prop_tmp*D*tr;
+			U = dudd_cur*D*tr;
 
 
-			/*
-			   for(int a=0; a<n_t; a++){
-			   for(int b=0; b<n_t; b++){
-			   for(int i=0; i<n_r; i++){
-			   for(int j=0; j<n_r; j++){
-			   U(a,b) += meas_error_prop(a,i)*D(i,j)*meas_error_prop(b,j);
-			   }
-			   }
-
-			   }
-			   }
-			   */
-
-			//What is f!!
 
 
 			/***********************************
@@ -169,6 +155,9 @@ namespace sp {
 
 			TVectorD f(n_r);
 			f = A*u_last;
+
+		
+
 
 			std::cout<<"sp::UnfoldAlgoDAgnostini::Unfold || Begininning calculation of covariance matrix due to unertainty in response matrix A."<<std::endl;
 
@@ -220,17 +209,35 @@ namespace sp {
 
 
 
-				dudA_last = dudA;
-				meas_error_prop = meas_error_prop_tmp;
-				u_last=u;
+			std::cout<<"sp::UnfoldAlgoDAgnostini::Unfold || Begininning calculation of bias!"<<std::endl;
+			// And bias! This may not be taking it into account properly as of yet. Using bias approximation from cowans book. should be sufficient. 
+			for(int a =0; a<n_t;a++){
+
+				b(a) = 0;
+				for(int j=0; j<n_r; j++){
+					double vj = 0;
+					for(int b=0; b<n_t; b++){
+						vj+= A(j,b)*u(b);
+					}
+					b(a) += dudd_cur(a,j)*(vj-d(j));
+					//b(a) += Munfold(a,j)*(vj-d(j));
+				}
+			}
 
 
 
-			}//end of iterative loop
+
+			dudA_last = dudA;
+			dudd = dudd_cur;
+			u_last=u;
 
 
-		}
+
+		}//end of iterative loop
+
 
 	}
+
+}
 
 #endif

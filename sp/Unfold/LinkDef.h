@@ -11,6 +11,7 @@
 #pragma link C++ class sp::UnfoldAlgoBase+;
 #pragma link C++ class sp::UnfoldAlgoDAgnostini+;
 #pragma link C++ class sp::UnfoldAlgoInverse+;
+#pragma link C++ class sp::UnfoldAlgoSVD+;
 #pragma link C++ class sp::SPManager+;
 
 #endif

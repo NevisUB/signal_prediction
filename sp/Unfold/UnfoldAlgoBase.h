@@ -7,6 +7,8 @@
 #include <TCanvas.h>
 #include <TColor.h>
 #include <string.h>
+#include <TGraph.h>
+#include "math.h"
 
 namespace sp {
 
@@ -30,6 +32,9 @@ namespace sp {
 
 			TVectorD d;
 			TMatrixD D;
+
+			TVectorD b;//bias
+			TVectorD ep;//efficiency n_t
 
 			TVectorD u;
 			TMatrixD U;
@@ -57,7 +62,7 @@ namespace sp {
 			void Unfold(const TVectorD* d_in, const TMatrixD* D_in);
 
 
-			void TestRegularization( std::string filename, double low, double high, double step);
+			void TestRegularization( std::string filename, double low, double high, int num);
 			void TestUnfolding(std::string in);
 //
 			// Some generic useful functions on an alorithm
@@ -69,6 +74,7 @@ namespace sp {
 			void SetSeed(int);
 
 			void Setd(TVectorD* d_in);
+			void SetD(TMatrixD * din);
 
 
 			TH1D GetHistU();
@@ -76,7 +82,9 @@ namespace sp {
 			TH1D GetHistR();
 			TH1D GetHistD();
 
+			TH1D GetHistEff();
 
+			TH2D GetHistA();
 			TH2D GetCovU();
 			TH1D GetErrU();
 

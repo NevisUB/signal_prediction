@@ -173,7 +173,8 @@ namespace sp {
   bool SPIO::init_response_matrix() {
     std::cout << std::endl;
     std::cout << "Instantiate response matrix" << std::endl;
-    
+   
+
     for(size_t true_id = 0; true_id < _true_parameter_v.size(); ++true_id) {
       auto& true_param = _true_parameter_v[true_id];
       for(size_t reco_id = 0; reco_id < _reco_parameter_v.size(); ++reco_id) {
@@ -223,7 +224,6 @@ namespace sp {
     std::cout << std::endl;
     return nullptr;
   }
-
   
   bool SPIO::fill_responses() {
     std::cout << std::endl;
@@ -275,7 +275,6 @@ namespace sp {
 //	if (!passosc) continue;
 //	if (entry>=10000) break;
 	if (weight<=0) continue;
-
 
 	// if( model.usValid()}		
 	response->Fill(weight,passosc,nutype);

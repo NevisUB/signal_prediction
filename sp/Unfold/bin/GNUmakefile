@@ -10,7 +10,7 @@ LDFLAGS += -L$(SP_LIBDIR) -lSP_Unfold
 
 CXX=g++
 
-PROGRAMS = unfold
+PROGRAMS = unfold lcurve NCunfold
 
 all:	clean $(PROGRAMS)
 
