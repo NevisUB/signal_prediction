@@ -24,25 +24,28 @@ namespace sp {
     TH1D *hist_r;
 
     double regularization;
-    int n_r;
-    int n_t;
+    int n_r; // number of reco bins
+    int n_t; // number of true bins
 
-    TVectorD r;
-    TVectorD t;
+    TVectorD r;  // reconstructed 
+    TVectorD t;  // true
 
-    TMatrixD N; //number of events
-    TMatrixD A;// response
+    TMatrixD R;  // ?
+    TMatrixD T;  // ?
+ 
+    TMatrixD N;  // number of events
+    TMatrixD A;  // response
 
-    TVectorD d;
-    TMatrixD D;
+    TVectorD d;  // data
+    TMatrixD D;  // ?
 
-    TVectorD b;//bias
-    TVectorD ep;//efficiency n_t
+    TVectorD b;  // bias
+    TVectorD ep; // efficiency n_t
 
-    TVectorD u;
-    TMatrixD U;
-    TMatrixD UA;
-    TMatrixD UD;
+    TVectorD u;  // unfolded spectrum
+    TMatrixD U;  // ?
+    TMatrixD UA; // ?
+    TMatrixD UD; // ?
 
   public:
 
@@ -53,36 +56,51 @@ namespace sp {
     {}
 
     virtual ~UnfoldAlgoBase() {}
+    
+
+    //
+    // Initialize from a given Response class
+    // 
 
     void Initialize(const Response *);
 
     //
-    // Pure virtual moth-ods called by Manager
+    // Pure virtual methods called by Manager
     //
 
     virtual void Unfold() = 0;
 
-
+    //
+    // Unfold given input spectrum
+    //
 
     void Unfold(const TVectorD* d_in);
     void Unfold(const TVectorD* d_in, const TMatrixD* D_in);
 
-
+    //
+    // 
+    //
     void TestRegularization( std::string filename, double low, double high, int num);
     void TestUnfolding(std::string in);
+
     //
-    // Some generic useful functions on an alorithm
+    // Getters
     //
 
     void GenPoissonNoise();
-    void SetRegularization(double reg);
     double GetRegularization();
-    void SetSeed(int);
 
+    //
+    // Setters
+    //
+    void SetRegularization(double reg);
+    void SetSeed(int);
     void Setd(TVectorD* d_in);
     void SetD(TMatrixD * din);
 
-
+    //
+    // Retrieval of algorithm matricies as TH[1,2]D
+    //
     TH1D GetHistU();
     TH1D GetHistT();
     TH1D GetHistR();
@@ -96,6 +114,9 @@ namespace sp {
     TH1D GetErrU();
 
 
+  protected:
+    virtual void _Initialize_() {};
+    
   };
 
 

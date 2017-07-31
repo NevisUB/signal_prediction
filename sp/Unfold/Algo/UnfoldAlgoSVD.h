@@ -10,16 +10,33 @@ namespace sp {
   public:
     UnfoldAlgoSVD();
     ~UnfoldAlgoSVD(){}
-
+    
     TMatrixD C;
-    TMatrixD invC;
+    TMatrixD inv_C;
 
-    double xi;
+    TVectorD z;
+    TMatrixD Z;
+
+    TVectorD xtau;
+    TMatrixD Xtau;
 
     void Unfold();
+    
+  protected:
+    
+    void _Initialize_();
+      
+  private:
 
-    int rotateRescale(TMatrixT<double> * tilde_A, TVectorT<double> *r, TMatrixT<double> * Q, TMatrixT<double> * A );
-    int rotateRescale(TVectorT<double> * tilde_b, TVectorT<double> *r, TMatrixT<double> * Q, TVectorT<double> * b );
+    void rotate_rescale(TMatrixD& tilde_A, 
+			const TVectorD& r, 
+			const TMatrixD& Q, 
+			const TMatrixD& A);
+    
+    void rotate_rescale(TVectorD& tilde_b,
+			const TVectorD& r,
+			const TMatrixD& Q,
+			const TVectorD& b);
   };
 
 }

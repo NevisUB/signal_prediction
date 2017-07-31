@@ -29,11 +29,17 @@ namespace sp {
 
     d.ResizeTo(n_r);
 
-    D.ResizeTo(n_r,n_r); D.Zero();	
-    U.ResizeTo(n_t,n_t); U.Zero();
-    UD.ResizeTo(n_t,n_t); UD.Zero();
-    UA.ResizeTo(n_t,n_t); UA.Zero();
+    D.ResizeTo(n_r,n_r); 
+    D.Zero();
+	
+    U.ResizeTo(n_t,n_t); 
+    U.Zero();
 
+    UD.ResizeTo(n_t,n_t); 
+    UD.Zero();
+
+    UA.ResizeTo(n_t,n_t); 
+    UA.Zero();
 
     SP_DEBUG()<<"Initilizing truth MC."<<std::endl;
     t.ResizeTo(n_t);
@@ -41,10 +47,8 @@ namespace sp {
     SP_DEBUG()<<"Initilized truth MC, dimension: "<<t.GetNrows()<<std::endl;
 
     for(int i =0; i<n_t; i++){
-
       if(t(i)==0){
-	SP_DEBUG()<<"WARNING Truth has a 0 @ position: "<<i<<" of "<<t.GetNrows()<<std::endl;
-
+	SP_WARNING()<<"Truth has a 0 @ position: "<<i<<" of "<<t.GetNrows()<<std::endl;
       }	
     }
 
@@ -65,16 +69,20 @@ namespace sp {
 
     for(int i=0;i<n_r; i++){
       for(int a=0; a<n_t; a++){
-	A(i,a) = N(i,a)/t(a);
+	A(i,a) = N(i,a) / t(a);
 	if(A(i,a)>1){
-	  SP_DEBUG()<<"ERROR! A has entries > 1."<<std::endl;
-	  SP_DEBUG()<<i<<" "<<a<<" A:"<<A(i,a)<<" N:"<<N(i,a)<<" t:"<<t(a)<<" Nin:"<<response_in->_response(i,a)<<" tin: "<<response_in->_true_param->_hist.GetBinContent(a)<<" r: "<<r(i)<<" rin: "<<response_in->_reco_param->_hist.GetBinContent(i)<<std::endl;
-	  exit(EXIT_FAILURE);
+	  SP_CRITICAL()<<"A has entries > 1."<<std::endl;
+	  SP_CRITICAL()<<i<<" "<<a<<" A:"<<A(i,a)
+		       <<" N:"<<N(i,a)<<" t:"<<t(a)
+		       <<" Nin:"<<response_in->_response(i,a)
+		       <<" tin: "<<response_in->_true_param->_hist.GetBinContent(a)
+		       <<" r: "<<r(i)<<" rin: "<<response_in->_reco_param->_hist.GetBinContent(i)<<std::endl;
+
+	  throw sperr();
 	}
       }
     }
     SP_DEBUG()<<"Initilized Response A, dimension: "<<A.GetNrows()<<" "<<A.GetNcols()<<std::endl;
-
 
     SP_DEBUG()<<"Calculating a global efficiency vector."<<std::endl;
     ep.Zero();
@@ -84,19 +92,16 @@ namespace sp {
       }
       SP_DEBUG()<<"Efficiency is: "<<ep(b)<<" at bin "<<b<<" "<<std::endl;
       if(ep(b)==0){
-	SP_CRITICAL()<<"ERROR! Efficiency is: "<<ep(b)<<" at bin #"<<b<<" with t: "<<t(b)<<std::endl;
+	SP_CRITICAL()<<"Efficiency is: "<<ep(b)<<" at bin #"<<b<<" with t: "<<t(b)<<std::endl;
 	for(int l=0; l<n_r; l++){
-	  SP_CRITICAL()<<"ERRORout: bin: "<<l<<" N: "<<N(l,b)<<" r: "<<r(l)<<" A: "<<A(l,b)<<" t: "<<t(b)<<std::endl;
+	  SP_CRITICAL()<<"bin: "<<l<<" N: "<<N(l,b)<<" r: "<<r(l)<<" A: "<<A(l,b)<<" t: "<<t(b)<<std::endl;
 	}
-	SP_CRITICAL()<<"ERROR! Efficiency cannot be zero! Suggestion to merge last (first) true bins to solve."<<std::endl;
-	exit(EXIT_FAILURE);
+	SP_CRITICAL()<<"Efficiency cannot be zero! Suggestion to merge last (first) true bins to solve."<<std::endl;
+	throw sperr();
       }
     }
 
-
-
-
-
+    this->_Initialize_();
   };
 
   /**********************************************************************
@@ -105,30 +110,26 @@ namespace sp {
    *
    * *******************************************************************/
 
-
-
   void UnfoldAlgoBase::Unfold(const TVectorD * data, const TMatrixD * Din){
     D.ResizeTo(n_r,n_r);
-    D=*Din;
+    D = *Din;
 
     d.ResizeTo(n_r);
     d = *data;
 
     this->Unfold();
   }
-
+  
   void UnfoldAlgoBase::Unfold(const TVectorD * data){
     d.Zero();
     d = *data;
 
     D.ResizeTo(n_r,n_r);
     D.Zero();
-    for(int i=0; i<n_r; i++){
-      D(i,i)=d(i);
-    }
+
+    for(int i=0; i<n_r; i++) D(i,i)=d(i);
 
     this->Unfold();
-
   }
 
 
@@ -141,23 +142,27 @@ namespace sp {
 
   void UnfoldAlgoBase::Setd(TVectorD * din){
     if( din->GetNrows() != n_r){
-      SP_DEBUG()<<"sp::UnfoldAlgoBase::Setd || ERROR: Passed a D_in that is size: "<<din->GetNrows()<<" but n_r is "<<n_r<<std::endl;
-      exit(EXIT_FAILURE);
+      SP_CRITICAL()<<"Passed a D_in that is size: "<<din->GetNrows()<<" but n_r is "<<n_r<<std::endl;
+      throw sperr();
     }
+
     d.ResizeTo(n_r);
-    for(int i=0; i<n_r;i++){
+    for(int i=0; i<n_r;i++) 
       d(i) = (*din)(i);
+
+    if (this->logger().level() == msg::kDEBUG) {
+      SP_DEBUG() << "Set d ==>" << std::endl;
+      d.Print();
     }
 
   }
 
-
-
   void UnfoldAlgoBase::SetD(TMatrixD * din){
     if( din->GetNrows() != n_r){
-      SP_DEBUG()<<"sp::UnfoldAlgoBase::SetD || ERROR: Passed a D_in that is size: "<<din->GetNrows()<<" but n_r is "<<n_r<<std::endl;
-      exit(EXIT_FAILURE);
+      SP_CRITICAL()<<"Passed a  D_in that is size: "<<din->GetNrows()<<" but n_r is "<<n_r<<std::endl;
+      throw sperr();
     }
+
     D.ResizeTo(n_r,n_r);
     for(int i=0; i<n_r;i++){
       for(int j=0; j<n_r;j++){
@@ -165,22 +170,24 @@ namespace sp {
       }
     }
 
+    if (this->logger().level() == msg::kDEBUG) {
+      SP_DEBUG() << "Set D ==>" << std::endl;
+      D.Print();
+    }
+
   }
 
 
   void UnfoldAlgoBase::SetRegularization(double reg){
-
-    SP_DEBUG()<<"sp::UnfoldAlgoBase::SetRegularization() || Setting regularization parameter to "<<reg<<std::endl;
+    SP_DEBUG()<<"Setting regularization parameter to "<<reg<<std::endl;
     regularization = reg;
-
-
   }
 
 
   void UnfoldAlgoBase::SetSeed(int inseed){
-    seed=inseed;
+    SP_DEBUG() << "Setting seed to " << inseed << std::endl;
+    seed = inseed;
   }
-
 
 
   /**********************************************************************
@@ -190,10 +197,7 @@ namespace sp {
    * *******************************************************************/
 
 
-
-
   double UnfoldAlgoBase::GetRegularization(){
-
     return regularization;
   }
 
@@ -204,7 +208,6 @@ namespace sp {
       for(int a=0; a<n_t; a++){
 	tmp.SetBinContent(i ,a, A(i,a));
       }
-
     }
 
     return tmp;
@@ -214,9 +217,8 @@ namespace sp {
 
   TH1D UnfoldAlgoBase::GetHistU(){
 
-    for(int i=0; i<n_t; i++){
-      hist_u->SetBinContent(i , u(i));
-    }
+    for(int i=0; i<n_t; i++)
+      hist_u->SetBinContent(i, u(i));
 
     return *hist_u;
   }
@@ -235,7 +237,7 @@ namespace sp {
   TH1D UnfoldAlgoBase::GetErrU(){
 
     for(int i=0; i<n_t; i++){
-      hist_u->SetBinContent(i , fabs(sqrt(U(i,i))));
+      hist_u->SetBinContent(i , std::fabs(std::sqrt(U(i,i))));
     }
 
     return *hist_u;
@@ -245,7 +247,7 @@ namespace sp {
   TH1D UnfoldAlgoBase::GetHistT(){
 
     for(int i=0; i<n_t; i++){
-      hist_u->SetBinContent(i , t(i));
+      hist_u->SetBinContent(i,t(i));
     }
 
     return *hist_u;
@@ -254,7 +256,7 @@ namespace sp {
   TH1D UnfoldAlgoBase::GetHistEff(){
 
     for(int i=0; i<n_t; i++){
-      hist_u->SetBinContent(i , ep(i));
+      hist_u->SetBinContent(i,ep(i));
     }
 
     return *hist_u;
@@ -302,7 +304,7 @@ namespace sp {
 
     TRandom3 * rangen = new TRandom3(seed);
 
-    SP_DEBUG()<<"sp::UnfoldAlgoBase::GenPoissonNoise() || Setting data as noisey reco MC with seed "<<rangen->GetSeed()<<std::endl;
+    SP_DEBUG()<<"Setting data as noisey reco MC with seed "<<rangen->GetSeed()<<std::endl;
 
     d.ResizeTo(n_r);
     d.Zero();
@@ -316,6 +318,8 @@ namespace sp {
 
 
   void UnfoldAlgoBase::TestUnfolding(std::string filename){
+    SP_DEBUG() << "start" << std::endl;
+
     TH1D tmpT = this->GetHistT();	
     TH1D tmpR = this->GetHistR();	
 
@@ -329,7 +333,7 @@ namespace sp {
     tmpR.SetLineColor(kBlack);
     tmpR.Scale(1,"width");
     tmpR.Draw();
-    //tmpR.SetTitle("Reconstructed E_{QE}");
+
     tmpR.GetXaxis()->SetTitle("E_{QE} [GeV]");
     tmpR.GetYaxis()->SetTitle("Events/MeV");
     tmpR.GetXaxis()->SetTitleSize(0.04);
@@ -341,7 +345,7 @@ namespace sp {
     tmpT.SetLineColor(kBlack);
     tmpT.Scale(1,"width");
     tmpT.Draw();
-    //tmpT.SetTitle("Reconstructed E_{QE}");
+
     tmpT.GetXaxis()->SetTitle("E_{#nu} [MeV]");
     tmpT.GetYaxis()->SetTitle("Events/MeV");
     tmpT.GetXaxis()->SetTitleSize(0.04);
@@ -356,11 +360,10 @@ namespace sp {
     for(int i=0; i< n_noise; i++){ 
       v_D.push_back(this->GetHistD());
       v_U.push_back(this->GetHistU());
-
     }
 
     for(int i=0; i< n_noise; i++){
-      SP_DEBUG()<<"sp::UnfoldAlgoBase::TestUnfolding || on run "<<i<<std::endl;
+      SP_DEBUG()<<"on run: "<<i<<std::endl;
 
       this->GenPoissonNoise();
       v_D.at(i) = this->GetHistD();
@@ -372,11 +375,6 @@ namespace sp {
 
       v_U.at(i).SetName( ("hope_U_"+std::to_string(i)).c_str());
 
-      for(int j=0;j<n_r;j++){
-	//		SP_DEBUG()<<tmpD.GetBinContent(j)<<" "<<tmpU.GetBinContent(j)<<std::endl;
-      }
-
-		
       c->cd(1);
       v_D.at(i).SetLineColor(tmp_colors.at(i));
       v_D.at(i).SetLineWidth(2);
@@ -388,7 +386,6 @@ namespace sp {
       v_U.at(i).SetLineColor(tmp_colors.at(i));
       v_U.at(i).Scale(1,"width");
       v_U.at(i).Draw("same hist");
-
     }
 
     c->cd(3);
@@ -399,38 +396,29 @@ namespace sp {
     for(int a=1; a<n_t; a++){
       for(int b=1; b<n_t; b++)
 	{
-	  double ank = covU.GetBinContent(a,b)/(u(a-1)*u(b-1));
+	  double ank = covU.GetBinContent(a,b) / ( u(a-1) * u(b-1) );
 	  covU.SetBinContent(a,b ,ank);
-	  //SP_DEBUG()<<"Frac: "<<a<<" "<<b<<" "<<covU.GetBinContent(a,b)/(u(a-1)*u(b-1))<<std::endl;
-	  if(ank < mm) mm=ank;
-	  if(ank>mx) mx=ank;
+	  if(ank < mm) mm = ank;
+	  if(ank > mx) mx = ank;
 	}
     }
     SP_DEBUG()<<"Max: "<<mx<<" Min: "<<mm<<std::endl;
     covU.Draw("COLZ3");	
 
-
     c->cd(4)->SetLogy();
     TH1D errU = this->GetErrU();
     errU.SetLineColor(kBlack);
     errU.Draw("hist");
-
-
-
     c->SaveAs( (filename+".pdf").c_str(),"pdf");	
-
-
+    SP_DEBUG() << "end" << std::endl;
   }
-
-
 
 
   void UnfoldAlgoBase::TestRegularization(std::string filename, double low_kreg, double high_kreg, int num_kreg){
     TCanvas * c = new TCanvas("","",1200,800);
     c->Divide(2,2);
 
-    SP_DEBUG()<<"UnfoldAlgoBase::TestRegularization() || Starting test from k="<<low_kreg<<" to "<<high_kreg<<std::endl;
-
+    SP_DEBUG()<<"Starting test from k="<<low_kreg<<" to "<<high_kreg<<std::endl;
 
     std::vector<double> MSE(num_kreg,0);
     std::vector<double> MSEp(num_kreg,0);
@@ -441,7 +429,7 @@ namespace sp {
     for(double k=0; k<num_kreg; k++){
       double kreg = ceil( (high_kreg-low_kreg)*k/num_kreg+low_kreg );
 
-      SP_DEBUG()<<"UnfoldAlgoBase::TestRegularization() || On k="<<kreg<<std::endl;
+      SP_DEBUG()<<"On k="<<kreg<<std::endl;
 
       this->SetRegularization(kreg);
       this->Unfold();

@@ -8,7 +8,7 @@ LDFLAGS += -L$(SP_LIBDIR) -lSP_Base -lSP_UnfoldCore -lSP_UnfoldAlgo
 
 CXX = g++
 
-PROGRAMS = unfold lcurve NCunfold
+PROGRAMS = unfold_svd
 
 all:	clean $(PROGRAMS)
 

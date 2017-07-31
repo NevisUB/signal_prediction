@@ -286,8 +286,7 @@ namespace sp {
   }
 
   bool SPIO::write_unfold_file() {
-    SP_DEBUG() << std::endl; 
-    SP_DEBUG() << "Write unfold file" << std::endl; 
+    SP_DEBUG() << "start" << std::endl;
 
     auto dir = (TDirectory*)_unfold_file->GetDirectory("Parameters");
     if (dir) dir->cd();
@@ -326,10 +325,13 @@ namespace sp {
       if(!res) throw sperr("Could not write response object");
     }
     
+    SP_DEBUG() << "write" << std::endl;
     _unfold_file->Write();
+    
+    SP_DEBUG() << "close" << std::endl;
     _unfold_file->Close();
 
-    SP_DEBUG() << std::endl; 
+    SP_DEBUG() << "done" << std::endl; 
     return true;
   }
 

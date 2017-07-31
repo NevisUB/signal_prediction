@@ -33,9 +33,6 @@ namespace sp {
 
 
 
-
-
-
     SP_DEBUG()<<"Setting initial guess."<<std::endl;
     u.ResizeTo(n_t);
     //what is the initial guess for bayes theorem;

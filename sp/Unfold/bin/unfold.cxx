@@ -36,25 +36,21 @@ int main(int argc, char** argv) {
   a.add_reco_parameter(var_v,bins_lo_v2,sp::kOP_GEV2MEV);
 
 
-  std::cout<<"int_response matrix"<<std::endl;
+  std::cout << "int_response matrix" << std::endl;
   a.init_response_matrix();
 
-
-  std::cout<<"fill resp"<<std::endl;
+  std::cout << "fill resp" << std::endl;
   a.fill_responses();
 
-  std::cout<<"write"<<std::endl;
+  std::cout << "write" << std::endl;
   a.write_unfold_file();
 
-  std::cout<<"Begininning"<<std::endl;
-
+  std::cout << "Beginning" << std::endl;
 
   sp::UnfoldAlgoDAgnostini alg; 
   alg.set_verbosity((sp::msg::Level_t)0);
-  //  sp::UnfoldAlgoInverse alg;
 
-
-  alg.Initialize(&a.Responses().at(0));
+  alg.Initialize(&(a.Responses().front());
   alg.SetRegularization(5);
   //  alg.GenPoissonNoise();
   //  alg.Unfold();
