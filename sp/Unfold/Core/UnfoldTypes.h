@@ -8,7 +8,8 @@ namespace sp {
     kOP_EQE = 1,
     kOP_Q2 = 2,
     kOP_MEV2GEV = 3,
-    kOP_GEV2MEV = 4
+    kOP_GEV2MEV = 4,
+    kOP_EVIS = 5
   };
   
 }

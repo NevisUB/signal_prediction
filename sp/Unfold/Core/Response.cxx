@@ -26,26 +26,34 @@ namespace sp {
     _response_h(TH2D()),
     _from_file(false)
   { 
-    std::cout << "R @ " << this << std::endl;
+    std::cout << "sp::Repsonse::Response(true, false) || Creating a response with "<<_true_param->_bin_lo_v.size()<<" bin edges in truth and "<<_reco_param->_bin_lo_v.size()<<" bin edges in reco"<<std::endl;
     _response_h = TH2D(_name.c_str(),"",
-		       (int)(_true_param->_bin_lo_v.size()-1),_true_param->_bin_lo_v.data(),
-		       (int)(_reco_param->_bin_lo_v.size()-1),_reco_param->_bin_lo_v.data());
+		       (int)(_reco_param->_bin_lo_v.size()-1),_reco_param->_bin_lo_v.data(),
+		       (int)(_true_param->_bin_lo_v.size()-1),_true_param->_bin_lo_v.data());
     _response_h.SetDirectory(0);
   }
 
 
   void Response::Fill(float weight, bool passosc) {
-      auto t_res = _true_param->Fill(weight);
-			
-      if(passosc){
-	auto r_res = _reco_param->Fill(weight);
-	_response_h.Fill(t_res,r_res,weight);
-      }
+
+    auto t_res = _true_param->Fill(weight);
+    if(passosc){
+      auto r_res = _reco_param->Fill(weight);
+      _response_h.Fill(r_res, t_res, weight);
+    }
+
   }
 
   void Response::Finalize() {
     _response.ResizeTo(_response_h.GetNbinsX()+2,_response_h.GetNbinsY()+2);
-    _response = TMatrixD(_response_h.GetNbinsX()+2,_response_h.GetNbinsY()+2,_response_h.GetArray());
+		
+    // Direct using GetArray caused some problems oddly..
+    // _response = TMatrixD(_response_h.GetNbinsX()+2,_response_h.GetNbinsY()+2, _response_h.GetArray());
+    for(int i=0; i < _response_h.GetNbinsX()+2; i++){
+      for(int a=0; a < _response_h.GetNbinsY()+2; a++){
+	_response(i,a) = _response_h.GetBinContent(i,a);
+      }
+    }
 
     _true_param->_filled = true;
     _reco_param->_filled = true;

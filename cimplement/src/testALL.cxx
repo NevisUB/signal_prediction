@@ -137,7 +137,7 @@ int main(int argc, char* argv[])
 	tt->GetYaxis()->SetTitleOffset(1.45);
 	tt->SetMinimum(0);
 	tt->SetTitle("Intrinsic #nu_{e} CCQE only");
-	tt->SetMaximum(600);
+	tt->SetMaximum(1000);
 
 	TLegend * leg = new TLegend(0.58,0.6,0.89,0.89);
 	leg->AddEntry(tt,"True E_{#nu} MC","lep");
