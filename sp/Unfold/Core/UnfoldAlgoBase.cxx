@@ -301,18 +301,22 @@ namespace sp {
 
 
   void UnfoldAlgoBase::GenPoissonNoise(){
-
+    SP_DEBUG() << "start" << std::endl;
     TRandom3 * rangen = new TRandom3(seed);
 
     SP_DEBUG()<<"Setting data as noisey reco MC with seed "<<rangen->GetSeed()<<std::endl;
 
     d.ResizeTo(n_r);
-    d.Zero();
 
-    for(int i=0; i<n_r; i++){
+    for(int i=0; i<n_r; i++)
       d(i) = rangen->Poisson( r(i) );
+    
+    if(this->logger().level() == msg::kDEBUG) {
+      SP_DEBUG() << "Gen Poisson d ==> " << std::endl;
+      d.Print();
     }
 
+    SP_DEBUG() << "end" << std::endl;
   }
 
 
@@ -363,16 +367,16 @@ namespace sp {
     }
 
     for(int i=0; i< n_noise; i++){
-      SP_DEBUG()<<"on run: "<<i<<std::endl;
-
+      SP_DEBUG() << "Generate Poisson noise @ i="<<i<<std::endl;
       this->GenPoissonNoise();
       v_D.at(i) = this->GetHistD();
 
       v_D.at(i).SetName( ("hope_D_"+std::to_string(i)).c_str());
-
+      
+      SP_DEBUG() << "Unfold @ i="<<i<<std::endl;
       this->Unfold();
-      v_U.at(i) = this->GetHistU();
 
+      v_U.at(i) = this->GetHistU();
       v_U.at(i).SetName( ("hope_U_"+std::to_string(i)).c_str());
 
       c->cd(1);
