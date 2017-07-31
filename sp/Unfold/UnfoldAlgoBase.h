@@ -81,6 +81,7 @@ namespace sp {
 			TH1D GetHistT();
 			TH1D GetHistR();
 			TH1D GetHistD();
+			TH1D GetHistRefold();
 
 			TH1D GetHistEff();
 

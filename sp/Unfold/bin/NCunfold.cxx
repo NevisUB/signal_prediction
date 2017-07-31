@@ -13,22 +13,27 @@ int main(int argc, char** argv) {
 	gStyle->SetOptStat(0);
 	sp::SPIO a;
 
-	a.add_mc_in_file("/rootfiles/filterd_ccqe_nue_nuebar.root");
+	a.add_mc_in_file("/rootfiles/filtered_nc_delta.root");
 	a.set_mc_tree_name("MiniBooNE_CCQE");
 	a.initialize();
 
 	std::vector<std::string> var_v = {"Energy"};
 	std::vector<double> bins_lo_v = {200,300,400,500,600,700,800,900,1000,1100,1200,1300,1400,1500,1600,1700,1800,1900,2000,2500,3000};
-	std::vector<double> bins_lo_v2 = {200.,300.,375.,475.,550.,675.,800.,950.,1100.,1300.,1500.,3000.};
+	std::vector<double> bins_lo_v2 = {200.,300.,375.,475.,550.,675.,800.,950.,1100.,1300.,1500.};
+	std::vector<double> bins_lo_v3 = {400,600,700,800,900,1000,1200,1400,1600,1800,2000,2500,3000};
+//	std::vector<double> bins_lo_v2 = {200,300,400,500,600,700,800,900,1000,1200,1400,1300,1400,1500};
+
+
 	// a.add_reco_parameter(var_v,bins_lo_v);
 
 	var_v[0] = "NuMomT";
-	a.add_true_parameter(var_v,bins_lo_v2,sp::kOP_GEV2MEV);
+	a.add_true_parameter(var_v,bins_lo_v3,sp::kOP_GEV2MEV);
 
 
 	var_v = {"RecoEnuQE"};
+	//var_v = {"Energy"};
 	a.add_reco_parameter(var_v,bins_lo_v2,sp::kOP_GEV2MEV);
-
+	//a.add_reco_parameter(var_v,bins_lo_v2,sp::kOP_INVALID);
 
 	std::cout<<"int_response matrix"<<std::endl;
 	a.init_response_matrix();
@@ -72,20 +77,24 @@ int main(int argc, char** argv) {
 
 	double pot_scale = 6.46/41.10;
 
-	alg.TestUnfolding("CCQE_data");
+	alg.TestUnfolding("NC_poison_unfold_test");
 
-	//Got to tihnk more bout flows
-	std::vector<double> miniobs = {0,232,  156,  156,   79,   81,   70,   63,   65,   62,   34,   70, 0};
-	std::vector<double> minibkg = {0,180.80171,108.22448,120.03353,63.887782,89.806966,67.249431,69.855878,57.014477,51.846417,38.586738,69.381391,0};
+	//Got to tihnk more bout flows this is EQE
+	std::vector<double> miniobs = {0,232,  156,  156,   79,   81,   70,   63,   65,   62,   34,   70};
+	std::vector<double> minibkg = {0,180.80171,108.22448,120.03353,63.887782,89.806966,67.249431,69.855878,57.014477,51.846417,38.586738,69.381391};
+
+	//This is EVIS (not working)
+//	std::vector<double> miniobs = {204,280,214,99,83,59,51,33,37,23,19,21,12,16,4,9,4+7+3};
+//	std::vector<double> minibkg ={151.5,218.8,155.6,108.7,72.5,57.6,45.0,38.5,31.4,22.2,20.4,17.2,14.1,10.2,9.1,8.2,5.6+5.7+2.9};
+
 	std::vector<double> sigerr(miniobs.size(),0);
-	double Nsignal = 0;
+
 
 
 	//changed briefly... 
 	TVectorD mini_signal(miniobs.size());
 	for(int i=0; i<miniobs.size(); i++){
 		mini_signal(i) = (miniobs.at(i)-minibkg.at(i))+alg.r(i)*pot_scale    ;
-		Nsignal += mini_signal(i);
 		//mini_signal(i) = alg.r(i)*pot_scale  ;
 		//mini_signal(i) = miniobs.at(i)-minibkg.at(i);
 		sigerr.at(i) =sqrt(miniobs.at(i)+minibkg.at(i)) ;
@@ -137,7 +146,7 @@ int main(int argc, char** argv) {
 	truth.Scale(pot_scale,"width");
 	reco.Scale(pot_scale,"width");
 
-	TFile *f = new TFile("CCQE_ans.root","RECREATE");
+	TFile *f = new TFile("NC_data.root","RECREATE");
 
 
 
@@ -165,9 +174,9 @@ int main(int argc, char** argv) {
 	tt.GetYaxis()->SetLabelSize(0.04);
 	tt.GetYaxis()->SetTitleOffset(1.45);
 	tt.SetMinimum(0);
-	tt.SetTitle("Intrinsic #nu_{e} CCQE only");
-	tt.SetMaximum(5);
-	tt.GetXaxis()->SetRange(1,10);
+	tt.SetTitle("NC delta only");
+	//tt.SetMaximum(5);
+	tt.GetXaxis()->SetRangeUser(0,2500);
 
 	TLegend * legr = new TLegend(0.58,0.6,0.89,0.89);
 	legr->AddEntry(&tt,"True E_{#nu} MC","lep");
@@ -189,8 +198,8 @@ int main(int argc, char** argv) {
 	prob_MC.GetYaxis()->SetTitleOffset(1.1);
 	
 	prob_MC.Draw("colz");
-	prob_MC.GetXaxis()->SetRange(1,10);
-	prob_MC.GetYaxis()->SetRange(1,10);
+	//prob_MC.GetXaxis()->SetRange(1,10);
+	//prob_MC.GetYaxis()->SetRange(1,10);
 
 	cb->cd(3);
 	TH1D eff = alg.GetHistEff();
@@ -199,9 +208,7 @@ int main(int argc, char** argv) {
 	eff.Draw("hist");
 	eff.SetMinimum(0);
 	eff.SetMaximum(0.4);
-
-
-	cb->SaveAs("CCQE_signals_response.pdf","pdf");
+	cb->SaveAs("NC_signals_response.pdf","pdf");
 
 
 
@@ -244,7 +251,7 @@ int main(int argc, char** argv) {
 	TLegend * leg1 = new TLegend(0.58,0.6,0.89,0.89);
 	leg1->AddEntry(&sig,"6.46e20 POT #nu-mode data","lep");
 	//leg1->AddEntry(&reco,"MC intrinsic #nu_{e} CCQE","lef");
-	leg1->AddEntry(&reco,"MC intrinsic #nu_{e} CCQE","l");
+	leg1->AddEntry(&reco,"MC NC delta radiative","l");
 	leg1->SetFillStyle(0);
 	leg1->SetBorderSize(0.0);
 	leg1->Draw();
@@ -253,29 +260,24 @@ int main(int argc, char** argv) {
 
 
 
-
-
 	c->Write();
-	c->SaveAs("CCQE_signal.pdf","pdf");
+	c->SaveAs("NC_signal.pdf","pdf");
 
 
 	TCanvas *c2 =  new TCanvas("c1","c1",1200,800);
 	TCanvas *cu2 =  new TCanvas("cu2","cu2",1200,800);
 	TCanvas *cU =  new TCanvas("c2","c2",3000,2000);
-	TCanvas *cR =  new TCanvas("cR","cR",3000,2000);
 	c2->Divide(3,2);
 	cU->Divide(3,2);
-	cR->Divide(3,2);
 
 
-	std::vector<int> cols = {kBlue-7,kGreen-6,kRed-7, kOrange-3, kMagenta-3, kGreen+3};
+	std::vector<int> cols = {kGreen-6,  kBlue-7,kRed-7, kOrange-3, kMagenta-3, kGreen+3};
 	std::vector<TH1D> us(6);
 	std::vector<TH2D> US(6);
-	std::vector<TH1D> uR(6);
 	std::vector<TLegend*> leg(6);
 	std::vector<TH1D> us_stat(6);
-	std::vector<int> kreg = {1,2,4,6,8,100};
-	//std::vector<int> kreg = {1,2,5,8,100};
+	std::vector<int> kreg = {1,2,4,6,8,10};
+	//std::vector<int> kreg = {1,2,5,8,10,100};
 
 	for(int k=0; k<6; k++){
 		std::string nam = std::to_string(kreg.at(k))+ " Iterations";
@@ -283,18 +285,6 @@ int main(int argc, char** argv) {
 		c2->cd(k+1)->SetLeftMargin(0.1);
 		alg.SetRegularization(kreg.at(k));
 		alg.Unfold();
-
-			//Section to re-fold and calc numbers of events.
-			TVectorD refolded = alg.A*alg.u;
-			double Nrefold = 0;
-			for(int i=0; i<alg.n_r; i++){
-				Nrefold+=refolded(i);
-			}
-			std::cout<<std::setprecision(10)<<"REFOLD || On k="<<kreg.at(k)<<" and refolded-number-of-events is "<<Nrefold<<" . Data is "<<Nsignal<<std::endl;
-
-
-
-
 
 		std::vector<double> errA(alg.n_t,0.0);
 		std::vector<double> errD(alg.n_t,0.0);
@@ -322,8 +312,8 @@ int main(int argc, char** argv) {
 		us.at(k).Draw("E2");
 
 		us.at(k).SetMinimum(0);
-		us.at(k).GetXaxis()->SetRange(1,10);
-		us.at(k).SetMaximum(10);//has to be after!
+		us.at(k).GetXaxis()->SetRangeUser(0,2500);
+		us.at(k).SetMaximum(4);//has to be after!
 
 		us_stat.at(k) = alg.GetHistU();
 		us_stat.at(k).SetError(&errS[0]);
@@ -340,12 +330,12 @@ int main(int argc, char** argv) {
 
 		leg.at(k) = new TLegend(0.5,0.65,0.89,0.89);
 		leg.at(k)->AddEntry(&us.at(k),"Raw excess","lef");
-		leg.at(k)->AddEntry(&truth,"MC True #nu_{e} CCQE","l");
+		leg.at(k)->AddEntry(&truth,"MC True NC delta radiative","l");
 		leg.at(k)->SetFillStyle(0);
 		leg.at(k)->SetBorderSize(0);
 		leg.at(k)->Draw();
 
-		if(k==1){
+		if(k==0){
 			cu2->cd();
 			us_stat.at(k).SetFillColor(kGreen+2);
 			us_stat.at(k).SetLineColor(kGreen+2);
@@ -367,32 +357,19 @@ int main(int argc, char** argv) {
 		US.at(k).GetXaxis()->SetTitle("True E_{#nu} Bin b");
 		US.at(k).Draw("colz");
 
-		cR->cd(k+1);
-		uR.at(k) = alg.GetHistRefold();
-		sig.Draw();
-		uR.at(k).Scale(1,"width");
-		uR.at(k).SetMarkerStyle(29);
-		uR.at(k).SetMarkerColor(kBlack);
-		uR.at(k).SetLineColor(kBlack);
-		uR.at(k).SetMarkerSize(2);
-		uR.at(k).Draw("same,hist");
-
-			
 
 
 
 	}
 	c2->Write();
 	cU->Write();
-	cu2->SaveAs("CCQE_unfolded.pdf","pdf");
-	c2->SaveAs("CCQE_reg_vary.pdf","pdf");
-	cU->SaveAs("CCQE_reg_corr.pdf","pdf");
-	cR->SaveAs("CCQE_reg_refold.pdf","pdf");
-
+	cu2->SaveAs("NC_unfolded.pdf","pdf");
+	c2->SaveAs("NC_reg_vary.pdf","pdf");
+	cU->SaveAs("NC_reg_corr.pdf","pdf");
 
 
 	TCanvas *cr = new TCanvas();
-	TH1D ratio = us.at(1);	
+	TH1D ratio = us.at(0);	
 	ratio.Divide(&truth);
 	ratio.SetFillColor(kBlue-7);
 	ratio.GetYaxis()->SetTitle("Ratio to MiniBooNE MC Central Value");
@@ -403,7 +380,7 @@ int main(int argc, char** argv) {
 
 
 	TLegend * leg2 = new TLegend(0.58,0.6,0.89,0.89);
-	leg2->AddEntry(&ratio,"Intrinsic #nu_{e} CCQE Model","lf");
+	leg2->AddEntry(&ratio,"NC delta radiative Model","lf");
 	leg2->SetFillStyle(0);
 	leg2->SetBorderSize(0.0);
 	leg2->Draw();
@@ -418,7 +395,7 @@ int main(int argc, char** argv) {
 			std::cout<<"Ratio "<<ratio.GetBinContent(i)<<std::endl;
 		}
 	cr->Write();
-	cr->SaveAs("CCQE_model_ratio.pdf","pdf");
+	cr->SaveAs("NC_model_ratio.pdf","pdf");
 
 	f->Close();
 	return 0;

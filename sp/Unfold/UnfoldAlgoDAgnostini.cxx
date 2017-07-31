@@ -16,7 +16,7 @@ namespace sp {
 		std::vector<std::vector<std::vector<double>>> covA(n_r, std::vector<std::vector<double>>(n_t, std::vector<double>(n_r,0)));//thre indicies, as we have ignored inter truth correlations i think
 
 
-		std::cout<<"sp::UnfoldAlgoDAgnostini::Unfold || Calculating covariance on Response. MUST CHECK WARNING."<<std::endl;
+		std::cout<<"sp::UnfoldAlgoDAgnostini::Unfold || Calculating covariance on Response. MUST Double CHECK formula."<<std::endl;
 		//This is necessary to propagate the errors on A through..
 		for(int r=0;r<n_r; r++){
 			for(int a=0;a<n_t; a++){
@@ -26,7 +26,6 @@ namespace sp {
 					}else{
 						covA.at(r).at(a).at(s) = - 1.0/t(a)*A(r,a)*A(s,a); 
 					}
-
 				}
 			}
 		}
@@ -51,7 +50,7 @@ namespace sp {
 
 		u_last = u;
 		for(int a=0; a<n_t; a++){
-			// UNCOMMENT  this for flat prior 
+			// UNCOMMENT  this for flat prior. Flat prior seems very poor.  
 			//u(a) = ntruth/((double)n_t); 
 		}
 
@@ -79,7 +78,7 @@ namespace sp {
 					if(de==0){
 						std::cout<<"sp::UnfoldAlgoDAgnostini::Unfold || ERROR denominator is: "<<de <<" leading to NAN's"<<std::endl;
 						std::cout<<"sp::UnfoldAlgoDAgnostini::Unfold || ERROR This means the current reconstructed variable in this iteration is 0 for bin "<<i<<std::endl;
-						std::cout<<"sp::UnfoldAlgoDAgnostini::Unfold || ERROR suggestion is to merge the last two reco bins, and repeat"<<std::endl;
+						std::cout<<"sp::UnfoldAlgoDAgnostini::Unfold || ERROR suggestion is to merge the last or first two reco bins, and repeat"<<std::endl;
 						exit(EXIT_FAILURE);
 					}
 				}
@@ -209,7 +208,7 @@ namespace sp {
 
 
 
-			std::cout<<"sp::UnfoldAlgoDAgnostini::Unfold || Begininning calculation of bias!"<<std::endl;
+			std::cout<<"sp::UnfoldAlgoDAgnostini::Unfold || Begininning calculation of bias, using derivative + taylor approx."<<std::endl;
 			// And bias! This may not be taking it into account properly as of yet. Using bias approximation from cowans book. should be sufficient. 
 			for(int a =0; a<n_t;a++){
 

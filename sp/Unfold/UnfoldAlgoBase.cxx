@@ -88,7 +88,7 @@ namespace sp {
 				for(int l=0; l<n_r; l++){
 					std::cout<<"ERRORout: bin: "<<l<<" N: "<<N(l,b)<<" r: "<<r(l)<<" A: "<<A(l,b)<<" t: "<<t(b)<<std::endl;
 				}
-
+				std::cout<<"sp::UnfoldAlgoBase::Unfold || ERROR! Efficiency cannot be zero! Suggestion to merge last (first) true bins to solve."<<std::endl;
 				exit(EXIT_FAILURE);
 			}
 		}
@@ -270,6 +270,16 @@ namespace sp {
 		return *hist_r;
 	}
 
+	TH1D UnfoldAlgoBase::GetHistRefold(){
+		TVectorD re = A*u;
+		for(int i=0; i<n_r; i++){
+			hist_r->SetBinContent(i , re(i));
+		}
+
+		return *hist_r;
+	}
+
+
 	TH1D UnfoldAlgoBase::GetHistD(){
 
 		for(int i=0; i<n_r; i++){
@@ -366,6 +376,7 @@ namespace sp {
 				//		std::cout<<tmpD.GetBinContent(j)<<" "<<tmpU.GetBinContent(j)<<std::endl;
 			}
 
+		
 			c->cd(1);
 			v_D.at(i).SetLineColor(tmp_colors.at(i));
 			v_D.at(i).SetLineWidth(2);
@@ -445,6 +456,7 @@ namespace sp {
 
 			std::cout<<"RS: "<<" "<<(double)n_t*MV[k]<<" "<<(double)n_t*MB[k]<<std::endl;
 
+			
 			x[k]=kreg;
 
 			this->U.Zero();
