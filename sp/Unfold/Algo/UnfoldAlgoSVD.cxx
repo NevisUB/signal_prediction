@@ -5,14 +5,13 @@
 
 namespace sp {
 
-  UnfoldAlgoSVD::UnfoldAlgoSVD() : UnfoldAlgoBase() {
+  UnfoldAlgoSVD::UnfoldAlgoSVD() : UnfoldAlgoBase("SVD") {
     name = "SVD";
 
     C.ResizeTo(n_t,n_t);
     invC.ResizeTo(n_t,n_t);
 
-    xi=1e-5;
-
+    xi = 1e-5;
 
     for(int i=0; i<n_t;i++){
       for(int j=0; j<n_t;j++){
