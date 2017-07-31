@@ -10,14 +10,10 @@
 
 #pragma link C++ namespace sp+;
 #pragma link C++ class sp::LoadSP+;
-#pragma link C++ class sp::Parameter+;
-#pragma link C++ class sp::Response+;
-#pragma link C++ class std::vector<sp::Parameter>+;
-#pragma link C++ class std::vector<sp::Response>+;
-#pragma link C++ class sp::SPIO+;
-#pragma link C++ class sp::SPManager+;
-#pragma link C++ class sp::UnfoldAlgoBase+;
-#pragma link C++ class sp::UnfoldAlgoDAgnostini+;
-#
+#pragma link C++ namespace sp::msg+;
+#pragma link C++ enum sp::msg::Level_t+;
+#pragma link C++ class sp::logger+;
+#pragma link C++ class sp::sp_base+;
+#pragma link C++ class sp::sperr+;
 
 #endif

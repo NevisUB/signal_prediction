@@ -5,17 +5,15 @@
 
 namespace sp {
 
-	class UnfoldAlgoDAgnostini : public UnfoldAlgoBase {
+  class UnfoldAlgoDAgnostini : public UnfoldAlgoBase {
 
-		private:
-		public:
-			UnfoldAlgoDAgnostini() : UnfoldAlgoBase() {
-				name = "DAgnostini";
-			}
+  public:
+    UnfoldAlgoDAgnostini() : UnfoldAlgoBase("UnfoldAlgoDAgostini") {}
+    ~UnfoldAlgoDAgnostini() {}
 
-			void Unfold();
+    void Unfold();
 
-	};
+  };
 
 
 }

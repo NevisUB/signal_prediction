@@ -26,7 +26,6 @@ namespace sp {
     _response_h(TH2D()),
     _from_file(false)
   { 
-    std::cout << "sp::Repsonse::Response(true, false) || Creating a response with "<<_true_param->_bin_lo_v.size()<<" bin edges in truth and "<<_reco_param->_bin_lo_v.size()<<" bin edges in reco"<<std::endl;
     _response_h = TH2D(_name.c_str(),"",
 		       (int)(_reco_param->_bin_lo_v.size()-1),_reco_param->_bin_lo_v.data(),
 		       (int)(_true_param->_bin_lo_v.size()-1),_true_param->_bin_lo_v.data());

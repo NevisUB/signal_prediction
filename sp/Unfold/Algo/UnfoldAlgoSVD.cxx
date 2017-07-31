@@ -62,21 +62,21 @@ namespace sp {
 
 
   void UnfoldAlgoSVD::Unfold(){
-    std::cout<<"sp::UnfoldAlgoSVD::Unfold || Beginning unfolding with Algorithm: "<<name<<std::endl;
+    std::cout<<"Beginning unfolding with Algorithm: "<<name<<std::endl;
 
 
     TMatrixT<double> tilde_A(n_t,n_t);
     TVectorT<double> tilde_d(n_t);
 
-    std::cout<<"sp::UnfoldAlgoSVD::Unfold || Decomposing D "<<std::endl;
+    std::cout<<"Decomposing D "<<std::endl;
     TDecompSVD * svd_D = new TDecompSVD(D);
     TVectorT<double> r = svd_D->GetSig();
     TMatrixT<double> Q = svd_D->GetU();
 
 
-    std::cout<<"sp::UnfoldAlgoSVD::Unfold || Rotate+Rescale A"<<std::endl;	
+    std::cout<<"Rotate+Rescale A"<<std::endl;	
     rotateRescale(&tilde_A, &r, &Q, &A);
-    std::cout<<"sp::UnfoldAlgoSVD::Unfold || Rotate+Rescale d"<<std::endl;	
+    std::cout<<"Rotate+Rescale d"<<std::endl;	
     rotateRescale(&tilde_d, &r, &Q, &d);
 
 

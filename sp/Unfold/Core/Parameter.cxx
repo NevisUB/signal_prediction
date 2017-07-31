@@ -29,8 +29,6 @@ namespace sp {
     _from_file(false),
     _data_v(std::vector<float>(variable_v.size(),0.0))
   {
-	  
-    std::cout << "P @ " << this << std::endl;
     _name = to_name(op,variable_v,bin_lo_v);
 	  
     _hist = TH1D(concatenate(variable_v).c_str(),"",(int)(bin_lo_v.size()-1),_bin_lo_v.data());

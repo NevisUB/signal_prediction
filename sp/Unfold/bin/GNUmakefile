@@ -4,7 +4,7 @@ CXXFLAGS += -I. $(shell root-config --cflags)
 
 LDFLAGS = -L.
 LDFLAGS += $(shell root-config --libs)
-LDFLAGS += -L$(SP_LIBDIR) -lSP_UnfoldCore -lSP_UnfoldAlgo
+LDFLAGS += -L$(SP_LIBDIR) -lSP_Base -lSP_UnfoldCore -lSP_UnfoldAlgo
 
 CXX = g++
 

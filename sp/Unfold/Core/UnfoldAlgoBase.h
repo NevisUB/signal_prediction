@@ -1,6 +1,7 @@
 #ifndef __UNFOLDALGOBASE_H__
 #define __UNFOLDALGOBASE_H__
 
+#include "Base/sp_base.h"
 #include "Response.h"
 #include "UnfoldUtil.h"
 #include <TRandom3.h>
@@ -12,85 +13,90 @@
 
 namespace sp {
 
-	class UnfoldAlgoBase {
-		public:
-			std::string name;
-			int seed;
+  class UnfoldAlgoBase : public sp_base {
+ 
+  public:
 
-			TH1D *hist_u;
-			TH1D *hist_r;
+    std::string name;
+    int seed;
 
-			double regularization;
-			int n_r;
-			int n_t;
+    TH1D *hist_u;
+    TH1D *hist_r;
 
-			TVectorD r;
-			TVectorD t;
+    double regularization;
+    int n_r;
+    int n_t;
 
-			TMatrixD N; //number of events
-			TMatrixD A;// response
+    TVectorD r;
+    TVectorD t;
 
-			TVectorD d;
-			TMatrixD D;
+    TMatrixD N; //number of events
+    TMatrixD A;// response
 
-			TVectorD b;//bias
-			TVectorD ep;//efficiency n_t
+    TVectorD d;
+    TMatrixD D;
 
-			TVectorD u;
-			TMatrixD U;
-			TMatrixD UA;
-			TMatrixD UD;
+    TVectorD b;//bias
+    TVectorD ep;//efficiency n_t
 
-		public:
-			UnfoldAlgoBase() { 
-				name="BASE";
-				seed = 0;
-			}
-			virtual ~UnfoldAlgoBase() {}
+    TVectorD u;
+    TMatrixD U;
+    TMatrixD UA;
+    TMatrixD UD;
 
-			void Initialize(const Response *);
+  public:
 
-			//
-			// Pure virtual moth-ods called by Manager
-			//
+    UnfoldAlgoBase(const std::string n = "UnfoldAlgoBase") : 
+      sp_base(n), 
+      name(n), 
+      seed(0) 
+    {}
 
-			virtual void Unfold() = 0;
+    virtual ~UnfoldAlgoBase() {}
 
+    void Initialize(const Response *);
 
+    //
+    // Pure virtual moth-ods called by Manager
+    //
 
-			void Unfold(const TVectorD* d_in);
-			void Unfold(const TVectorD* d_in, const TMatrixD* D_in);
-
-
-			void TestRegularization( std::string filename, double low, double high, int num);
-			void TestUnfolding(std::string in);
-//
-			// Some generic useful functions on an alorithm
-			//
-
-			void GenPoissonNoise();
-			void SetRegularization(double reg);
-			double GetRegularization();
-			void SetSeed(int);
-
-			void Setd(TVectorD* d_in);
-			void SetD(TMatrixD * din);
+    virtual void Unfold() = 0;
 
 
-			TH1D GetHistU();
-			TH1D GetHistT();
-			TH1D GetHistR();
-			TH1D GetHistD();
-			TH1D GetHistRefold();
 
-			TH1D GetHistEff();
-
-			TH2D GetHistA();
-			TH2D GetCovU();
-			TH1D GetErrU();
+    void Unfold(const TVectorD* d_in);
+    void Unfold(const TVectorD* d_in, const TMatrixD* D_in);
 
 
-	};
+    void TestRegularization( std::string filename, double low, double high, int num);
+    void TestUnfolding(std::string in);
+    //
+    // Some generic useful functions on an alorithm
+    //
+
+    void GenPoissonNoise();
+    void SetRegularization(double reg);
+    double GetRegularization();
+    void SetSeed(int);
+
+    void Setd(TVectorD* d_in);
+    void SetD(TMatrixD * din);
+
+
+    TH1D GetHistU();
+    TH1D GetHistT();
+    TH1D GetHistR();
+    TH1D GetHistD();
+    TH1D GetHistRefold();
+
+    TH1D GetHistEff();
+
+    TH2D GetHistA();
+    TH2D GetCovU();
+    TH1D GetErrU();
+
+
+  };
 
 
 }

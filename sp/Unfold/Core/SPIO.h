@@ -1,6 +1,8 @@
 #ifndef __SPIO_H__
 #define __SPIO_H__
 
+#include "Base/sp_base.h"
+
 #include "Response.h"
 
 #include <string>
@@ -12,7 +14,7 @@
 
 namespace sp {
   
-  class SPIO {
+  class SPIO : public sp_base{
 
   public:
 
