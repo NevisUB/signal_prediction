@@ -35,17 +35,20 @@ namespace sp {
  
     TMatrixD N;  // number of events
     TMatrixD A;  // response
+    std::vector<std::vector<std::vector<double>>> covA;
 
     TVectorD d;  // data
     TMatrixD D;  // ?
 
     TVectorD b;  // bias
     TVectorD ep; // efficiency n_t
+    TMatrixD Ep; //Covariance of efficienct
 
     TVectorD u;  // unfolded spectrum
     TMatrixD U;  // ?
     TMatrixD UA; // ?
     TMatrixD UD; // ?
+
 
   public:
 
@@ -108,6 +111,7 @@ namespace sp {
     TH1D GetHistRefold();
 
     TH1D GetHistEff();
+    TH2D GetCovEff();
 
     TH2D GetHistA();
     TH2D GetCovU();

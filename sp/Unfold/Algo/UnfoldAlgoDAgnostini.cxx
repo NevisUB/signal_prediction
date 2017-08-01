@@ -14,23 +14,7 @@ namespace sp {
     TVectorT<double> u_last(n_t);
 
     std::vector<std::vector<std::vector<double>>> dudA_last(n_t, std::vector<std::vector<double>>(n_r, std::vector<double>(n_t,0)));
-    std::vector<std::vector<std::vector<double>>> covA(n_r, std::vector<std::vector<double>>(n_t, std::vector<double>(n_r,0)));//thre indicies, as we have ignored inter truth correlations i think
-
-
-    SP_DEBUG()<<"Calculating covariance on Response. MUST Double CHECK formula."<<std::endl;
-    //This is necessary to propagate the errors on A through..
-    for(int r=0;r<n_r; r++){
-      for(int a=0;a<n_t; a++){
-	for(int s=0;s<n_r; s++){
-	  if(r==s){
-	    covA.at(r).at(a).at(s) = 1.0/t(a) *A(r,a)*(1-A(r,a)); 
-	  }else{
-	    covA.at(r).at(a).at(s) = - 1.0/t(a)*A(r,a)*A(s,a); 
-	  }
-	}
-      }
-    }
-
+  
 
 
     SP_DEBUG()<<"Setting initial guess."<<std::endl;

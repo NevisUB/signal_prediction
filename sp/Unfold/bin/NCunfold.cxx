@@ -56,6 +56,8 @@ int main(int argc, char** argv) {
 
 	alg.Initialize( &a.Responses().at(0) );
 	alg.SetRegularization(5);
+	 alg.set_verbosity((sp::msg::Level_t)0);
+
 	//  alg.GenPoissonNoise();
 	//  alg.Unfold();
 	/*
@@ -203,9 +205,15 @@ int main(int argc, char** argv) {
 
 	cb->cd(3);
 	TH1D eff = alg.GetHistEff();
+
+	std::vector<double> errEff(alg.n_t);
+	for(int b=0; b<errEff.size();b++){
+		errEff.at(b)=sqrt(alg.Ep(b,b));  ;
+	}
+	eff.SetError(&errEff[0]);
 	eff.GetYaxis()->SetTitle("Efficiency");
 	eff.GetXaxis()->SetTitle("Truth Bin");
-	eff.Draw("hist");
+	eff.Draw("E1");
 	eff.SetMinimum(0);
 	eff.SetMaximum(0.4);
 	cb->SaveAs("NC_signals_response.pdf","pdf");
