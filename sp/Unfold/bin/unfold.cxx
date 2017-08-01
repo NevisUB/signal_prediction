@@ -15,7 +15,8 @@ int main(int argc, char** argv) {
   sp::SPIO a;
   a.set_verbosity((sp::msg::Level_t)0);
 
-  a.add_mc_in_file("/home/vgenty/signal/simplifyTreeOsc/filtered_ccqe_nue_nuebar/filterd_ccqe_nue_nuebar.root");
+  a.add_mc_in_file("/rootfiles/filterd_ccqe_nue_nuebar.root");
+  //a.add_mc_in_file("/home/vgenty/signal/simplifyTreeOsc/filtered_ccqe_nue_nuebar/filterd_ccqe_nue_nuebar.root");
   a.set_mc_tree_name("MiniBooNE_CCQE");
   
   sp::ModelNueCCQE model;
@@ -48,9 +49,10 @@ int main(int argc, char** argv) {
   std::cout << "Beginning" << std::endl;
 
   sp::UnfoldAlgoDAgnostini alg; 
+//  sp::UnfoldAlgoSVD alg;
   alg.set_verbosity((sp::msg::Level_t)0);
 
-  alg.Initialize(&(a.Responses().front());
+  alg.Initialize(&(a.Responses().front()));
   alg.SetRegularization(5);
   //  alg.GenPoissonNoise();
   //  alg.Unfold();
@@ -73,10 +75,10 @@ int main(int argc, char** argv) {
 
   double pot_scale = 6.46/41.10;
 
-  alg.TestUnfolding("CCQE_data");
+  alg.TestUnfolding("CCQE_poison_unfold_test");
 
   //Got to tihnk more bout flows
-  std::vector<double> miniobs = {0,232,  156,  156,   79,   81,   70,   63,   65,   62,   34,   70, 0};
+  std::vector<double> miniobs = {0.001,232,  156,  156,   79,   81,   70,   63,   65,   62,   34,   70, 0.001};
   std::vector<double> minibkg = {0,180.80171,108.22448,120.03353,63.887782,89.806966,67.249431,69.855878,57.014477,51.846417,38.586738,69.381391,0};
   std::vector<double> sigerr(miniobs.size(),0);
   double Nsignal = 0;
@@ -195,9 +197,16 @@ int main(int argc, char** argv) {
 
   cb->cd(3);
   TH1D eff = alg.GetHistEff();
+
+	std::vector<double> errEff(alg.n_t);
+	for(int b=0; b<errEff.size();b++){
+		errEff.at(b)=sqrt(alg.Ep(b,b));  ;
+	}
+	eff.SetError(&errEff[0]);
+
   eff.GetYaxis()->SetTitle("Efficiency");
   eff.GetXaxis()->SetTitle("Truth Bin");
-  eff.Draw("hist");
+  eff.Draw("E1");
   eff.SetMinimum(0);
   eff.SetMaximum(0.4);
 
@@ -275,7 +284,7 @@ int main(int argc, char** argv) {
   std::vector<TH1D> uR(6);
   std::vector<TLegend*> leg(6);
   std::vector<TH1D> us_stat(6);
-  std::vector<int> kreg = {1,2,4,6,8,100};
+  std::vector<int> kreg = {1,2,3,4,5,6};
   //std::vector<int> kreg = {1,2,5,8,100};
 
   for(int k=0; k<6; k++){

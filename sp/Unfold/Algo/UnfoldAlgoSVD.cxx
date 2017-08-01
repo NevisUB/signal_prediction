@@ -58,7 +58,7 @@ namespace sp {
 	}
       }
     }
-    
+
     const auto& cU = svd_C.GetU();
     const auto& cV = svd_C.GetV();
     auto cUT = cU;
@@ -66,18 +66,17 @@ namespace sp {
 
     inv_C = cV * c_inv_s * cUT;
 
-    R.ResizeTo(n_r, n_r);
+    R.ResizeTo(n_t, n_t);
     T.ResizeTo(n_t, n_t);
-    
-    for(int j=0; j<n_t; j++)
+
+    for(int j=0; j<n_t; j++){
       R(j,j) = std::max(1.0, std::sqrt( r(j) ));
-    
-    for(int a=0; a<n_t; a++)
-      T(a,a) = std::max(1.0, std::sqrt( t(a) ));
-    
+      T(j,j) = std::max(1.0, std::sqrt( t(j) ));
+    }
+
     SP_DEBUG() << "end" << std::endl;
   }
-  
+
 
   void UnfoldAlgoSVD::Unfold(){
     SP_INFO() << "Unfold" << std::endl;
@@ -200,12 +199,11 @@ namespace sp {
     }
 
   }
-
   void UnfoldAlgoSVD::rotate_rescale(TVectorD& tilde_b,
 				     const TVectorD& rin,
 				     const TMatrixD& Q,
 				     const TVectorD& bin ){
-	
+
     tilde_b = Q * bin;
 
     for(int i=0; i < rin.GetNrows(); i++){
@@ -213,7 +211,7 @@ namespace sp {
 	SP_CRITICAL() << "zero denominator" << std::endl;
 	throw sperr();
       }
-      
+
       tilde_b(i) *= 1.0 / rin(i);
     }
   }
