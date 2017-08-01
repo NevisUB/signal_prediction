@@ -196,7 +196,7 @@ namespace sp {
 
 	void UnfoldAlgoBase::SetD(TMatrixD * din){
 		if( din->GetNrows() != n_r){
-			SP_CRITICAL()<<"Passed a  D_in that is size: "<<din->GetNrows()<<" but n_r is "<<n_r<<std::endl;
+			SP_CRITICAL()<<"Passed a D_in that is size: "<<din->GetNrows()<<" but n_r is actually"<<n_r<<std::endl;
 			throw sperr();
 		}
 
