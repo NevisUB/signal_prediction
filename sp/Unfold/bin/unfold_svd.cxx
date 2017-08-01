@@ -6,8 +6,9 @@ int main(int argc, char** argv) {
 
   sp::SPIO a;
   a.set_verbosity((sp::msg::Level_t)0);
+a.add_mc_in_file("/rootfiles/filterd_ccqe_nue_nuebar.root");
 
-  a.add_mc_in_file("/home/vgenty/signal/simplifyTreeOsc/filtered_ccqe_nue_nuebar/filterd_ccqe_nue_nuebar.root");
+//  a.add_mc_in_file("/home/vgenty/signal/simplifyTreeOsc/filtered_ccqe_nue_nuebar/filterd_ccqe_nue_nuebar.root");
   a.set_mc_tree_name("MiniBooNE_CCQE");
   
   sp::ModelNueCCQE model;

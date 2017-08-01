@@ -21,7 +21,7 @@ int main(int argc, char** argv) {
 	std::vector<double> bins_lo_v = {200,300,400,500,600,700,800,900,1000,1100,1200,1300,1400,1500,1600,1700,1800,1900,2000,2500,3000};
 	std::vector<double> bins_lo_v2 = {200.,300.,375.,475.,550.,675.,800.,950.,1100.,1300.,1500.};
 	std::vector<double> bins_lo_v3 = {400,600,700,800,900,1000,1200,1400,1600,1800,2000,2500,3000};
-//	std::vector<double> bins_lo_v2 = {200,300,400,500,600,700,800,900,1000,1200,1400,1300,1400,1500};
+	//	std::vector<double> bins_lo_v2 = {200,300,400,500,600,700,800,900,1000,1200,1400,1300,1400,1500};
 
 
 	// a.add_reco_parameter(var_v,bins_lo_v);
@@ -56,7 +56,7 @@ int main(int argc, char** argv) {
 
 	alg.Initialize( &a.Responses().at(0) );
 	alg.SetRegularization(5);
-	 alg.set_verbosity((sp::msg::Level_t)0);
+	alg.set_verbosity((sp::msg::Level_t)0);
 
 	//  alg.GenPoissonNoise();
 	//  alg.Unfold();
@@ -86,8 +86,8 @@ int main(int argc, char** argv) {
 	std::vector<double> minibkg = {0,180.80171,108.22448,120.03353,63.887782,89.806966,67.249431,69.855878,57.014477,51.846417,38.586738,69.381391};
 
 	//This is EVIS (not working)
-//	std::vector<double> miniobs = {204,280,214,99,83,59,51,33,37,23,19,21,12,16,4,9,4+7+3};
-//	std::vector<double> minibkg ={151.5,218.8,155.6,108.7,72.5,57.6,45.0,38.5,31.4,22.2,20.4,17.2,14.1,10.2,9.1,8.2,5.6+5.7+2.9};
+	//	std::vector<double> miniobs = {204,280,214,99,83,59,51,33,37,23,19,21,12,16,4,9,4+7+3};
+	//	std::vector<double> minibkg ={151.5,218.8,155.6,108.7,72.5,57.6,45.0,38.5,31.4,22.2,20.4,17.2,14.1,10.2,9.1,8.2,5.6+5.7+2.9};
 
 	std::vector<double> sigerr(miniobs.size(),0);
 
@@ -184,7 +184,7 @@ int main(int argc, char** argv) {
 	legr->AddEntry(&tt,"True E_{#nu} MC","lep");
 	legr->AddEntry(&rr,"Reco E_{QE} MC","lep");
 	legr->SetFillStyle(0);
-//	legr->SetBorderSize(0.1);
+	//	legr->SetBorderSize(0.1);
 
 	tt.Draw();
 	rr.Draw("same ap");
@@ -192,13 +192,13 @@ int main(int argc, char** argv) {
 
 	cb->cd(2)->SetRightMargin(0.175);
 	TH2D prob_MC = alg.GetHistA();
-	
+
 	prob_MC.GetYaxis()->SetTitle("Truth E_{#nu} Bin");
 	prob_MC.GetXaxis()->SetTitle("Reco E_{QE} Bin");
 	prob_MC.SetTitle("Response Matrix");
 	prob_MC.GetXaxis()->SetTitleOffset(1.1);
 	prob_MC.GetYaxis()->SetTitleOffset(1.1);
-	
+
 	prob_MC.Draw("colz");
 	//prob_MC.GetXaxis()->SetRange(1,10);
 	//prob_MC.GetYaxis()->SetRange(1,10);
@@ -211,8 +211,8 @@ int main(int argc, char** argv) {
 		errEff.at(b)=sqrt(alg.Ep(b,b));  ;
 	}
 	eff.SetError(&errEff[0]);
-	eff.GetYaxis()->SetTitle("Efficiency");
-	eff.GetXaxis()->SetTitle("Truth Bin");
+	eff.GetYaxis()->SetTitle("Total Efficiency");
+	eff.GetXaxis()->SetTitle("True E_{#nu} [MeV]");
 	eff.Draw("E1");
 	eff.SetMinimum(0);
 	eff.SetMaximum(0.4);
@@ -252,7 +252,7 @@ int main(int argc, char** argv) {
 	reco.SetFillColor(kGray);
 	reco.SetMarkerColor(kBlack);
 	reco.SetMarkerStyle(21);
-//	reco.Draw("same e2");
+	//	reco.Draw("same e2");
 	reco.Draw("same hist");
 	sig.Draw("same");
 
@@ -275,13 +275,16 @@ int main(int argc, char** argv) {
 	TCanvas *c2 =  new TCanvas("c1","c1",1200,800);
 	TCanvas *cu2 =  new TCanvas("cu2","cu2",1200,800);
 	TCanvas *cU =  new TCanvas("c2","c2",3000,2000);
+	TCanvas *cR =  new TCanvas("cR","cR",3000,2000);
+
 	c2->Divide(3,2);
 	cU->Divide(3,2);
-
+	cR->Divide(3,2);
 
 	std::vector<int> cols = {kGreen-6,  kBlue-7,kRed-7, kOrange-3, kMagenta-3, kGreen+3};
 	std::vector<TH1D> us(6);
 	std::vector<TH2D> US(6);
+	std::vector<TH1D> uR(6);
 	std::vector<TLegend*> leg(6);
 	std::vector<TH1D> us_stat(6);
 	std::vector<int> kreg = {1,2,4,6,8,10};
@@ -357,13 +360,30 @@ int main(int argc, char** argv) {
 
 		}
 
+		//cU->cd(k+1)->SetLogz();
+		cU->cd(k+1);
 
-		cU->cd(k+1)->SetLogz();
 		US.at(k) = alg.GetCovU();
 		US.at(k).SetTitle(  nam.c_str() );
 		US.at(k).GetYaxis()->SetTitle("True E_{#nu} Bin a");
 		US.at(k).GetXaxis()->SetTitle("True E_{#nu} Bin b");
 		US.at(k).Draw("colz");
+		
+		
+		cR->cd(k+1);
+		uR.at(k).SetTitle(  nam.c_str() );
+		uR.at(k) = alg.GetHistRefold();
+		uR.at(k).Scale(1,"width");
+		uR.at(k).SetMarkerStyle(29);
+		uR.at(k).SetMarkerColor(kBlack);
+		uR.at(k).SetLineColor(kBlack);
+		uR.at(k).SetMarkerSize(2);
+		uR.at(k).Draw("hist");
+		uR.at(k).SetMinimum(-0.2);
+		uR.at(k).SetMaximum(1.2);
+		sig.Draw("same");
+
+
 
 
 
@@ -374,12 +394,18 @@ int main(int argc, char** argv) {
 	cu2->SaveAs("NC_unfolded.pdf","pdf");
 	c2->SaveAs("NC_reg_vary.pdf","pdf");
 	cU->SaveAs("NC_reg_corr.pdf","pdf");
+	cR->SaveAs("NC_reg_refold.pdf","pdf");
 
 
 	TCanvas *cr = new TCanvas();
 	TH1D ratio = us.at(0);	
 	ratio.Divide(&truth);
 	ratio.SetFillColor(kBlue-7);
+
+	for(int i=1; i<ratio.GetNbinsX(); i++){
+		std::cout<<ratio.GetBinContent(i)<<std::endl;
+	}
+
 	ratio.GetYaxis()->SetTitle("Ratio to MiniBooNE MC Central Value");
 	ratio.SetMarkerStyle(5);
 	ratio.SetMarkerSize(1);
@@ -399,9 +425,9 @@ int main(int argc, char** argv) {
 	line->Draw();
 
 
-		for(int i=0; i<=ratio.GetNbinsX()+2; i++){
-			std::cout<<"Ratio "<<ratio.GetBinContent(i)<<std::endl;
-		}
+	for(int i=0; i<=ratio.GetNbinsX()+2; i++){
+		std::cout<<"Ratio "<<ratio.GetBinContent(i)<<std::endl;
+	}
 	cr->Write();
 	cr->SaveAs("NC_model_ratio.pdf","pdf");
 
