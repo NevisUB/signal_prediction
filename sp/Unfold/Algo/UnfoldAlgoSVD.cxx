@@ -152,10 +152,6 @@ namespace sp {
 
     w = inv_C * (V_taic * z);
 
-    SP_DEBUG() << "Unfolded u ==> " << std::endl;
-    if(this->logger().level() == msg::kDEBUG)
-      u.Print();
-
     auto inv_CT  = inv_C;
     auto VT_taic = V_taic;
     
@@ -174,6 +170,10 @@ namespace sp {
 	U(i,j) = t(i) * W(i,j) * t(j);
     }
 
+    SP_DEBUG() << "Unfolded u ==> " << std::endl;
+    if(this->logger().level() == msg::kDEBUG)
+      u.Print();
+
   }
 
   void UnfoldAlgoSVD::rotate_rescale(TMatrixD& tilde_Ain, 
@@ -187,15 +187,15 @@ namespace sp {
     assert(QAin.GetNcols() == tilde_Ain.GetNcols());
 
     for(int i=0; i < Ain.GetNrows(); i++){
-      for(int j=0; j < Ain.GetNrows(); j++){
+      for(int a=0; a < Ain.GetNcols(); a++){
 	double denom = rin(i);
 	if (denom == 0.0) {
 	  SP_CRITICAL() << "zero denominator" << std::endl;
 	  throw sperr();
 	}
-	double num =  QAin(i,j);
+	double num =  QAin(i,a);
 
-	tilde_Ain(i,j) = num / denom;
+	tilde_Ain(i,a) = num / denom;
       }
     }
 
