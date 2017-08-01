@@ -3,6 +3,10 @@
 #include "Unfold/Algo/UnfoldAlgoDAgnostini.h"
 #include "Unfold/Algo/UnfoldAlgoInverse.h"
 #include "TCanvas.h"
+#include "Unfold/Algo/UnfoldAlgoSVD.h"
+#include "Unfold/Algo/ModelNueCCQE.h"
+
+
 
 int main(int argc, char** argv) {
 
@@ -10,6 +14,11 @@ int main(int argc, char** argv) {
 
   a.add_mc_in_file("/rootfiles/filterd_ccqe_nue_nuebar.root");
   a.set_mc_tree_name("MiniBooNE_CCQE");
+ 
+  sp::ModelNueCCQE model;
+  a.set_model(&model);
+
+
   a.initialize();
   
   std::vector<std::string> var_v = {"Energy"};
@@ -37,15 +46,13 @@ int main(int argc, char** argv) {
 
   std::cout<<"Begininning"<<std::endl;
 
+  sp::UnfoldAlgoSVD alg;
+  alg.set_verbosity((sp::msg::Level_t)0);
+
+  alg.Initialize(&(a.Responses().front()));
+
  
-  sp::UnfoldAlgoDAgnostini alg; 
-//  sp::UnfoldAlgoInverse alg;
 
-
-
-
-  alg.Initialize( &a.Responses().at(0) );
-  alg.SetRegularization(5);
 //  alg.GenPoissonNoise();
 //  alg.Unfold();
 /*
@@ -68,8 +75,8 @@ int main(int argc, char** argv) {
 	double pot_scale = 6.46/41.10;
 
   //Got to tihnk more bout flows
-  std::vector<double> miniobs = {0,232,  156,  156,   79,   81,   70,   63,   65,   62,   34,   70, 0};
-  std::vector<double> minibkg = {0,180.80171,108.22448,120.03353,63.887782,89.806966,67.249431,69.855878,57.014477,51.846417,38.586738,69.381391,0};
+  std::vector<double> miniobs = {0.001,232,  156,  156,   79,   81,   70,   63,   65,   62,   34,   70, 0.001};
+  std::vector<double> minibkg = {0,180.80171,108.22448,120.03353,63.887782,89.806966,67.249431,69.855878,57.014477,51.846417,38.586738,69.381391,0.001};
 		
   	std::vector<double> sigerr(13,0);
 
@@ -95,7 +102,7 @@ int main(int argc, char** argv) {
 	alg.Setd(&mini_signal);
 	alg.SetD(&sigcorr);
 
-  alg.TestRegularization("lcurve", 1,20,19);
+  alg.TestRegularization("lcurve", 1,10,9);
 
 
   return 0;

@@ -138,8 +138,6 @@ namespace sp {
 
 
 
-
-
 		this->_Initialize_();
 	};
 
