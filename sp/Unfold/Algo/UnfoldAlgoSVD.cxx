@@ -99,7 +99,7 @@ namespace sp {
       Q_D.Print();
 
     SP_DEBUG() << "Rotate & Rescale A"<<std::endl;	
-    rotate_rescale(tilde_A, r_D, Q_D, A);
+    rotate_rescale(tilde_A, r_D, Q_D, N);
     
     SP_DEBUG() << "Rotate & Rescale d"<<std::endl;	
     rotate_rescale(tilde_d, r_D, Q_D, d);
