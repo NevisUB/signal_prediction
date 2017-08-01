@@ -44,13 +44,13 @@ namespace sp {
   }
 
   void Response::Finalize() {
-    _response.ResizeTo(_response_h.GetNbinsX()+2,_response_h.GetNbinsY()+2);
+    _response.ResizeTo(_response_h.GetNbinsX(),_response_h.GetNbinsY());
 		
     // Direct using GetArray caused some problems oddly..
     // _response = TMatrixD(_response_h.GetNbinsX()+2,_response_h.GetNbinsY()+2, _response_h.GetArray());
-    for(int i=0; i < _response_h.GetNbinsX()+2; i++){
-      for(int a=0; a < _response_h.GetNbinsY()+2; a++){
-	_response(i,a) = _response_h.GetBinContent(i,a);
+    for(int i=0; i < _response_h.GetNbinsX(); i++){
+      for(int a=0; a < _response_h.GetNbinsY(); a++){
+	_response(i,a) = _response_h.GetBinContent(i+1,a+1);
       }
     }
 

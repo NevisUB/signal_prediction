@@ -19,8 +19,9 @@ namespace sp {
 	
 		SP_DEBUG()<<"Starting on response: "<<response_in->_name<<std::endl;
 
-		n_t = response_in->_true_param->_hist.GetNbinsX()+2;
-		n_r = response_in->_reco_param->_hist.GetNbinsX()+2;
+		n_t = response_in->_true_param->_hist.GetNbinsX();
+		n_r = response_in->_reco_param->_hist.GetNbinsX();
+
 		SP_DEBUG() << "n_t : " << n_t << " & n_r: " << n_r << std::endl;
 		hist_u = (TH1D*)response_in->_true_param->_hist.Clone("unfold");
 		hist_r = (TH1D*)response_in->_reco_param->_hist.Clone("reco");
@@ -243,7 +244,7 @@ namespace sp {
 		TH2D tmp("tmp","tmp",n_r,0,n_r-1,n_t, 0, n_t-1 );
 		for(int i=0; i<n_r; i++){
 			for(int a=0; a<n_t; a++){
-				tmp.SetBinContent(i ,a, A(i,a));
+				tmp.SetBinContent(i+1 ,a+1, A(i,a));
 			}
 		}
 
@@ -255,7 +256,7 @@ namespace sp {
 	TH1D UnfoldAlgoBase::GetHistU(){
 
 		for(int i=0; i<n_t; i++)
-			hist_u->SetBinContent(i, u(i));
+			hist_u->SetBinContent(i+1, u(i));
 
 		return *hist_u;
 	}
@@ -274,7 +275,7 @@ namespace sp {
 	TH1D UnfoldAlgoBase::GetErrU(){
 
 		for(int i=0; i<n_t; i++){
-			hist_u->SetBinContent(i , std::fabs(std::sqrt(U(i,i))));
+			hist_u->SetBinContent(i+1 , std::fabs(std::sqrt(U(i,i))));
 		}
 
 		return *hist_u;
@@ -284,7 +285,7 @@ namespace sp {
 	TH1D UnfoldAlgoBase::GetHistT(){
 
 		for(int i=0; i<n_t; i++){
-			hist_u->SetBinContent(i,t(i));
+			hist_u->SetBinContent(i+1,t(i));
 		}
 
 		return *hist_u;
@@ -293,7 +294,7 @@ namespace sp {
 	TH1D UnfoldAlgoBase::GetHistEff(){
 
 		for(int i=0; i<n_t; i++){
-			hist_u->SetBinContent(i,ep(i));
+			hist_u->SetBinContent(i+1,ep(i));
 		}
 
 		return *hist_u;
@@ -314,7 +315,7 @@ namespace sp {
 	TH1D UnfoldAlgoBase::GetHistR(){
 
 		for(int i=0; i<n_r; i++){
-			hist_r->SetBinContent(i , r(i));
+			hist_r->SetBinContent(i+1 , r(i));
 		}
 
 		return *hist_r;
@@ -323,7 +324,7 @@ namespace sp {
 	TH1D UnfoldAlgoBase::GetHistRefold(){
 		TVectorD re = A*u;
 		for(int i=0; i<n_r; i++){
-			hist_r->SetBinContent(i , re(i));
+			hist_r->SetBinContent(i+1 , re(i));
 		}
 
 		return *hist_r;
@@ -333,7 +334,7 @@ namespace sp {
 	TH1D UnfoldAlgoBase::GetHistD(){
 
 		for(int i=0; i<n_r; i++){
-			hist_r->SetBinContent(i , d(i));
+			hist_r->SetBinContent(i+1 , d(i));
 		}
 
 		return *hist_r;
