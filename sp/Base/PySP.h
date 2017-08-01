@@ -10,6 +10,8 @@ typedef _object PyObject;
 #endif
 #endif
 #include <vector>
+#include "TMatrixD.h"
+#include "TVectorD.h"
 
 namespace sp {
 
@@ -23,6 +25,12 @@ namespace sp {
   PyObject* as_array_float32(const std::vector<float>& vec);
   PyObject* as_array_float64(const std::vector<double>& vec);
   PyObject* as_array_double (const std::vector<double>& vec);
+
+  PyObject* as_array_float64(const TVectorD& vec);
+  PyObject* as_array_double (const TVectorD& vec);
+
+  PyObject* as_array_float64(const TMatrixD& mat);
+  PyObject* as_array_double (const TMatrixD& mat);
 
 }
 

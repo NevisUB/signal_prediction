@@ -14,6 +14,9 @@ namespace sp {
     TMatrixD C;
     TMatrixD inv_C;
 
+    TVectorD UT_td;
+    TVectorD s_taic;
+
     TVectorD z;
     TMatrixD Z;
 

@@ -99,6 +99,46 @@ namespace sp {
     return as_array_float64(vec);
   }
 
+
+  PyObject* as_array_float64(const TVectorD& vec) {
+    SetPyUtil();
+        
+    npy_intp dims[1];
+    dims[0] = vec.GetNrows();
+    auto array = (PyArrayObject*)(PyArray_ZEROS(1,dims,NPY_DOUBLE,0));
+    
+    double* data_ptr = (double*) PyArray_DATA(array);
+
+    memcpy(data_ptr, vec.GetMatrixArray(), sizeof(double)*(vec.GetNrows()));
+
+    return PyArray_Return(array);
+  }
+
+
+  PyObject* as_array_double(const TVectorD& vec) {
+    return as_array_float64(vec);
+  }
+
+
+  PyObject* as_array_float64(const TMatrixD& mat) {
+    SetPyUtil();
+        
+    npy_intp dims[2];
+    dims[0] = mat.GetNrows();
+    dims[1] = mat.GetNcols();
+    auto array = (PyArrayObject*)(PyArray_ZEROS(2,dims,NPY_DOUBLE,0));
+    
+    float* data_ptr = (float*) PyArray_DATA(array);
+
+    memcpy(data_ptr, mat.GetMatrixArray(), sizeof(double)*(mat.GetNrows()*mat.GetNcols()));
+    
+    return PyArray_Return(array);
+  }
+
+  PyObject* as_array_double(const TMatrixD& mat) {
+    return as_array_float64(mat);
+  }
+
 }
 
 #endif

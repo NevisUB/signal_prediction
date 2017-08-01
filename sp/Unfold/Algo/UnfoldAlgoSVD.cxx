@@ -66,8 +66,8 @@ namespace sp {
 
     inv_C = cV * c_inv_s * cUT;
 
-    R.ResizeTo(n_t,n_t);
-    T.ResizeTo(n_t,n_t);
+    R.ResizeTo(n_t, n_t);
+    T.ResizeTo(n_t, n_t);
 
     for(int j=0; j<n_t; j++){
       R(j,j) = std::max(1.0, std::sqrt( r(j) ));
@@ -90,6 +90,14 @@ namespace sp {
     const auto& r_D = svd_D.GetSig();
     const auto& Q_D = svd_D.GetU();
 
+    SP_DEBUG() << "Return r_D ==> " << std::endl;
+    if(this->logger().level() == msg::kDEBUG) 
+      r_D.Print();
+
+    SP_DEBUG() << "Return Q_D ==> " << std::endl;
+    if(this->logger().level() == msg::kDEBUG) 
+      Q_D.Print();
+
     SP_DEBUG() << "Rotate & Rescale A"<<std::endl;	
     rotate_rescale(tilde_A, r_D, Q_D, A);
     
@@ -97,23 +105,27 @@ namespace sp {
     rotate_rescale(tilde_d, r_D, Q_D, d);
 
     auto tilde_A_inv_C = tilde_A * inv_C;
-
+    
     SP_DEBUG() << "Decomposing A.C^{-1}" << std::endl;	
 
     TDecompSVD svd_taic(tilde_A_inv_C);
-    const auto& s_taic = svd_taic.GetSig();
+    s_taic.ResizeTo(n_t);
+    s_taic = svd_taic.GetSig();
     const auto& U_taic = svd_taic.GetU();
     const auto& V_taic = svd_taic.GetV();
 
     auto UT_taic = U_taic; 
     UT_taic.T();
+    
+    UT_td.ResizeTo(n_t);
+    UT_td = UT_taic * tilde_d;
+    
+    SP_DEBUG() << "di ==> " << std::endl;
+    if (this->logger().level() == msg::kDEBUG)
+      UT_td.Print();
 
-    auto UT_td = UT_taic * tilde_d;
-
-    //
-    // Apply regularization 
-    //
-
+    SP_DEBUG() << "Apply regularization" << std::endl;
+    
     assert(regularization < s_taic.GetNrows());
     double tau = s_taic(regularization) * s_taic(regularization);
     
@@ -132,12 +144,15 @@ namespace sp {
       Z(i,i) = s2 / (den * den);
     }
 
-
     // unfolded spectrum & covariance
     u.ResizeTo(n_t);
     U.ResizeTo(n_t,n_t);
 
     u = inv_C * (V_taic * z);
+
+    SP_DEBUG() << "Unfolded u ==> " << std::endl;
+    if(this->logger().level() == msg::kDEBUG)
+      u.Print();
 
     auto inv_CT  = inv_C;
     auto VT_taic = V_taic;
@@ -157,41 +172,6 @@ namespace sp {
 	Xtau(i,j) = t(i) * U(i,j) * t(j);
     }
 
-
-    //
-    // Write out
-    //
-    /*
-
-    std::vector<double> x(nt,0.0);
-    std::vector<double> y(nt,0.0);
-    std::vector<double> y2(nt,0.0);
-
-    for (int i=0; i<nt; i++) {
-      x[i]  = i;
-      y[i]  = fabs(d(i)) ;
-      y2[i] = s(i);
-    }
-
-
-
-    TCanvas c;
-    c.Divide(2,1);
-
-    TPad *p1 = (TPad *)(c->cd(1)); 
-    p1->SetLogy();
-
-    TGraph gr1(nt, x, &(y[0]));
-    gr1.SetTitle("|d_{i}|");
-
-    TPad *p2 = (TPad *)(c->cd(2)); 
-    p2->SetLogy();
-
-    TGraph gr2(nt, x, &(y2[0]));
-    gr2.SetTitle("Single Values");
-    gr2.SetMinimum(1e-3);
-    gr2.Draw("AB");
-    */
   }
 
   void UnfoldAlgoSVD::rotate_rescale(TMatrixD& tilde_Ain, 

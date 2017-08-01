@@ -368,6 +368,7 @@ namespace sp {
 
     for(int i=0; i< n_noise; i++){
       SP_DEBUG() << "Generate Poisson noise @ i="<<i<<std::endl;
+
       this->GenPoissonNoise();
       v_D.at(i) = this->GetHistD();
 
