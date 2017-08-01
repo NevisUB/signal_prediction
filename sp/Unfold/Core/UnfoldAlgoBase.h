@@ -27,27 +27,28 @@ namespace sp {
     int n_r; // number of reco bins
     int n_t; // number of true bins
 
-    TVectorD r;  // reconstructed 
-    TVectorD t;  // true
+    TVectorD r;  // reconstructed (n_r)
+    TMatrixD R;  // covariance matrix of reconstructed (n_r x n_r)
 
-    TMatrixD R;  // ?
-    TMatrixD T;  // ?
- 
-    TMatrixD N;  // number of events
-    TMatrixD A;  // response
-    std::vector<std::vector<std::vector<double>>> covA;
+    TVectorD t;  // true (n_t)
+    TMatrixD T;  // covariance matrix of truth (n_t x n_t)
+    
+    TMatrixD N;  // number of events (n_r x n_t)
+    TMatrixD A;  // response (n_r x n_t)
+    std::vector<std::vector<std::vector<double> > > covA; // (n_r x n_t x n_r)
 
-    TVectorD d;  // data
-    TMatrixD D;  // ?
+    TVectorD d;  // data (n_r)
+    TMatrixD D;  // covariance of data (n_r x n_r)
 
-    TVectorD b;  // bias
-    TVectorD ep; // efficiency n_t
-    TMatrixD Ep; //Covariance of efficienct
+    TVectorD b;  // bias of unfolded spectrum; b=E(u) - u' (u'=actual nature truth) (n_r)
+    TVectorD ep; // efficiency (n_t)
+    TMatrixD Ep; // Covariance of efficiency (n_t x n_t)
 
-    TVectorD u;  // unfolded spectrum
-    TMatrixD U;  // ?
-    TMatrixD UA; // ?
-    TMatrixD UD; // ?
+    TVectorD u;  // unfolded spectrum (n_t)
+    TMatrixD U;  // covariance of u (uncertainty on model) unfolded solution (n_t x n_t)
+
+    TMatrixD UA; // Covariance on U from uncertainty of response matrix A
+    TMatrixD UD; // Covariance on U from uncertainty on data
 
 
   public:

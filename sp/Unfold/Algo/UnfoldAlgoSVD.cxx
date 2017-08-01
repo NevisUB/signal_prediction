@@ -66,13 +66,14 @@ namespace sp {
 
     inv_C = cV * c_inv_s * cUT;
 
-    R.ResizeTo(n_t, n_t);
+    R.ResizeTo(n_r, n_r);
     T.ResizeTo(n_t, n_t);
-
-    for(int j=0; j<n_t; j++){
+    
+    for(int j=0; j<n_t; j++)
       R(j,j) = std::max(1.0, std::sqrt( r(j) ));
-      T(j,j) = std::max(1.0, std::sqrt( t(j) ));
-    }
+    
+    for(int a=0; a<n_t; a++)
+      T(a,a) = std::max(1.0, std::sqrt( t(a) ));
     
     SP_DEBUG() << "end" << std::endl;
   }
@@ -81,8 +82,8 @@ namespace sp {
   void UnfoldAlgoSVD::Unfold(){
     SP_INFO() << "Unfold" << std::endl;
 
-    TMatrixD tilde_A(n_t,n_t);
-    TVectorD tilde_d(n_t);
+    TMatrixD tilde_A(n_r,n_t);
+    TVectorD tilde_d(n_r);
     
     SP_DEBUG() << "Decomposing D " << std::endl;
     
@@ -109,7 +110,7 @@ namespace sp {
     SP_DEBUG() << "Decomposing A.C^{-1}" << std::endl;	
 
     TDecompSVD svd_taic(tilde_A_inv_C);
-    s_taic.ResizeTo(n_t);
+    s_taic.ResizeTo(n_r);
     s_taic = svd_taic.GetSig();
     const auto& U_taic = svd_taic.GetU();
     const auto& V_taic = svd_taic.GetV();
@@ -126,13 +127,14 @@ namespace sp {
 
     SP_DEBUG() << "Apply regularization" << std::endl;
     
+    assert(regularization >= 0);
     assert(regularization < s_taic.GetNrows());
     double tau = s_taic(regularization) * s_taic(regularization);
     
-    z.ResizeTo(n_t);
-    Z.ResizeTo(n_t,n_t);
+    z.ResizeTo(n_r);
+    Z.ResizeTo(n_r,n_r);
     
-    for(int i=0; i<n_t; i++){
+    for(int i=0; i<n_r; i++){
       double num = UT_td(i)  * s_taic(i);
       double s2  = s_taic(i) * s_taic(i);
       double den = s2 + tau;
@@ -145,10 +147,10 @@ namespace sp {
     }
 
     // unfolded spectrum & covariance
-    u.ResizeTo(n_t);
-    U.ResizeTo(n_t,n_t);
+    w.ResizeTo(n_t);
+    W.ResizeTo(n_t,n_t);
 
-    u = inv_C * (V_taic * z);
+    w = inv_C * (V_taic * z);
 
     SP_DEBUG() << "Unfolded u ==> " << std::endl;
     if(this->logger().level() == msg::kDEBUG)
@@ -160,16 +162,16 @@ namespace sp {
     inv_CT.T();
     VT_taic.T();
 
-    U = inv_C * V_taic * Z * VT_taic * inv_CT;
-
-    xtau.ResizeTo(n_t);
-    Xtau.ResizeTo(n_t,n_t);
-
+    W = inv_C * V_taic * Z * VT_taic * inv_CT;
+    
+    u.ResizeTo(n_t);
+    U.ResizeTo(n_t,n_t);
+    
     for(int i=0; i<n_t; i++){
-      xtau(i) = t(i) * u(i);
+      u(i) = t(i) * w(i);
       
       for(int j=0; j<n_t; j++)
-	Xtau(i,j) = t(i) * U(i,j) * t(j);
+	U(i,j) = t(i) * W(i,j) * t(j);
     }
 
   }

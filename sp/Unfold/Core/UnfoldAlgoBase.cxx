@@ -17,9 +17,10 @@ namespace sp {
 	void UnfoldAlgoBase::Initialize(const Response * response_in){
 
 		SP_DEBUG()<<"Starting on response: "<<response_in->_name<<std::endl;
+
 		n_t = response_in->_true_param->_hist.GetNbinsX()+2;
 		n_r = response_in->_reco_param->_hist.GetNbinsX()+2;
-
+		SP_DEBUG() << "n_t : " << n_t << " & n_r: " << n_r << std::endl;
 		hist_u = (TH1D*)response_in->_true_param->_hist.Clone("unfold");
 		hist_r = (TH1D*)response_in->_reco_param->_hist.Clone("reco");
 

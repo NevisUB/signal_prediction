@@ -20,8 +20,8 @@ namespace sp {
     TVectorD z;
     TMatrixD Z;
 
-    TVectorD xtau;
-    TMatrixD Xtau;
+    TVectorD w;
+    TMatrixD W;
 
     void Unfold();
     
