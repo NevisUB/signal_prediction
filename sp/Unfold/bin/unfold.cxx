@@ -48,8 +48,8 @@ int main(int argc, char** argv) {
 
   std::cout << "Beginning" << std::endl;
 
-//  sp::UnfoldAlgoDAgnostini alg; 
-  sp::UnfoldAlgoSVD alg;
+  sp::UnfoldAlgoDAgnostini alg; 
+//  sp::UnfoldAlgoSVD alg;
   alg.set_verbosity((sp::msg::Level_t)0);
 
   alg.Initialize(&(a.Responses().front()));
@@ -75,10 +75,10 @@ int main(int argc, char** argv) {
 
   double pot_scale = 6.46/41.10;
 
-  alg.TestUnfolding("CCQE_data");
+  alg.TestUnfolding("CCQE_poison_unfold_test");
 
   //Got to tihnk more bout flows
-  std::vector<double> miniobs = {0,232,  156,  156,   79,   81,   70,   63,   65,   62,   34,   70, 0};
+  std::vector<double> miniobs = {0.001,232,  156,  156,   79,   81,   70,   63,   65,   62,   34,   70, 0.001};
   std::vector<double> minibkg = {0,180.80171,108.22448,120.03353,63.887782,89.806966,67.249431,69.855878,57.014477,51.846417,38.586738,69.381391,0};
   std::vector<double> sigerr(miniobs.size(),0);
   double Nsignal = 0;
@@ -284,7 +284,7 @@ int main(int argc, char** argv) {
   std::vector<TH1D> uR(6);
   std::vector<TLegend*> leg(6);
   std::vector<TH1D> us_stat(6);
-  std::vector<int> kreg = {1,2,4,6,8,10};
+  std::vector<int> kreg = {1,2,3,4,5,6};
   //std::vector<int> kreg = {1,2,5,8,100};
 
   for(int k=0; k<6; k++){

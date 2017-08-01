@@ -16,6 +16,7 @@ namespace sp {
 
 	void UnfoldAlgoBase::Initialize(const Response * response_in){
 
+	
 		SP_DEBUG()<<"Starting on response: "<<response_in->_name<<std::endl;
 		n_t = response_in->_true_param->_hist.GetNbinsX()+2;
 		n_r = response_in->_reco_param->_hist.GetNbinsX()+2;
