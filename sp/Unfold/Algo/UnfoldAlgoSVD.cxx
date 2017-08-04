@@ -14,6 +14,8 @@ namespace sp {
 
 		SP_DEBUG() << "start n_t = " << n_t << std::endl;
 
+		dudd.ResizeTo(n_t,n_r);
+
 		C.ResizeTo(n_t,n_t);
 		inv_C.ResizeTo(n_t,n_t);
 
@@ -114,7 +116,7 @@ namespace sp {
 		SP_DEBUG() << "Decomposing A.C^{-1}" << std::endl;	
 
 		TDecompSVD svd_taic(tilde_A_inv_C);
-		
+
 		s_taic.ResizeTo(n_t);
 		s_taic = svd_taic.GetSig();
 
@@ -183,6 +185,39 @@ namespace sp {
 		if(this->logger().level() == msg::kDEBUG)
 			u.Print();
 
+
+
+
+
+
+		SP_DEBUG()<<"Begininning calculation of bias, using derivative + taylor approx. NOT YET filled. Derivatives not so easy here."<<std::endl;
+		// And bias! This may not be taking it into account properly as of yet. Using bias approximation from cowans book. should be sufficient. 
+		for(int a =0; a<n_t;a++){
+
+			b(a) = 0;
+			for(int j=0; j<n_r; j++){
+				double vj = 0;
+				for(int b=0; b<n_t; b++){
+					vj+= A(j,b)*u(b);
+				}
+				b(a) += dudd(a,j)*(vj-d(j));
+				//b(a) += Munfold(a,j)*(vj-d(j));
+			}
+		}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	}
 
 	void UnfoldAlgoSVD::rotate_rescale(TMatrixD& tilde_Ain, 
@@ -197,7 +232,7 @@ namespace sp {
 
 		for(int i=0; i < Ain.GetNrows(); i++){
 			for(int a=0; a < Ain.GetNcols(); a++){
-				
+
 				double denom = sqrt( rin(i) );
 				if (denom == 0.0) {
 					SP_CRITICAL() << "zero denominator" << std::endl;

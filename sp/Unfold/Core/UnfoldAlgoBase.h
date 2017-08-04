@@ -10,6 +10,7 @@
 #include <string.h>
 #include <TGraph.h>
 #include "math.h"
+#include <TDecompChol.h>
 
 namespace sp {
 
@@ -86,6 +87,7 @@ namespace sp {
     //
     void TestRegularization( std::string filename, double low, double high, int num);
     void TestUnfolding(std::string in);
+    TH1D SampleCovarianceU(TVectorT<double> &result);  
 
     //
     // Getters

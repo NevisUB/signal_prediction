@@ -113,8 +113,8 @@ int main(int argc, char** argv) {
 	alg.Unfold();
 
 
-
-	//alg.TestUnfolding("CCQE_poison_unfold_test");
+//	alg.SetRegularization(3);
+//	alg.TestUnfolding("CCQE_poison_unfold_test");
 
 
 

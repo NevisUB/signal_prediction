@@ -7,7 +7,7 @@
 #include "TStyle.h"
 #include "TLegend.h"
 #include "TLine.h"
-
+#include "Unfold/Algo/ModelNCDelta.h"
 int main(int argc, char** argv) {
 
 	gStyle->SetOptStat(0);
@@ -15,14 +15,17 @@ int main(int argc, char** argv) {
 
 	a.add_mc_in_file("/rootfiles/filtered_nc_delta.root");
 	a.set_mc_tree_name("MiniBooNE_CCQE");
-	a.initialize();
 
 	std::vector<std::string> var_v = {"Energy"};
 	std::vector<double> bins_lo_v = {200,300,400,500,600,700,800,900,1000,1100,1200,1300,1400,1500,1600,1700,1800,1900,2000,2500,3000};
-	std::vector<double> bins_lo_v2 = {200.,300.,375.,475.,550.,675.,800.,950.,1100.,1300.,1500.};
-	std::vector<double> bins_lo_v3 = {400,600,700,800,900,1000,1200,1400,1600,1800,2000,2500,3000};
+	std::vector<double> bins_lo_v2 = {200.,300.,375.,475.,550.,675.,800.,950.,1100.,1300.,1500.,3000};
+	std::vector<double> bins_lo_v3 = {400,600,700,800,900,1000,1200,1400,1600,1800,2000,2500};
 	//	std::vector<double> bins_lo_v2 = {200,300,400,500,600,700,800,900,1000,1200,1400,1300,1400,1500};
 
+	sp::ModelNCDelta model;
+	a.set_model(&model);
+
+	a.initialize();
 
 	// a.add_reco_parameter(var_v,bins_lo_v);
 
@@ -49,6 +52,7 @@ int main(int argc, char** argv) {
 
 
 	sp::UnfoldAlgoDAgnostini alg; 
+	//sp::UnfoldAlgoSVD alg; 
 	//  sp::UnfoldAlgoInverse alg;
 
 
@@ -79,24 +83,19 @@ int main(int argc, char** argv) {
 
 	double pot_scale = 6.46/41.10;
 
-	alg.TestUnfolding("NC_poison_unfold_test");
-
-	//Got to tihnk more bout flows this is EQE
-	std::vector<double> miniobs = {0,232,  156,  156,   79,   81,   70,   63,   65,   62,   34,   70};
-	std::vector<double> minibkg = {0,180.80171,108.22448,120.03353,63.887782,89.806966,67.249431,69.855878,57.014477,51.846417,38.586738,69.381391};
-
-	//This is EVIS (not working)
-	//	std::vector<double> miniobs = {204,280,214,99,83,59,51,33,37,23,19,21,12,16,4,9,4+7+3};
-	//	std::vector<double> minibkg ={151.5,218.8,155.6,108.7,72.5,57.6,45.0,38.5,31.4,22.2,20.4,17.2,14.1,10.2,9.1,8.2,5.6+5.7+2.9};
-
+	//alg.TestUnfolding("NC_poison_unfold_test");
+	//Got to tihnk more bout flows
+	std::vector<double> miniobs = {232,  156,  156,   79,   81,   70,   63,   65,   62,   34,   70};
+	std::vector<double> minibkg = {180.80171,108.22448,120.03353,63.887782,89.806966,67.249431,69.855878,57.014477,51.846417,38.586738,69.381391};
 	std::vector<double> sigerr(miniobs.size(),0);
-
+	double Nsignal = 0;
 
 
 	//changed briefly... 
 	TVectorD mini_signal(miniobs.size());
 	for(int i=0; i<miniobs.size(); i++){
 		mini_signal(i) = (miniobs.at(i)-minibkg.at(i))+alg.r(i)*pot_scale    ;
+		Nsignal += mini_signal(i);
 		//mini_signal(i) = alg.r(i)*pot_scale  ;
 		//mini_signal(i) = miniobs.at(i)-minibkg.at(i);
 		sigerr.at(i) =sqrt(miniobs.at(i)+minibkg.at(i)) ;
@@ -110,12 +109,13 @@ int main(int argc, char** argv) {
 	TMatrixD sigcorr(miniobs.size(), miniobs.size());
 	sigcorr.Zero();
 	for(int i=0; i<miniobs.size();i++){
-		sigcorr(i,i)=pow(sigerr.at(i),2.0);
+		sigcorr(i,i)=miniobs.at(i)+minibkg.at(i);
+		std::cout<<"MYD(i,i) "<<sigcorr(i,i)<<std::endl;
 	}
 	alg.Setd(&mini_signal);
 	alg.SetD(&sigcorr);
+	std::cout<<"juuust setting D"<<std::endl;
 	alg.Unfold();
-
 
 
 

@@ -16,7 +16,7 @@ namespace sp {
 
 	void UnfoldAlgoBase::Initialize(const Response * response_in){
 
-	
+
 		SP_DEBUG()<<"Starting on response: "<<response_in->_name<<std::endl;
 
 		n_t = response_in->_true_param->_hist.GetNbinsX();
@@ -60,6 +60,25 @@ namespace sp {
 		r.ResizeTo(n_r);
 		r = hist2TVec(&response_in->_reco_param->_hist);
 		SP_DEBUG()<<"Initilized reco MC, dimension: "<<r.GetNrows()<<std::endl;
+
+		if(response_in->_true_param->_hist.GetBinContent(0)!=0){
+			SP_WARNING()<<"Truth MC has filled underflow bin of value: "<< response_in->_true_param->_hist.GetBinContent(0)<<std::endl;
+		}
+		if(response_in->_true_param->_hist.GetBinContent(n_t+1)!=0){
+			SP_WARNING()<<"Truth MC has filled overflow bin of value: "<< response_in->_true_param->_hist.GetBinContent(n_t+1)<<std::endl;
+		}
+		if(response_in->_reco_param->_hist.GetBinContent(0)!=0){
+			SP_WARNING()<<"Reco MC has filled underflow bin of value: "<< response_in->_reco_param->_hist.GetBinContent(0)<<std::endl;
+		}
+		if(response_in->_reco_param->_hist.GetBinContent(n_r+1)!=0){
+			SP_WARNING()<<"Reco MC has filled overflow bin of value: "<< response_in->_reco_param->_hist.GetBinContent(n_r+1)<<std::endl;
+		}
+
+
+
+
+
+
 
 		SP_DEBUG()<<"Initilizing Number of Events."<<std::endl;
 		N.ResizeTo(n_r,n_t);
@@ -465,6 +484,28 @@ namespace sp {
 		errU.Draw("hist");
 		c->SaveAs( (filename+".pdf").c_str(),"pdf");	
 		SP_DEBUG() << "end" << std::endl;
+	}
+
+        TH1D UnfoldAlgoBase::SampleCovarianceU(TVectorT<double> &result){
+		TRandom3 * rangen = new TRandom3(0);
+		TDecompChol * chol = new TDecompChol(U,0.0);
+		TMatrixT<double> upper_trian(n_t,n_t);
+		upper_trian = chol->GetU();
+		
+		TVectorT<double> gaus_sample(n_t);
+		for(int i=0; i<n_t; i++){
+				gaus_sample(i) = rangen->Gaus( u(i), sqrt(U(i,i)));	
+		}
+		gaus_sample = U*gaus_sample;
+
+
+		for(int i=0; i<n_t; i++){
+			hist_u->SetBinContent(i+1, gaus_sample(i));
+			result(i) = gaus_sample(i); 
+		}
+		return *hist_u;
+
+
 	}
 
 

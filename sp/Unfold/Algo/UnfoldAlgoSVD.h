@@ -23,6 +23,8 @@ namespace sp {
     TVectorD w;
     TMatrixD W;
 
+    TMatrixD dudd; //nt x nr
+
     void Unfold();
     
   protected:
