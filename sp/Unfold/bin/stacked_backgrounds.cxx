@@ -22,7 +22,7 @@ int main(int argc, char** argv) {
   //Published total backgrounds
   std::vector<double> minibkg = {180.80171,108.22448,120.03353,63.887782,89.806966,67.249431,69.855878,57.014477,51.846417,38.586738,69.381391};
 
-  for(auto& v : bins_lo_v) v /= 1000.0;
+  //for(auto& v : bins_lo_v) v /= 1000.0;
 
   sp::SPIO spio;
   spio.set_verbosity((sp::msg::Level_t)0);
@@ -54,7 +54,7 @@ int main(int argc, char** argv) {
 
       auto dx = bins_lo_v.at(bin_id) - bins_lo_v.at(bin_id-1);
 
-      auto modifier = 1.0 / (dx * 1000.0);
+      auto modifier = 1.0 / (dx );
       modifier *= pot_scale; // POT normalize
 
       auto bin_content = th1d.GetBinContent(bin_id) * modifier;

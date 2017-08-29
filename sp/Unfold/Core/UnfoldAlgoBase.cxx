@@ -348,6 +348,26 @@ namespace sp {
 
 		return *hist_r;
 	}
+	TH1D UnfoldAlgoBase::GetHistRandRefold(){
+	
+		TRandom3 * rangen = new TRandom3(seed);
+		TVectorD pois_u = u;
+
+		for(int a=0; a<n_t; a++){
+			pois_u(a) = rangen->Poisson( u(a) ); 
+		}
+
+	
+		TVectorD re = A*pois_u;
+
+
+		for(int i=0; i<n_r; i++){
+
+			hist_r->SetBinContent(i+1 , re(i) );
+		}
+
+		return *hist_r;
+	}
 
 
 	TH1D UnfoldAlgoBase::GetHistD(){

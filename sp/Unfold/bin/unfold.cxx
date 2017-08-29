@@ -11,6 +11,7 @@
 #include "TStyle.h"
 #include "TLegend.h"
 #include "TLine.h"
+#include "TLatex.h"
 
 int main(int argc, char** argv) {
 
@@ -30,11 +31,13 @@ int main(int argc, char** argv) {
 
 	std::vector<std::string> var_truth = {"NuMomT"};
 	std::vector<std::string> var_reco = {"RecoEnuQE"};
-	std::vector<double> bins_reco = {140,200., 300., 375., 475., 550., 675., 800., 950.,   1100., 1300., 1500., 3000.};
-	std::vector<double> bins_truth = {140,200.0,250,300,350,400,450, 500,550, 600., 650,   800.,1000,3000};
+	std::vector<double> bins_reco = {140,225,  300.,  375. , 475.,  550.,  675.,  800.,  950.,  1100.  ,1300. , 1500. , 3000};
+//	std::vector<double> bins_reco = {140,200.,250,300.,350 ,400,450,500., 550., 600, 700., 800., 950.,   1100., 1300., 1500., 3000.};
+	std::vector<double> bins_truth = {140,200,250,300,350,400,450, 500,550, 650,   800.,1000,3000};
 	//std::vector<double> bins_truth = {140,200.0,250,300,350,400,300,320,340,360,380,400,440,480,500, 550, 600., 650,   800.,1000,3000};
 	int N_bins_reco = bins_reco.size()-1;
 	int N_bins_truth = bins_truth.size()-1;
+	std::cout<<"# True Bins: "<<N_bins_truth<<" # Reco Bins: "<<N_bins_reco<<std::endl;
 
 	a.add_true_parameter(var_truth,bins_truth,sp::kOP_GEV2MEV);
 	a.add_reco_parameter(var_reco,bins_reco,sp::kOP_GEV2MEV);
@@ -51,6 +54,7 @@ int main(int argc, char** argv) {
 	std::cout << "Beginning" << std::endl;
 
 	sp::UnfoldAlgoDAgnostini alg; 
+	//sp::UnfoldAlgoSVD alg; 
 
 	alg.set_verbosity((sp::msg::Level_t)0);
 	alg.Initialize(&(a.Responses().front()));
@@ -317,26 +321,26 @@ int main(int argc, char** argv) {
 	c->SaveAs("CCQE_signal.pdf","pdf");
 
 
-	TCanvas *c2 =  new TCanvas("c1","c1",1200,800);
-	TCanvas *cu2 =  new TCanvas("cu2","cu2",1200,800);
-	TCanvas *cU =  new TCanvas("c2","c2",3000,2000);
-	TCanvas *cR =  new TCanvas("cR","cR",3000,2000);
-	c2->Divide(3,2);
-	cU->Divide(3,2);
-	cR->Divide(3,2);
+	TCanvas *c2 =  new TCanvas("c1","c1",1200,1200);
+	TCanvas *cu2 =  new TCanvas("cu2","cu2",1200,1200);
+	TCanvas *cU =  new TCanvas("c2","c2",3000,3000);
+	TCanvas *cR =  new TCanvas("cR","cR",3000,3000);
+	c2->Divide(3,3);
+	cU->Divide(3,3);
+	cR->Divide(3,3);
 
 
-	std::vector<int> cols = {kBlue-7,kGreen-6,kRed-7, kOrange-3, kMagenta-3, kGreen+3};
-	std::vector<TH1D> us(6);
-	std::vector<TH2D> US(6);
-	std::vector<TH1D> uR(6);
-	std::vector<TLegend*> leg(6);
-	std::vector<TH1D> us_stat(6);
-	std::vector<int> kreg = {1,2,3,5,8,10};
+	std::vector<int> kreg = {1,2,3,4,5,6,7,8,10};
+	std::vector<int> cols = {kBlue-7,kGreen-6,kRed-7, kOrange-3, kMagenta-3, kGreen+3, kBlue-7,kGreen-6,kRed-7};
+	std::vector<TH1D> us(kreg.size());
+	std::vector<TH2D> US(kreg.size());
+	std::vector<TH1D> uR(kreg.size());
+	std::vector<TLegend*> leg(kreg.size());
+	std::vector<TH1D> us_stat(kreg.size());
 	//std::vector<int> kreg = {1,2,5,8,100};
 
-	for(int k=0; k<6; k++){
-		std::string nam = std::to_string(kreg.at(k))+ " Iterations";
+	for(int k=0; k<kreg.size(); k++){
+		std::string nam = "Reg " +std::to_string(kreg.at(k)) ;
 
 		c2->cd(k+1)->SetLeftMargin(0.1);
 		alg.SetRegularization(kreg.at(k));
@@ -380,7 +384,7 @@ int main(int argc, char** argv) {
 		us.at(k).Draw("E2");
 
 		us.at(k).SetMinimum(0);
-		us.at(k).GetXaxis()->SetRange(1,10);
+		us.at(k).GetXaxis()->SetRangeUser(bins_truth.front(),1000);
 		us.at(k).SetMaximum(10);//has to be after!
 
 		us_stat.at(k) = alg.GetHistU();
@@ -403,7 +407,7 @@ int main(int argc, char** argv) {
 		leg.at(k)->SetBorderSize(0);
 		leg.at(k)->Draw();
 
-		if(k==2){
+		if(k==1){
 			cu2->cd();
 			us_stat.at(k).SetFillColor(kGreen+2);
 			us_stat.at(k).SetLineColor(kGreen+2);
@@ -428,14 +432,24 @@ int main(int argc, char** argv) {
 
 		cR->cd(k+1);
 		uR.at(k) = alg.GetHistRefold();
-		sig.Draw();
+		uR.at(k).SetTitle(nam.c_str());
 		uR.at(k).Scale(1,"width");
 		uR.at(k).SetMarkerStyle(29);
 		uR.at(k).SetMarkerColor(kBlack);
 		uR.at(k).SetLineColor(kBlack);
 		uR.at(k).SetMarkerSize(2);
-		uR.at(k).Draw("same,hist");
 
+		
+
+		double ch2 = uR.at(k).Chi2Test(&sig,"CHI2,WW");
+		std::string s_ch2 = "#chi^{2} : " + std::to_string(ch2);
+		TLegend * legR = new TLegend(0.58,0.6,0.89,0.89);
+		legR->SetHeader(s_ch2.c_str() );
+		uR.at(k).Draw("hist");
+		sig.Draw("same");
+		legR->Draw();
+		uR.at(k).GetXaxis()->SetRangeUser(bins_truth.front(),1000);
+		uR.at(k).SetMaximum(1.2);
 
 
 
@@ -451,7 +465,7 @@ int main(int argc, char** argv) {
 
 
 	TCanvas *cr = new TCanvas();
-	TH1D ratio = us.at(2);	
+	TH1D ratio = us.at(1);	
 	ratio.Divide(&truth);
 	ratio.SetFillColor(kBlue-7);
 	ratio.GetYaxis()->SetTitle("Ratio to MiniBooNE MC Central Value");

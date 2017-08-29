@@ -112,6 +112,7 @@ namespace sp {
     TH1D GetHistR();
     TH1D GetHistD();
     TH1D GetHistRefold();
+    TH1D GetHistRandRefold();
 
     TH1D GetHistEff();
     TH2D GetCovEff();
