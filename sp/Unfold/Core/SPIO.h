@@ -29,7 +29,7 @@ namespace sp {
     bool init_response_matrix();
     bool fill_responses();
     bool write_unfold_file();
-
+    
   public:
     //
     // Public setters
@@ -111,6 +111,12 @@ namespace sp {
 
     // return a const vector of response matrices
     const std::vector<Response>& Responses() const { return _response_v; }
+    
+    // generate vector of backgrounds
+    std::vector<TH1D> gen_background(const std::string& filename, 
+				     const std::string& param,
+				     const std::vector<double>& bins_lo_v);
+    
 
   };
   
