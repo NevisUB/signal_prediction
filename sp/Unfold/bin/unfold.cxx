@@ -30,8 +30,11 @@ int main(int argc, char** argv) {
 
 	std::vector<std::string> var_truth = {"NuMomT"};
 	std::vector<std::string> var_reco = {"RecoEnuQE"};
-	std::vector<double> bins_reco = {200., 300., 375., 475., 550., 675., 800., 950.,   1100., 1300., 1500., 3000.};
-	std::vector<double> bins_truth = {200.0,220,240,260,280,300,320,340,360,380,400,440,480,500, 550, 600., 650,   800.,1000,3000};
+	std::vector<double> bins_reco = {140,200., 300., 375., 475., 550., 675., 800., 950.,   1100., 1300., 1500., 3000.};
+	std::vector<double> bins_truth = {140,200.0,250,300,350,400,450, 500,550, 600., 650,   800.,1000,3000};
+	//std::vector<double> bins_truth = {140,200.0,250,300,350,400,300,320,340,360,380,400,440,480,500, 550, 600., 650,   800.,1000,3000};
+	int N_bins_reco = bins_reco.size()-1;
+	int N_bins_truth = bins_truth.size()-1;
 
 	a.add_true_parameter(var_truth,bins_truth,sp::kOP_GEV2MEV);
 	a.add_reco_parameter(var_reco,bins_reco,sp::kOP_GEV2MEV);
@@ -59,15 +62,15 @@ int main(int argc, char** argv) {
 	//Got to tihnk more bout flows
 	std::vector<double> miniobs = {232,  156,  156,   79,   81,   70,   63,   65,   62,   34,   70};
 	std::vector<double> minibkg = {180.80171,108.22448,120.03353,63.887782,89.806966,67.249431,69.855878,57.014477,51.846417,38.586738,69.381391};
-	std::vector<double> sigerr(miniobs.size(),0);
 	double Nsignal = 0;
 
 	std::cout<<"Loading in MC and Dirt."<<std::endl;
 	std::string fname = "/rootfiles/filtered_passosc.root";
 	std::string fname_dirt = "/rootfiles/merged_filtered_out_osc_mc_dirt.root";
 	std::string param = var_reco.at(0);
-	std::vector<double> summed_mc(bins_reco.size()-1,0.0);
+	std::vector<double> summed_mc(N_bins_reco,0.0);
 
+	std::vector<double> sigerr(N_bins_reco,0);
 	//
 	// Get the vector of histograms for each background type
 	//
@@ -78,7 +81,7 @@ int main(int argc, char** argv) {
 	auto th1d_v = spio.gen_background(fname,fname_dirt,param,bins_reco);
 
 	for(auto & v :th1d_v){
-		for(int i=0; i< summed_mc.size();i++){
+		for(int i=0; i< N_bins_reco;i++){
 			summed_mc.at(i) += v.GetBinContent(i+1)*pot_scale;
 		}
 
@@ -124,8 +127,8 @@ int main(int argc, char** argv) {
 
 
 	//changed briefly... 
-	TVectorD mini_signal(miniobs.size());
-	for(int i=0; i<miniobs.size(); i++){
+	TVectorD mini_signal(N_bins_reco);
+	for(int i=0; i<N_bins_reco; i++){
 		//This one is the old working one
 		//mini_signal(i) = (miniobs.at(i)-minibkg.at(i))+alg.r(i)*pot_scale    ;
 		mini_signal(i) = (h_data->GetBinContent(i+1)-summed_mc.at(i))+alg.r(i)*pot_scale    ;
@@ -141,9 +144,9 @@ int main(int argc, char** argv) {
 		}
 	}
 
-	TMatrixD sigcorr(miniobs.size(), miniobs.size());
+	TMatrixD sigcorr(N_bins_reco, N_bins_reco);
 	sigcorr.Zero();
-	for(int i=0; i<miniobs.size();i++){
+	for(int i=0; i<N_bins_reco;i++){
 		sigcorr(i,i)=h_data->GetBinContent(i+1)+summed_mc.at(i);
 		std::cout<<"MYD(i,i) "<<sigcorr(i,i)<<std::endl;
 	}
@@ -455,7 +458,7 @@ int main(int argc, char** argv) {
 	ratio.SetMarkerStyle(5);
 	ratio.SetMarkerSize(1);
 	ratio.Draw("e2");
-	ratio.SetMaximum(10);
+	ratio.SetMaximum(22);
 	ratio.GetXaxis()->SetRangeUser(bins_truth.front(),1000);
 
 	TLegend * leg2 = new TLegend(0.58,0.6,0.89,0.89);
@@ -464,7 +467,7 @@ int main(int argc, char** argv) {
 	leg2->SetBorderSize(0.0);
 	leg2->Draw();
 
-	TLine *line = new TLine(200,1,1500,1);
+	TLine *line = new TLine(bins_truth.front(),1,1000,1);
 	line->SetLineColor(kBlack);
 	line->SetLineStyle(2);
 	line->Draw();
@@ -503,7 +506,7 @@ int main(int argc, char** argv) {
 
 
 	for(int i=0; i<=ratio.GetNbinsX()+2; i++){
-		std::cout<<"Ratio "<<ratio.GetBinContent(i)<<std::endl;
+		std::cout<<"Ratio "<<ratio.GetBinContent(i)<<" "<<ratio_scaled->GetBinContent(i)<<std::endl;
 	}
 	cr->Write();
 	cr->SaveAs("CCQE_model_ratio.pdf","pdf");
