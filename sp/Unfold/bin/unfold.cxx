@@ -28,17 +28,13 @@ int main(int argc, char** argv) {
 	a.initialize();
 
 
-	std::vector<std::string> var_v = {"Energy"};
-	std::vector<double> bins_reco = {140., 200.,  300., 375., 475., 550., 675., 800., 950.,   1100., 1300., 1500., 3000.};
+	std::vector<std::string> var_truth = {"NuMomT"};
+	std::vector<std::string> var_reco = {"RecoEnuQE"};
+	std::vector<double> bins_reco = {200., 300., 375., 475., 550., 675., 800., 950.,   1100., 1300., 1500., 3000.};
 	std::vector<double> bins_truth = {200.0,220,240,260,280,300,320,340,360,380,400,440,480,500, 550, 600., 650,   800.,1000,3000};
 
-	var_v[0] = "NuMomT";
-	a.add_true_parameter(var_v,bins_truth,sp::kOP_GEV2MEV);
-
-
-	var_v = {"RecoEnuQE"};
-	a.add_reco_parameter(var_v,bins_reco,sp::kOP_GEV2MEV);
-
+	a.add_true_parameter(var_truth,bins_truth,sp::kOP_GEV2MEV);
+	a.add_reco_parameter(var_reco,bins_reco,sp::kOP_GEV2MEV);
 
 	std::cout << "int_response matrix" << std::endl;
 	a.init_response_matrix();
@@ -69,7 +65,7 @@ int main(int argc, char** argv) {
 	std::cout<<"Loading in MC and Dirt."<<std::endl;
 	std::string fname = "/rootfiles/filtered_passosc.root";
 	std::string fname_dirt = "/rootfiles/merged_filtered_out_osc_mc_dirt.root";
-	std::string param = var_v.at(0);
+	std::string param = var_reco.at(0);
 	std::vector<double> summed_mc(bins_reco.size()-1,0.0);
 
 	//
