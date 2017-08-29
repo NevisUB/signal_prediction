@@ -24,15 +24,18 @@ int main(int argc, char** argv) {
 
 	a.initialize();
 
+
 	std::vector<std::string> var_v = {"Energy"};
 	std::vector<double> bins_lo_v = {200,300,400,500,600,700,800,900,1000,1100,1200,1300,1400,1500,1600,1700,1800,1900,2000,2500,3000};
-	std::vector<double> bins_lo_v2 = {200.,300.,375.,475.,550.,675.,800.,950.,1100.,1300.,1500.,3000.};
-	std::vector<double> bins_lo_v3 = {200.,320.,400.,505.,600.,675.,800.,950.,1100.,1300.,3000.};
+	std::vector<double> bins_lo_v2 = {200.,  300., 375., 475., 550., 675., 800., 950.,   1100., 1300., 1500., 3000.};
+	//std::vector<double> bins_truth = {200.0, 225,  250., 275,  300., 325,  350., 375, 400., 425,  450., 475, 500.0, 550, 600., 650,   800.,1000,3000};
+
+	std::vector<double> bins_truth = {200.0,220,240,260,280,300,320,340,360,380,400,440,480,500, 550, 600., 650,   800.,1000,3000};
 
 	// a.add_reco_parameter(var_v,bins_lo_v);
 
 	var_v[0] = "NuMomT";
-	a.add_true_parameter(var_v,bins_lo_v2,sp::kOP_GEV2MEV);
+	a.add_true_parameter(var_v,bins_truth,sp::kOP_GEV2MEV);
 
 
 	var_v = {"RecoEnuQE"};
@@ -50,8 +53,8 @@ int main(int argc, char** argv) {
 
 	std::cout << "Beginning" << std::endl;
 
-	// sp::UnfoldAlgoDAgnostini alg; 
-	sp::UnfoldAlgoSVD alg;
+	sp::UnfoldAlgoDAgnostini alg; 
+	//sp::UnfoldAlgoSVD alg;
 	
 	alg.set_verbosity((sp::msg::Level_t)0);
 	alg.Initialize(&(a.Responses().front()));
@@ -84,12 +87,33 @@ int main(int argc, char** argv) {
 	std::vector<double> minibkg = {180.80171,108.22448,120.03353,63.887782,89.806966,67.249431,69.855878,57.014477,51.846417,38.586738,69.381391};
 	std::vector<double> sigerr(miniobs.size(),0);
 	double Nsignal = 0;
+	
+
+	TFile * f_data = new TFile("/rootfiles/output_osc_data_detail_1.root");
+	TTree * data = (TTree*)f_data->Get("MiniBooNE_CCQE");
+	float d_Weight,d_Energy,d_CosTheta,d_RecoEnuQE;
+	data->SetBranchAddress("Weight",&d_Weight);
+	data->SetBranchAddress("Energy",&d_Energy);
+	data->SetBranchAddress("CosTheta",&d_CosTheta);
+	data->SetBranchAddress("RecoEnuQE", &d_RecoEnuQE);
+
+	TH1D * h_data = new TH1D("h_data","h_data", bins_lo_v2.size()-1,  &bins_lo_v2[0] );
+
+	for(int i=0; i< data->GetEntries();i++){
+		data->GetEntry(i);
+		h_data->Fill(1000*d_RecoEnuQE, d_Weight);
+	}
 
 
 	//changed briefly... 
 	TVectorD mini_signal(miniobs.size());
 	for(int i=0; i<miniobs.size(); i++){
-		mini_signal(i) = (miniobs.at(i)-minibkg.at(i))+alg.r(i)*pot_scale    ;
+		
+		//This one is the old working one
+		//mini_signal(i) = (miniobs.at(i)-minibkg.at(i))+alg.r(i)*pot_scale    ;
+		mini_signal(i) = (h_data->GetBinContent(i+1)-minibkg.at(i))+alg.r(i)*pot_scale    ;
+
+
 		Nsignal += mini_signal(i);
 		//mini_signal(i) = alg.r(i)*pot_scale  ;
 		//mini_signal(i) = miniobs.at(i)-minibkg.at(i);
@@ -360,7 +384,7 @@ int main(int argc, char** argv) {
 		leg.at(k)->SetBorderSize(0);
 		leg.at(k)->Draw();
 
-		if(k==1){
+		if(k==2){
 			cu2->cd();
 			us_stat.at(k).SetFillColor(kGreen+2);
 			us_stat.at(k).SetLineColor(kGreen+2);
@@ -371,6 +395,7 @@ int main(int argc, char** argv) {
 			us_stat.at(k).Draw("same P");
 			truth.Draw("same hist");
 			leg.at(k)->Draw();
+			us.at(k).GetXaxis()->SetRangeUser(bins_truth.front(),1000);
 
 		}
 
@@ -407,15 +432,15 @@ int main(int argc, char** argv) {
 
 
 	TCanvas *cr = new TCanvas();
-	TH1D ratio = us.at(1);	
+	TH1D ratio = us.at(2);	
 	ratio.Divide(&truth);
 	ratio.SetFillColor(kBlue-7);
 	ratio.GetYaxis()->SetTitle("Ratio to MiniBooNE MC Central Value");
 	ratio.SetMarkerStyle(5);
 	ratio.SetMarkerSize(1);
 	ratio.Draw("e2");
-	ratio.SetMaximum(6);
-
+	ratio.SetMaximum(10);
+	ratio.GetXaxis()->SetRangeUser(bins_truth.front(),1000);
 
 	TLegend * leg2 = new TLegend(0.58,0.6,0.89,0.89);
 	leg2->AddEntry(&ratio,"Intrinsic #nu_{e} CCQE Model","lf");
@@ -429,6 +454,38 @@ int main(int argc, char** argv) {
 	line->Draw();
 
 
+	TCanvas *cr_scaled = new TCanvas();
+	TFile * fr = new TFile("/home/mark/work/uBooNE/request_of_MB_data/cross_section_generator_difference/ratio_out.root");
+	TGraph * gr = (TGraph*)fr->Get("Graph");
+	TH1D * ratio_scaled = (TH1D*)ratio.Clone("scaled");
+	
+	std::vector<double> bincenter;
+	std::vector<double> binval;
+
+
+	for(int i=0; i<ratio_scaled->GetNbinsX()+2; i++){
+		ratio_scaled->SetBinContent(i+1, ratio.GetBinContent(i+1)/gr->Eval(0.001*ratio.GetBinCenter(i+1) )  );
+		bincenter.push_back( ratio.GetBinCenter(i+1) );
+		binval.push_back(  ratio.GetBinContent(i+1)/gr->Eval(0.001*ratio.GetBinCenter(i+1) ));
+
+		std::cout<<"Ratio: "<<ratio.GetBinContent(i+1)<<" "<<ratio.GetBinCenter(i+1)<<" "<<gr->Eval(0.001*ratio.GetBinCenter(i+1) )<<std::endl; 
+		std::cout<<"Res: "<<ratio_scaled->GetBinContent(i+1)<<std::endl;
+	}
+	
+
+
+	ratio_scaled->Draw("e2");
+	ratio_scaled->SetMaximum(10);
+	ratio_scaled->GetXaxis()->SetRangeUser(bins_truth.front(),1000);
+	
+	leg2->Draw();
+	line->Draw();
+	cr_scaled->SaveAs("CCQE_model_ratio_scaleo.pdf","pdf");
+
+
+
+
+
 	for(int i=0; i<=ratio.GetNbinsX()+2; i++){
 		std::cout<<"Ratio "<<ratio.GetBinContent(i)<<std::endl;
 	}
@@ -436,5 +493,16 @@ int main(int argc, char** argv) {
 	cr->SaveAs("CCQE_model_ratio.pdf","pdf");
 
 	f->Close();
+
+	TFile* f_graph_out =  new TFile("CCQE_final_tgraph.root","RECREATE");
+	f_graph_out->cd();
+	TGraph * graph_out = new TGraph(bincenter.size(), &bincenter[0], &binval[0]  );
+	graph_out->Write();
+	f_graph_out->Close();
+
+
+
+
+
 	return 0;
 }

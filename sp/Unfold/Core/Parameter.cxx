@@ -19,11 +19,12 @@ namespace sp {
 
   
   Parameter::Parameter(const std::vector<std::string>& variable_v,
-		       const std::vector<double>& bin_lo_v,
+		       const std::vector<double>& bin_lo_v, SPModelBase *inmodel,
 		       Operation_t op) :
     _name(""),
     _variable_v(variable_v),
     _bin_lo_v(bin_lo_v),
+    _model(inmodel),
     _operation(op),
     _filled(false),
     _from_file(false),
@@ -35,8 +36,9 @@ namespace sp {
     _hist.SetDirectory(0);
   }
     
-  float Parameter::Fill(float weight) {
-    auto res = Operate(_data_v,_operation);
+  float Parameter::Fill(float weight,std::string reco_or_truth) {
+    //auto res = Operate(_data_v,_operation);
+    auto res = _model->Operate(reco_or_truth);
     if (!_filled)
       _hist.Fill(res,weight);
     return res;

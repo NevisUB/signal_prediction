@@ -14,6 +14,8 @@ namespace sp {
     ~ModelNueCCQE() {}
 
     bool Valid();
+    float Operate(std::string);
+
   };
 }
 

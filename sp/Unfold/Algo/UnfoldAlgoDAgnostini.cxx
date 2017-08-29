@@ -31,6 +31,15 @@ namespace sp {
     }
     SP_DEBUG()<<ss.str()<<std::endl;
 
+    SP_DEBUG()<<"Reco is : ";
+    std::stringstream sr;
+    for(int i=0; i<n_r; i++){
+      sr<<r(i)<<" ";
+    }
+    SP_DEBUG()<<sr.str()<<std::endl;
+
+
+
     u_last = u;
     for(int a=0; a<n_t; a++){
       // UNCOMMENT  this for flat prior. Flat prior seems very poor.  
@@ -54,14 +63,14 @@ namespace sp {
 	  for(int b=0;b<n_t; b++){
 	    de += A(i,b)*u(b);
 	  }
-
+	  
 	  Munfold(a,i) += A(i,a)*u(a)/(ep(a)*de) ;
 
 				
 	  if(de==0){
-	    SP_DEBUG()<<"ERROR denominator is: "<<de <<" leading to NAN's"<<std::endl;
-	    SP_DEBUG()<<"ERROR This means the current reconstructed variable in this iteration is 0 for bin "<<i<<std::endl;
-	    SP_DEBUG()<<"ERROR suggestion is to merge the last or first two reco bins, and repeat"<<std::endl;
+	    SP_ERROR()<<"ERROR denominator is: "<<de <<" leading to NAN's"<<std::endl;
+	    SP_ERROR()<<"ERROR This means the current reconstructed variable in this iteration is 0 for bin "<<i<<std::endl;
+	    SP_ERROR()<<"ERROR suggestion is to merge the last or first two reco bins, and repeat"<<std::endl;
 	    exit(EXIT_FAILURE);
 	  }
 	}

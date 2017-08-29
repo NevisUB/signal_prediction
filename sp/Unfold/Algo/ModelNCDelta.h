@@ -14,6 +14,7 @@ namespace sp {
     ~ModelNCDelta() {}
 
     bool Valid();
+    float Operate(std::string);
   };
 }
 

@@ -13,13 +13,17 @@ int main(int argc, char** argv) {
 	gStyle->SetOptStat(0);
 	sp::SPIO a;
 
+	a.set_verbosity((sp::msg::Level_t)0);
+
 	a.add_mc_in_file("/rootfiles/filtered_nc_delta.root");
 	a.set_mc_tree_name("MiniBooNE_CCQE");
 
 	std::vector<std::string> var_v = {"Energy"};
 	std::vector<double> bins_lo_v = {200,300,400,500,600,700,800,900,1000,1100,1200,1300,1400,1500,1600,1700,1800,1900,2000,2500,3000};
-	std::vector<double> bins_lo_v2 = {200.,300.,375.,475.,550.,675.,800.,950.,1100.,1300.,1500.,3000};
+	std::vector<double> bins_lo_v2 = {200.,300.,375.,475.,550.,675.,800.,950., 3000};//1100.,1300.,1500.,3000}; 
 	std::vector<double> bins_lo_v3 = {400,600,700,800,900,1000,1200,1400,1600,1800,2000,2500};
+	std::vector<double> bins_lo = {50,150,200,250,300,350,450,550,700};
+
 	//	std::vector<double> bins_lo_v2 = {200,300,400,500,600,700,800,900,1000,1200,1400,1300,1400,1500};
 
 	sp::ModelNCDelta model;
@@ -30,7 +34,7 @@ int main(int argc, char** argv) {
 	// a.add_reco_parameter(var_v,bins_lo_v);
 
 	var_v[0] = "NuMomT";
-	a.add_true_parameter(var_v,bins_lo_v3,sp::kOP_GEV2MEV);
+	a.add_true_parameter(var_v,bins_lo,sp::kOP_GEV2MEV);
 
 
 	var_v = {"RecoEnuQE"};
@@ -48,14 +52,15 @@ int main(int argc, char** argv) {
 	std::cout<<"write"<<std::endl;
 	a.write_unfold_file();
 
-	std::cout<<"Begininning"<<std::endl;
 
+	std::cout<<"Begininning"<<std::endl;
 
 	sp::UnfoldAlgoDAgnostini alg; 
 	//sp::UnfoldAlgoSVD alg; 
 	//  sp::UnfoldAlgoInverse alg;
 
 
+	std::cout<<"Initilizing"<<std::endl;
 
 
 	alg.Initialize( &a.Responses().at(0) );
@@ -85,11 +90,11 @@ int main(int argc, char** argv) {
 
 	//alg.TestUnfolding("NC_poison_unfold_test");
 	//Got to tihnk more bout flows
-	std::vector<double> miniobs = {232,  156,  156,   79,   81,   70,   63,   65,   62,   34,   70};
-	std::vector<double> minibkg = {180.80171,108.22448,120.03353,63.887782,89.806966,67.249431,69.855878,57.014477,51.846417,38.586738,69.381391};
+	std::vector<double> miniobs = {232,  156,  156,   79,   81,   70,   63,   65+   62+  34+   70};
+	std::vector<double> minibkg = {180.80171,108.22448,120.03353,63.887782,89.806966,67.249431,69.855878,57.014477+51.846417+38.586738+69.381391};
 	std::vector<double> sigerr(miniobs.size(),0);
 	double Nsignal = 0;
-
+	std::cout<<"Starting SIgnal"<<std::endl;
 
 	//changed briefly... 
 	TVectorD mini_signal(miniobs.size());
@@ -178,7 +183,7 @@ int main(int argc, char** argv) {
 	tt.SetMinimum(0);
 	tt.SetTitle("NC delta only");
 	//tt.SetMaximum(5);
-	tt.GetXaxis()->SetRangeUser(0,2500);
+	tt.GetXaxis()->SetRangeUser(bins_lo.front(), bins_lo.back());
 
 	TLegend * legr = new TLegend(0.58,0.6,0.89,0.89);
 	legr->AddEntry(&tt,"True E_{#nu} MC","lep");
@@ -314,7 +319,7 @@ int main(int argc, char** argv) {
 		us.at(k) = alg.GetHistU();
 		us.at(k).SetTitle(  nam.c_str() );
 		us.at(k).GetYaxis()->SetTitle("Events/MeV");
-		us.at(k).GetXaxis()->SetTitle("True E_{#nu} [MeV]");
+		us.at(k).GetXaxis()->SetTitle("True E_{#gamma} [MeV]");
 		us.at(k).SetError(&err[0]);
 		us.at(k).SetLineColor(kBlack);
 		us.at(k).SetLineWidth(2);
@@ -323,8 +328,8 @@ int main(int argc, char** argv) {
 		us.at(k).Draw("E2");
 
 		us.at(k).SetMinimum(0);
-		us.at(k).GetXaxis()->SetRangeUser(0,2500);
-		us.at(k).SetMaximum(4);//has to be after!
+		us.at(k).GetXaxis()->SetRangeUser(bins_lo.front(), bins_lo.back());
+		us.at(k).SetMaximum(15);//has to be after!
 
 		us_stat.at(k) = alg.GetHistU();
 		us_stat.at(k).SetError(&errS[0]);
@@ -357,6 +362,7 @@ int main(int argc, char** argv) {
 			us_stat.at(k).Draw("same P");
 			truth.Draw("same hist");
 			leg.at(k)->Draw();
+			us.at(k).GetXaxis()->SetRangeUser(bins_lo.front(), bins_lo.back());
 
 		}
 
@@ -400,7 +406,7 @@ int main(int argc, char** argv) {
 	TCanvas *cr = new TCanvas();
 	TH1D ratio = us.at(0);	
 	ratio.Divide(&truth);
-	ratio.SetFillColor(kBlue-7);
+	ratio.SetFillColor(kOrange-3);
 
 	for(int i=1; i<ratio.GetNbinsX(); i++){
 		std::cout<<ratio.GetBinContent(i)<<std::endl;
@@ -412,14 +418,16 @@ int main(int argc, char** argv) {
 	ratio.Draw("e2");
 	ratio.SetMaximum(6);
 
+	ratio.GetXaxis()->SetRangeUser(bins_lo.front(),600);
 
-	TLegend * leg2 = new TLegend(0.58,0.6,0.89,0.89);
+
+	TLegend * leg2 = new TLegend(0.18,0.6,0.49,0.89);
 	leg2->AddEntry(&ratio,"NC delta radiative Model","lf");
 	leg2->SetFillStyle(0);
 	leg2->SetBorderSize(0.0);
 	leg2->Draw();
 
-	TLine *line = new TLine(200,1,1500,1);
+	TLine *line = new TLine(bins_lo.front(),1, bins_lo.back(),1);
 	line->SetLineColor(kBlack);
 	line->SetLineStyle(2);
 	line->Draw();

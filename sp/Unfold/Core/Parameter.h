@@ -9,6 +9,7 @@
 #include "TH1D.h"
 #include "UnfoldTypes.h"
 #include "TVector.h"
+#include "SPModelBase.h"
 
 namespace sp {
 
@@ -19,13 +20,14 @@ namespace sp {
 
     Parameter(const std::vector<std::string>& variable_v,
 	      const std::vector<double>& bin_lo_v,
-	      Operation_t op = kOP_INVALID);
+	       SPModelBase *inmodel, Operation_t op = kOP_INVALID);
     
     ~Parameter(){}
     
     std::string _name;
     std::vector<std::string> _variable_v;
     std::vector<double> _bin_lo_v;
+    SPModelBase * _model;
     Operation_t _operation;
 
     bool _filled;
@@ -47,7 +49,7 @@ namespace sp {
       return true;
     }
 
-    float Fill(float weight);
+    float Fill(float weight, std::string );
     void dump();
 
     ClassDef(sp::Parameter,1); 
