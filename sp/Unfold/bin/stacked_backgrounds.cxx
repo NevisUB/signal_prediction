@@ -13,8 +13,14 @@
 int main(int argc, char** argv) {
 
   std::string fname(argv[1]);
+  std::string fname_dirt(argv[2]);
   std::string param = "RecoEnuQE";
-  std::vector<double> bins_lo_v = {200.,300.,375.,475.,550.,675.,800.,950.,1100.,1300.,1500.,3000.};
+  std::vector<double> bins_lo_v = {200,300.,375.,475.,550.,675.,800.,950.,1100.,1300.,1500.,3000.};
+  std::vector<double> summed_mc(bins_lo_v.size()-1,0.0);
+
+  double pot_scale = 6.46/41.10;
+  //Published total backgrounds
+  std::vector<double> minibkg = {180.80171,108.22448,120.03353,63.887782,89.806966,67.249431,69.855878,57.014477,51.846417,38.586738,69.381391};
 
   for(auto& v : bins_lo_v) v /= 1000.0;
 
@@ -24,7 +30,8 @@ int main(int argc, char** argv) {
   //
   // Get the vector of histograms for each background type
   //
-  auto th1d_v = spio.gen_background(fname,param,bins_lo_v);
+
+  auto th1d_v = spio.gen_background(fname,fname_dirt,param,bins_lo_v);
 
   TApplication app("app", 0, 0);
 
@@ -36,15 +43,19 @@ int main(int argc, char** argv) {
 
   for(size_t bkgd_id = 0; bkgd_id < (size_t) sp::kBKGD_MAX; ++bkgd_id) {
     if ((sp::StackedBkgdType_t)bkgd_id == sp::kBKGD_INVALID) continue;
-    if ((sp::StackedBkgdType_t)bkgd_id == sp::kBKGD_DIRT)    continue;
+    //if ((sp::StackedBkgdType_t)bkgd_id == sp::kBKGD_DIRT)    continue; //Mark, added dirt
 
     auto& th1d = th1d_v[bkgd_id];
 
     for(size_t bin_id=1; bin_id < bins_lo_v.size(); ++bin_id) {
+      
+      summed_mc.at(bin_id-1) +=th1d.GetBinContent(bin_id)*pot_scale;
+
+
       auto dx = bins_lo_v.at(bin_id) - bins_lo_v.at(bin_id-1);
 
       auto modifier = 1.0 / (dx * 1000.0);
-      modifier *= 0.157; // POT normalize
+      modifier *= pot_scale; // POT normalize
 
       auto bin_content = th1d.GetBinContent(bin_id) * modifier;
       auto bin_error   = th1d.GetBinError(bin_id) * modifier;
@@ -58,11 +69,17 @@ int main(int argc, char** argv) {
     tl.AddEntry(&th1d,sp::StackedBkgd2String((sp::StackedBkgdType_t)bkgd_id).c_str());
   }
   
+  for(int i=0; i< summed_mc.size();i++){
+	std::cout<<"Sum: "<<bins_lo_v.at(i)<<" Ours: "<<summed_mc.at(i)<<" PUB: "<<minibkg.at(i)<<" Ratio: "<<summed_mc.at(i)/minibkg.at(i)<<std::endl;
+
+  }
+
   ths.Draw("hist");
   tl.Draw("sames");
   c1.Update();
   c1.Modified();
   app.Run();
-  
+
+
   return 0;
 }

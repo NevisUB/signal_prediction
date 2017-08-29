@@ -33,12 +33,20 @@ namespace sp {
     _unfold_file_name = filename;
   }
 
+
+
   std::vector<TH1D> SPIO::gen_background(const std::string& filename, 
+					 const std::string& filename_dirt,
 					 const std::string& param,
 					 const std::vector<double>& bins_lo_v) {
 
-    SP_DEBUG() << "start" << std::endl;
+    SP_DEBUG() << "start. Opening MC." << std::endl;
     auto tf = TFile::Open(filename.c_str(),"READ");
+    SP_DEBUG() << "start. Opening Dirt MC." << std::endl;
+    auto tf_dirt = TFile::Open(filename_dirt.c_str(),"READ");
+
+
+
 
     int NFSP;
     std::vector<int>* FSPType_v = nullptr;
@@ -55,18 +63,28 @@ namespace sp {
 
     float Weight;    
     float Data;
-
     bool PassOsc;
+
+    float Weight_dirt;
+    float Data_dirt;
+    bool PassOsc_dirt;
+
 
     int NUANCEChan;
     int NuType;
     int NuParentID;
     
-    auto tree = (TTree*) tf->Get("MiniBooNE_CCQE");
+    TTree* tree = (TTree*) tf->Get("MiniBooNE_CCQE");
+    TTree* tree_dirt = (TTree*) tf_dirt->Get("MiniBooNE_CCQE");
+
     SP_DEBUG() << "See MiniBooNE_CCQE @ " << tree << std::endl;
     if (tree == nullptr) throw sperr("Bad treename from file");
     
+    SP_DEBUG() << "See MiniBooNE_CCQE dirt @ " << tree_dirt << std::endl;
+    if (tree_dirt == nullptr) throw sperr("Bad treename from file_dirt");
+
     SP_DEBUG() << "Got " << tree->GetEntries() << " @ tree=" << tree << " called " << tree->GetName() << std::endl;
+    SP_DEBUG() << "Got " << tree_dirt->GetEntries() << " @ tree_dirt=" << tree_dirt << " called " << tree_dirt->GetName() << std::endl;
 
     tree->SetBranchAddress("NFSP"     , &NFSP);
     tree->SetBranchAddress("FSPType"  , &FSPType_v);
@@ -85,15 +103,20 @@ namespace sp {
     tree->SetBranchAddress("PassOsc"    , &PassOsc);
 
     tree->SetBranchAddress("Weight" , &Weight);
-    
-    if(1) {}
-    else if (param == "RecoEnuQE") {}
+   
+    tree_dirt->SetBranchAddress("PassOsc"    , &PassOsc_dirt);
+    tree_dirt->SetBranchAddress("Weight" , &Weight_dirt);
+
+
+    double unit_corrector = 1;
+    if (param == "RecoEnuQE") { unit_corrector = 1000.0;}
     else if (param == "CosTheta") {}
     else if (param == "Energy") {}
     else throw sperr("Did not specify a valid TTree variable");
 
     SP_DEBUG() << "Set param " << param << " @ " << &Data << std::endl;
     tree->SetBranchAddress(param.c_str(), &Data);
+    tree_dirt->SetBranchAddress(param.c_str(), &Data_dirt);
   
     std::vector<TH1D> res_v((size_t)sp::kBKGD_MAX);
     for(size_t res_id = 0; res_id < res_v.size(); ++res_id) {
@@ -126,9 +149,21 @@ namespace sp {
 							  (sp::GEANT3Type_t)NuParentID);
       
       auto& res = res_v.at((size_t) bkg_type);
-      res.Fill(Data,Weight);
+      res.Fill(Data*unit_corrector,Weight);
     }
-  
+ 
+      //Dirt loop 
+      for(size_t entry = 0; entry < (size_t)tree_dirt->GetEntries(); ++entry) {
+      tree_dirt->GetEntry(entry);
+      if(!PassOsc) continue;
+   
+      sp::StackedBkgdType_t bkg_type = kBKGD_DIRT;
+      auto& res = res_v.at((size_t) bkg_type);
+      res.Fill(Data_dirt*unit_corrector,Weight_dirt);
+    }
+
+
+
     tf->Close();
     return res_v;
   }
@@ -175,12 +210,12 @@ namespace sp {
   
   
   void SPIO::add_true_parameter(const std::vector<std::string>& var_v,
-				const std::vector<double>& bin_lo_v,
+				const std::vector<double>& bin_lo_v,	
 				Operation_t op) {
   
     SP_DEBUG() << std::endl;
     SP_DEBUG() << "Requested to add true parameter" << std::endl;
-    Parameter in_param(var_v,bin_lo_v,op);
+    Parameter in_param(var_v,bin_lo_v,_model,op);
     
     const auto unfold_param = search_unfold_parameters(in_param);
 
@@ -200,7 +235,7 @@ namespace sp {
 				Operation_t op) {
     SP_DEBUG() << std::endl;
     SP_DEBUG() << "Requested to add reco parameter" << std::endl;
-    Parameter in_param(var_v,bin_lo_v,op);
+    Parameter in_param(var_v,bin_lo_v,_model,op);
 
     const auto unfold_param = search_unfold_parameters(in_param);
 
@@ -292,11 +327,12 @@ namespace sp {
 	  SP_DEBUG() << "Filling " << res->_name << " response @ " << res << std::endl;
 	  _response_v.emplace_back(*res);
 	  _response_v.back()._from_file = true;
+	}
 	auto& this_res = _response_v.back();
 
 	SP_DEBUG() << "Set true_param for response @ " << &true_param << std::endl;
-	SP_DEBUG() << "Set reco_param for response @ " << &reco_param << std::endl;
 	this_res._true_param = &true_param;
+	SP_DEBUG() << "Set reco_param for response @ " << &reco_param << std::endl;
 	this_res._reco_param = &reco_param;
 
 	SP_DEBUG() << "Now R @ " << &this_res << std::endl;	  

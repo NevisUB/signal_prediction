@@ -4,6 +4,9 @@
 #include "Unfold/Algo/UnfoldAlgoSVD.h"
 #include "Unfold/Algo/ModelNueCCQE.h"
 
+#include "Combined/CombinedTypes.h"
+#include "Combined/CombinedUtil.h"
+
 #include "TCanvas.h"
 #include "TStyle.h"
 #include "TLegend.h"
@@ -26,20 +29,15 @@ int main(int argc, char** argv) {
 
 
 	std::vector<std::string> var_v = {"Energy"};
-	std::vector<double> bins_lo_v = {200,300,400,500,600,700,800,900,1000,1100,1200,1300,1400,1500,1600,1700,1800,1900,2000,2500,3000};
-	std::vector<double> bins_lo_v2 = {200.,  300., 375., 475., 550., 675., 800., 950.,   1100., 1300., 1500., 3000.};
-	//std::vector<double> bins_truth = {200.0, 225,  250., 275,  300., 325,  350., 375, 400., 425,  450., 475, 500.0, 550, 600., 650,   800.,1000,3000};
-
+	std::vector<double> bins_reco = {140., 200.,  300., 375., 475., 550., 675., 800., 950.,   1100., 1300., 1500., 3000.};
 	std::vector<double> bins_truth = {200.0,220,240,260,280,300,320,340,360,380,400,440,480,500, 550, 600., 650,   800.,1000,3000};
-
-	// a.add_reco_parameter(var_v,bins_lo_v);
 
 	var_v[0] = "NuMomT";
 	a.add_true_parameter(var_v,bins_truth,sp::kOP_GEV2MEV);
 
 
 	var_v = {"RecoEnuQE"};
-	a.add_reco_parameter(var_v,bins_lo_v2,sp::kOP_GEV2MEV);
+	a.add_reco_parameter(var_v,bins_reco,sp::kOP_GEV2MEV);
 
 
 	std::cout << "int_response matrix" << std::endl;
@@ -54,30 +52,10 @@ int main(int argc, char** argv) {
 	std::cout << "Beginning" << std::endl;
 
 	sp::UnfoldAlgoDAgnostini alg; 
-	//sp::UnfoldAlgoSVD alg;
-	
+
 	alg.set_verbosity((sp::msg::Level_t)0);
 	alg.Initialize(&(a.Responses().front()));
 
-	//alg.SetRegularization(5);
-	//  alg.GenPoissonNoise();
-	//  alg.Unfold();
-	/*
-	   TCanvas * c = new TCanvas();
-	   c->cd();
-	   TH1D tmp = alg.GetHistU();
-	   TH1D tmpT = alg.GetHistT();
-
-
-	   tmp.Scale(1,"width");
-	   tmp.Draw();
-
-	   tmpT.SetLineColor(kRed-6);
-	   tmpT.Scale(1,"width");
-	   tmpT.Draw("same");
-
-	   c->SaveAs("test.pdf","pdf");
-	   */
 
 	double pot_scale = 6.46/41.10;
 
@@ -87,8 +65,44 @@ int main(int argc, char** argv) {
 	std::vector<double> minibkg = {180.80171,108.22448,120.03353,63.887782,89.806966,67.249431,69.855878,57.014477,51.846417,38.586738,69.381391};
 	std::vector<double> sigerr(miniobs.size(),0);
 	double Nsignal = 0;
-	
 
+	std::cout<<"Loading in MC and Dirt."<<std::endl;
+	std::string fname = "/rootfiles/filtered_passosc.root";
+	std::string fname_dirt = "/rootfiles/merged_filtered_out_osc_mc_dirt.root";
+	std::string param = var_v.at(0);
+	std::vector<double> summed_mc(bins_reco.size()-1,0.0);
+
+	//
+	// Get the vector of histograms for each background type
+	//
+	 sp::SPIO spio;
+	 spio.set_verbosity((sp::msg::Level_t)0);
+
+	std::cout<<"Generating Background"<<std::endl;
+	auto th1d_v = spio.gen_background(fname,fname_dirt,param,bins_reco);
+
+	for(auto & v :th1d_v){
+		for(int i=0; i< summed_mc.size();i++){
+			summed_mc.at(i) += v.GetBinContent(i+1)*pot_scale;
+		}
+
+	}
+	/*
+	for(size_t bkgd_id = 0; bkgd_id < (size_t) sp::kBKGD_MAX; ++bkgd_id) {
+		if ((sp::StackedBkgdType_t)bkgd_id == sp::kBKGD_INVALID) continue;
+		std::cout<<"Loading up: "<<sp::StackedBkgd2String((sp::StackedBkgdType_t)bkgd_id)<<std::endl;
+		auto& th1d = th1d_v[bkgd_id];
+
+		for(size_t bin_id=1; bin_id < bins_reco.size(); ++bin_id) {
+
+			summed_mc.at(bin_id-1) += th1d.GetBinContent(bin_id)*pot_scale;
+
+		}
+	}
+	*/
+
+
+	std::cout<<"Loading Data"<<std::endl;
 	TFile * f_data = new TFile("/rootfiles/output_osc_data_detail_1.root");
 	TTree * data = (TTree*)f_data->Get("MiniBooNE_CCQE");
 	float d_Weight,d_Energy,d_CosTheta,d_RecoEnuQE;
@@ -97,27 +111,33 @@ int main(int argc, char** argv) {
 	data->SetBranchAddress("CosTheta",&d_CosTheta);
 	data->SetBranchAddress("RecoEnuQE", &d_RecoEnuQE);
 
-	TH1D * h_data = new TH1D("h_data","h_data", bins_lo_v2.size()-1,  &bins_lo_v2[0] );
+	TH1D * h_data = new TH1D("h_data","h_data", bins_reco.size()-1,  &bins_reco[0] );
 
 	for(int i=0; i< data->GetEntries();i++){
 		data->GetEntry(i);
 		h_data->Fill(1000*d_RecoEnuQE, d_Weight);
 	}
 
+	
+
+	/*std::cout<<"Have loaded Data and MC"<<std::endl;
+	for(int i=0; i< summed_mc.size();i++){
+		std::cout<<"Data || Ours: "<<h_data->GetBinContent(i+1)<<" Published: "<<miniobs.at(i)<<std::endl;
+		std::cout<<"MC || Ours: "<<summed_mc.at(i)<<" Published: "<<minibkg.at(i)<<std::endl;
+	}*/
+
 
 	//changed briefly... 
 	TVectorD mini_signal(miniobs.size());
 	for(int i=0; i<miniobs.size(); i++){
-		
 		//This one is the old working one
 		//mini_signal(i) = (miniobs.at(i)-minibkg.at(i))+alg.r(i)*pot_scale    ;
-		mini_signal(i) = (h_data->GetBinContent(i+1)-minibkg.at(i))+alg.r(i)*pot_scale    ;
+		mini_signal(i) = (h_data->GetBinContent(i+1)-summed_mc.at(i))+alg.r(i)*pot_scale    ;
 
 
 		Nsignal += mini_signal(i);
-		//mini_signal(i) = alg.r(i)*pot_scale  ;
-		//mini_signal(i) = miniobs.at(i)-minibkg.at(i);
-		sigerr.at(i) =sqrt(miniobs.at(i)+minibkg.at(i)) ;
+		sigerr.at(i) =sqrt(h_data->GetBinContent(i+1)+summed_mc.at(i)) ;
+		
 		if(sigerr.at(i)!=sigerr.at(i)) {
 			std::cout<<"Failure, should fabs"<<std::endl;
 			exit(EXIT_FAILURE);
@@ -128,7 +148,7 @@ int main(int argc, char** argv) {
 	TMatrixD sigcorr(miniobs.size(), miniobs.size());
 	sigcorr.Zero();
 	for(int i=0; i<miniobs.size();i++){
-		sigcorr(i,i)=miniobs.at(i)+minibkg.at(i);
+		sigcorr(i,i)=h_data->GetBinContent(i+1)+summed_mc.at(i);
 		std::cout<<"MYD(i,i) "<<sigcorr(i,i)<<std::endl;
 	}
 	alg.Setd(&mini_signal);
@@ -137,8 +157,8 @@ int main(int argc, char** argv) {
 	alg.Unfold();
 
 
-//	alg.SetRegularization(3);
-//	alg.TestUnfolding("CCQE_poison_unfold_test");
+	//	alg.SetRegularization(3);
+	//	alg.TestUnfolding("CCQE_poison_unfold_test");
 
 
 
@@ -458,7 +478,7 @@ int main(int argc, char** argv) {
 	TFile * fr = new TFile("/home/mark/work/uBooNE/request_of_MB_data/cross_section_generator_difference/ratio_out.root");
 	TGraph * gr = (TGraph*)fr->Get("Graph");
 	TH1D * ratio_scaled = (TH1D*)ratio.Clone("scaled");
-	
+
 	std::vector<double> bincenter;
 	std::vector<double> binval;
 
@@ -471,13 +491,13 @@ int main(int argc, char** argv) {
 		std::cout<<"Ratio: "<<ratio.GetBinContent(i+1)<<" "<<ratio.GetBinCenter(i+1)<<" "<<gr->Eval(0.001*ratio.GetBinCenter(i+1) )<<std::endl; 
 		std::cout<<"Res: "<<ratio_scaled->GetBinContent(i+1)<<std::endl;
 	}
-	
+
 
 
 	ratio_scaled->Draw("e2");
 	ratio_scaled->SetMaximum(10);
 	ratio_scaled->GetXaxis()->SetRangeUser(bins_truth.front(),1000);
-	
+
 	leg2->Draw();
 	line->Draw();
 	cr_scaled->SaveAs("CCQE_model_ratio_scaleo.pdf","pdf");

@@ -114,7 +114,8 @@ namespace sp {
     
     // generate vector of backgrounds
     std::vector<TH1D> gen_background(const std::string& filename, 
-				     const std::string& param,
+				     const std::string& filename_dirt,
+		    		     const std::string& param,
 				     const std::vector<double>& bins_lo_v);
     
 
