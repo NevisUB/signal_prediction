@@ -34,7 +34,8 @@ namespace sp {
       kBKGD_NUEPIP,
       kBKGD_NUEKP,
       kBKGD_NUEK0,
-      kBKGD_OTHER
+      kBKGD_OTHER,
+      kBKGD_MAX
     };
   
   enum NuanceType_t

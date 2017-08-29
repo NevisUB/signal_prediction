@@ -35,6 +35,39 @@ namespace sp {
     
     return kBINVALID;
   }
+ 
+  std::string StackedBkgd2String(const StackedBkgdType_t bkgd) {
+    
+    switch(bkgd) {
+    case kBKGD_INVALID: return "INVALID";
+    case kBKGD_DIRT:    return "DIRT";
+    case kBKGD_PI0:     return "PI0";
+    case kBKGD_DELTA:   return "DELTA";
+    case kBKGD_NUEPIP:  return "NUEPIP";
+    case kBKGD_NUEKP:   return "NUEKP";
+    case kBKGD_NUEK0:   return "NUEK0";
+    case kBKGD_OTHER:   return "OTHER";
+    case kBKGD_MAX:     return "MAX";
+    default:            return "INVALID";
+    }
+    
+    return "INVALID";
+  }
+
+  StackedBkgdType_t String2StackedBkgd(const std::string& name) {
+
+    if (name == "INVALID") return kBKGD_INVALID;
+    if (name == "DIRT")    return kBKGD_DIRT;
+    if (name == "PI0")     return kBKGD_PI0;
+    if (name == "DELTA")   return kBKGD_DELTA;
+    if (name == "NUEPIP")  return kBKGD_NUEPIP;
+    if (name == "NUEKP")   return kBKGD_NUEKP;
+    if (name == "NUEK0")   return kBKGD_NUEK0;
+    if (name == "OTHER")   return kBKGD_OTHER;
+    if (name == "MAX")     return kBKGD_MAX;
+    
+    return kBKGD_INVALID;
+  }
 
 
   std::string GEANT32String(const GEANT3Type_t particle) {

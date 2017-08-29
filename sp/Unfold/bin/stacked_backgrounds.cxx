@@ -1,93 +1,68 @@
-#include "Combined/CombinedFunctions.h"
+#include "Unfold/Core/SPIO.h"
 
-#include "TFile.h"
-#include "TTree.h"
+#include "Combined/CombinedTypes.h"
+#include "Combined/CombinedUtil.h"
+
+#include "TApplication.h"
+#include "TCanvas.h"
+#include "THStack.h"
+#include "TLegend.h"
 
 #include <iostream>
 
 int main(int argc, char** argv) {
 
   std::string fname(argv[1]);
+  std::string param = "RecoEnuQE";
+  std::vector<double> bins_lo_v = {200.,300.,375.,475.,550.,675.,800.,950.,1100.,1300.,1500.,3000.};
 
-  auto tf = TFile::Open(fname.c_str(),"READ");
+  for(auto& v : bins_lo_v) v /= 1000.0;
 
-  int NFSP;
-  std::vector<int>* FSPType_v = nullptr;
+  sp::SPIO spio;
+  spio.set_verbosity((sp::msg::Level_t)0);
 
-  std::vector<float>* VertexX_v = nullptr;
-  std::vector<float>* VertexY_v = nullptr;
-  std::vector<float>* VertexZ_v = nullptr;
+  //
+  // Get the vector of histograms for each background type
+  //
+  auto th1d_v = spio.gen_background(fname,param,bins_lo_v);
 
-  std::vector<float>* MomX_v = nullptr;
-  std::vector<float>* MomY_v = nullptr;
-  std::vector<float>* MomZ_v = nullptr;
-  std::vector<float>* MomT_v = nullptr;
-  
-  int NUANCEChan;
-  int NuType;
-  int NuParentID;
-  bool PassOsc;
+  TApplication app("app", 0, 0);
 
-  float RecoEnuQE;
-  float Weight;
+  TCanvas c1("c1","test",512,512);
+  c1.cd();
 
-  auto tree = (TTree*) tf->Get("MiniBooNE_CCQE");
-    
-  std::cout << "Got " << tree->GetEntries() << " @ tree=" << tree << " called " << tree->GetName() << std::endl;
-    
-  tree->SetBranchAddress("NFSP"     , &NFSP);
-  tree->SetBranchAddress("FSPType"  , &FSPType_v);
-  tree->SetBranchAddress("VertexX"  , &VertexX_v);
-  tree->SetBranchAddress("VertexY"  , &VertexY_v);
-  tree->SetBranchAddress("VertexZ"  , &VertexZ_v);
+  THStack ths("ths","");
+  TLegend tl(0.1,0.7,0.48,0.9);
 
-  tree->SetBranchAddress("MomX"  , &MomX_v);
-  tree->SetBranchAddress("MomY"  , &MomY_v);
-  tree->SetBranchAddress("MomZ"  , &MomZ_v);
-  tree->SetBranchAddress("MomT"  , &MomT_v);
+  for(size_t bkgd_id = 0; bkgd_id < (size_t) sp::kBKGD_MAX; ++bkgd_id) {
+    if ((sp::StackedBkgdType_t)bkgd_id == sp::kBKGD_INVALID) continue;
+    if ((sp::StackedBkgdType_t)bkgd_id == sp::kBKGD_DIRT)    continue;
 
-  tree->SetBranchAddress("NUANCEChan" , &NUANCEChan);
-  tree->SetBranchAddress("NuType"     , &NuType);
-  tree->SetBranchAddress("NuParentID" , &NuParentID);
-  tree->SetBranchAddress("PassOsc"    , &PassOsc);
-  
-  tree->SetBranchAddress("RecoEnuQE", &RecoEnuQE);
-  tree->SetBranchAddress("Weight"   , &Weight);
-  
-  
-  
-  std::vector<TH1D
-  
-  for(size_t entry = 0; entry < (size_t)tree->GetEntries(); ++entry) {
-    std::cout << "@ entry=" << entry << std::endl;
-    tree->GetEntry(entry);
-    
-    if(!PassOsc) continue;
+    auto& th1d = th1d_v[bkgd_id];
 
-    //
-    // check if gamma is pi0
-    //
+    for(size_t bin_id=1; bin_id < bins_lo_v.size(); ++bin_id) {
+      auto dx = bins_lo_v.at(bin_id) - bins_lo_v.at(bin_id-1);
 
-    unsigned isPi0 = sp::Pi0Details(NFSP,*FSPType_v,
-				    *VertexX_v,*VertexY_v,*VertexZ_v,
-				    *MomX_v,*MomY_v,*MomZ_v,*MomT_v);
-    
-    //
-    // get the background type ID
-    //
-    sp::StackedBkgdType_t bkg_type = sp::StackHistoBkgd(0,(bool)isPi0,(sp::NuanceType_t)NUANCEChan,(sp::NuType_t)NuType,(sp::GEANT3Type_t)NuParentID);
+      auto modifier = 1.0 / (dx * 1000.0);
+      modifier *= 0.157; // POT normalize
 
-    //
-    // it not a background, move on
-    //
-    if (bkg_type == sp::kBKGD_INVALID) continue;
-    
-    //
-    // it is a background
-    //
-    
+      auto bin_content = th1d.GetBinContent(bin_id) * modifier;
+      auto bin_error   = th1d.GetBinError(bin_id) * modifier;
+      
+      th1d.SetBinContent(bin_id, bin_content);
+      th1d.SetBinError(bin_id, bin_error);
+    }
 
+    th1d.SetFillColor((Color_t)bkgd_id);
+    ths.Add(&th1d);
+    tl.AddEntry(&th1d,sp::StackedBkgd2String((sp::StackedBkgdType_t)bkgd_id).c_str());
   }
-
+  
+  ths.Draw("hist");
+  tl.Draw("sames");
+  c1.Update();
+  c1.Modified();
+  app.Run();
+  
   return 0;
 }

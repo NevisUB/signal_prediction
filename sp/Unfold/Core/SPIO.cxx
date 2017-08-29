@@ -5,6 +5,9 @@
 #include "SPErr.h"
 #include <sstream>
 
+#include "Combined/CombinedUtil.h"
+#include "Combined/CombinedFunctions.h"
+
 namespace sp {
 
   SPIO::SPIO() : 
@@ -29,7 +32,108 @@ namespace sp {
   void SPIO::set_unfold_in_file(const std::string& filename) {
     _unfold_file_name = filename;
   }
+
+  std::vector<TH1D> SPIO::gen_background(const std::string& filename, 
+					 const std::string& param,
+					 const std::vector<double>& bins_lo_v) {
+
+    SP_DEBUG() << "start" << std::endl;
+    auto tf = TFile::Open(filename.c_str(),"READ");
+
+    int NFSP;
+    std::vector<int>* FSPType_v = nullptr;
+    
+    std::vector<float>* VertexX_v = nullptr;
+    std::vector<float>* VertexY_v = nullptr;
+    std::vector<float>* VertexZ_v = nullptr;
+
+    std::vector<float>* MomX_v = nullptr;
+    std::vector<float>* MomY_v = nullptr;
+    std::vector<float>* MomZ_v = nullptr;
+    std::vector<float>* MomT_v = nullptr;
   
+
+    float Weight;    
+    float Data;
+
+    bool PassOsc;
+
+    int NUANCEChan;
+    int NuType;
+    int NuParentID;
+    
+    auto tree = (TTree*) tf->Get("MiniBooNE_CCQE");
+    SP_DEBUG() << "See MiniBooNE_CCQE @ " << tree << std::endl;
+    if (tree == nullptr) throw sperr("Bad treename from file");
+    
+    SP_DEBUG() << "Got " << tree->GetEntries() << " @ tree=" << tree << " called " << tree->GetName() << std::endl;
+
+    tree->SetBranchAddress("NFSP"     , &NFSP);
+    tree->SetBranchAddress("FSPType"  , &FSPType_v);
+    tree->SetBranchAddress("VertexX"  , &VertexX_v);
+    tree->SetBranchAddress("VertexY"  , &VertexY_v);
+    tree->SetBranchAddress("VertexZ"  , &VertexZ_v);
+
+    tree->SetBranchAddress("MomX"  , &MomX_v);
+    tree->SetBranchAddress("MomY"  , &MomY_v);
+    tree->SetBranchAddress("MomZ"  , &MomZ_v);
+    tree->SetBranchAddress("MomT"  , &MomT_v);
+
+    tree->SetBranchAddress("NUANCEChan" , &NUANCEChan);
+    tree->SetBranchAddress("NuType"     , &NuType);
+    tree->SetBranchAddress("NuParentID" , &NuParentID);
+    tree->SetBranchAddress("PassOsc"    , &PassOsc);
+
+    tree->SetBranchAddress("Weight" , &Weight);
+    
+    if(1) {}
+    else if (param == "RecoEnuQE") {}
+    else if (param == "CosTheta") {}
+    else if (param == "Energy") {}
+    else throw sperr("Did not specify a valid TTree variable");
+
+    SP_DEBUG() << "Set param " << param << " @ " << &Data << std::endl;
+    tree->SetBranchAddress(param.c_str(), &Data);
+  
+    std::vector<TH1D> res_v((size_t)sp::kBKGD_MAX);
+    for(size_t res_id = 0; res_id < res_v.size(); ++res_id) {
+      auto name = sp::StackedBkgd2String((sp::StackedBkgdType_t)res_id);
+      SP_DEBUG() << "Set histo @ " << res_id << " named " << name << std::endl;
+      res_v[res_id] = TH1D(name.c_str(),
+			   ";;",
+			   bins_lo_v.size()-1,
+			   bins_lo_v.data());
+    }
+
+    for(size_t entry = 0; entry < (size_t)tree->GetEntries(); ++entry) {
+      tree->GetEntry(entry);
+      if(!PassOsc) continue;
+    
+      //
+      // check if gamma is pi0
+      //
+      unsigned isPi0 = sp::Pi0Details(NFSP,*FSPType_v,
+				      *VertexX_v,*VertexY_v,*VertexZ_v,
+				      *MomX_v,*MomY_v,*MomZ_v,*MomT_v);
+      
+      //
+      // get the background type ID
+      //
+      sp::StackedBkgdType_t bkg_type = sp::StackHistoBkgd(0,
+							  (bool)isPi0,
+							  (sp::NuanceType_t)NUANCEChan,
+							  (sp::NuType_t)NuType,
+							  (sp::GEANT3Type_t)NuParentID);
+      
+      auto& res = res_v.at((size_t) bkg_type);
+      res.Fill(Data,Weight);
+    }
+  
+    tf->Close();
+    return res_v;
+  }
+  
+
   bool SPIO::initialize() {
     SP_DEBUG() << std::endl;
     SP_DEBUG() << "Initialize" << std::endl;
@@ -174,7 +278,6 @@ namespace sp {
   bool SPIO::init_response_matrix() {
     SP_DEBUG() << std::endl;
     SP_DEBUG() << "Instantiate response matrix" << std::endl;
-   
 
     for(size_t true_id = 0; true_id < _true_parameter_v.size(); ++true_id) {
       auto& true_param = _true_parameter_v[true_id];
@@ -275,7 +378,7 @@ namespace sp {
 	
 	if (_model->Valid())
 	  response->Fill(weight,passosc);
-
+	
       }
 
       response->Finalize();
