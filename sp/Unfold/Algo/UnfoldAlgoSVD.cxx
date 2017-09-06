@@ -216,8 +216,13 @@ namespace sp {
 		}	
 
 
-		SP_DEBUG()<<"Begininning calculation of bias, using derivative + taylor approx. NOT YET filled. Derivatives not so easy here."<<std::endl;
+		SP_DEBUG()<<"Begininning calculation of bias, using derivative + taylor approx from Cowan. Calc on w and btilde, then propagate."<<std::endl;
 		// And bias! This may not be taking it into account properly as of yet. Using bias approximation from cowans book. should be sufficient. 
+		TMatrixD unit(n_t,n_t);
+		unit.Zero();
+		for(int a=0;a<n_t;a++){
+			unit(a,a)=1.0;
+		} 
 
 		TMatrixD dw_dtilded(n_t, n_r);
 		dw_dtilded = inv_C * V_taic* S * UT_taic;
@@ -226,26 +231,20 @@ namespace sp {
 		for(int a =0; a<n_t;a++){
 			b(a) = 0;
 
-
-
 			for(int j=0; j<n_r; j++){
 				double vj = 0;
 				
 				for(int b=0; b<n_t; b++){
 					vj+= tilde_A(j,b)*w(b);
 				}
-
+				//Bias is techically on w(a) then multiply by t(a);
 				b(a) += t(a)*dw_dtilded(a,j)*(vj-tilde_d(j));
 			}
 		}
-
+			
 
 		SP_DEBUG()<<"Begininning calculation of Covariance on the bias, ignoring dn/dd variance."<<std::endl;
-		TMatrixD unit(n_t,n_t);
-		unit.Zero();
-		for(int a=0;a<n_t;a++){
-			unit(a,a)=1.0;
-		} 
+	
 		
 
 		TMatrixD CRmI(n_t, n_t);

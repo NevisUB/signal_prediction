@@ -34,9 +34,9 @@ int main(int argc, char** argv) {
 
 	std::vector<std::string> var_truth = {"NuMomT"};
 	std::vector<std::string> var_reco = {"RecoEnuQE"};
-	std::vector<double> bins_reco = {140,225,  300.,  375. , 475.,  550.,  675.,  800.,  950.,  1100.  ,1300. , 1500. , 3000};
+	std::vector<double> bins_reco = {200,  300.,  375. , 475.,  550.,  675.,  800.,  950.,  1100.  ,1300. , 1500. , 2000};
 	//	std::vector<double> bins_reco = {140,200.,250,300.,350 ,400,450,500., 550., 600, 700., 800., 950.,   1100., 1300., 1500., 3000.};
-	std::vector<double> bins_truth = {140,200,250,300,350,400,450, 500,550, 650,   800.,1000,3000};
+	std::vector<double> bins_truth = {200,250,300,350,400,450, 500, 550, 650,  800.,1000,2000};
 	//std::vector<double> bins_truth = {140,200.0,250,300,350,400,300,320,340,360,380,400,440,480,500, 550, 600., 650,   800.,1000,3000};
 	int N_bins_reco = bins_reco.size()-1;
 	int N_bins_truth = bins_truth.size()-1;
@@ -56,8 +56,8 @@ int main(int argc, char** argv) {
 
 	std::cout << "Beginning" << std::endl;
 
-	//sp::UnfoldAlgoDAgnostini alg; 
-	sp::UnfoldAlgoSVD alg; 
+	sp::UnfoldAlgoDAgnostini alg; 
+	//sp::UnfoldAlgoSVD alg; 
 
 	alg.set_verbosity((sp::msg::Level_t)0);
 	alg.Initialize(&(a.Responses().front()));
@@ -356,8 +356,8 @@ int main(int argc, char** argv) {
 	std::vector<double> bias_avg;
 
 
-	double N_random_refold = 50.0;
-	int N_mc_bias = 20;
+	double N_random_refold = 10.0;
+	int N_mc_bias = 10;
 
 
 	for(int k=0; k<kreg.size(); k++){
@@ -573,14 +573,14 @@ int main(int argc, char** argv) {
 		uBias.at(k).SetFillColor(cols.at(k));
 		uBias.at(k).Scale(1,"width"); // should it be bias /MeV?
 		uBias.at(k).Draw("E2");
-
+		uBias.at(k).GetXaxis()->SetRangeUser(bins_truth.front(),1000);
 
 
 	}
 
-	alg.TestRegularization("CCQE_lcurves", 1,12,12);
-	alg.SetDirectRegularization(1000);
-	alg.TestRegularization("CCQE_lcurves_direct", -20,13,200);
+	alg.TestRegularization("CCQE_lcurves", 0,11,11);
+	//alg.SetDirectRegularization(1000);
+	//alg.TestRegularization("CCQE_lcurves_direct", -8,8,200);  //-20 13
 
 	c_chicurve->cd();
 	c_chicurve->SetLogy();

@@ -283,7 +283,7 @@ namespace sp {
 	TH1D UnfoldAlgoBase::GetHistBias(){
 		std::vector<double> err;
 		for(int a=0; a<n_t; a++){
-			err.push_back( B(a,a));
+			err.push_back( sqrt(B(a,a)));
 		}
 
 		for(int a=0; a<n_t; a++){
@@ -571,8 +571,8 @@ namespace sp {
 
 
 	void UnfoldAlgoBase::TestRegularization(std::string filename, double low_kreg, double high_kreg, int num_kreg){
-		TCanvas * c = new TCanvas("","",1200,800);
-		c->Divide(2,2);
+		TCanvas * c = new TCanvas("","",1200,1200);
+		c->Divide(2,3);
 		bool logscale = false;
 
 		SP_DEBUG()<<"Starting test from k="<<low_kreg<<" to "<<high_kreg<<std::endl;
@@ -587,6 +587,8 @@ namespace sp {
 		std::vector<double> MV(num_kreg,0);
 		std::vector<double> x(num_kreg,0);    	
 		std::vector<double> MB(num_kreg,0);    	
+		std::vector<double> MBoE(num_kreg,0);    	
+		
 
 		for(double k=0; k<num_kreg; k++){
 			double kreg = ceil( (high_kreg-low_kreg)*k/num_kreg+low_kreg );
@@ -606,6 +608,9 @@ namespace sp {
 				MSEp[k] += 1.0/((double)n_t)*(  (U(a,a) + b(a)*b(a))/u(a) );
 				MV[k] += 1.0/((double)n_t)*U(a,a);
 				MB[k] += 1.0/((double)n_t)*fabs(b(a)*b(a));
+				MBoE[k] += 1.0/((double)n_t)*fabs(b(a)*b(a))/B(a,a);
+					
+
 			}
 
 			SP_DEBUG()<<"RS: "<<" "<<(double)n_t*MV[k]<<" "<<(double)n_t*MB[k]<<std::endl;
@@ -627,6 +632,10 @@ namespace sp {
 		TGraph *gMB = new TGraph(num_kreg,&x[0],&MB[0]);
 		TGraph *gMSE = new TGraph(num_kreg,&x[0],&MSE[0]);
 		TGraph *gMSEp = new TGraph(num_kreg,&x[0],&MSEp[0]);
+		TGraph *gCurve = new TGraph(num_kreg,&MV[0],&MB[0]);
+		TGraph *gBiasErr = new TGraph(num_kreg,&x[0],&MBoE[0]);
+
+
 
 		c->cd(1)->SetLogy();
 		gMV->SetTitle("Minimum Variance");
@@ -651,8 +660,28 @@ namespace sp {
 		c->cd(4)->SetLogy();
 		gMSEp->SetTitle("Modified Minimum Square Error MSE");
 		gMSEp->GetXaxis()->SetTitle("Number of Iterations");
-		gMSEp->GetYaxis()->SetTitle("Modified Square Error");
+		gMSEp->GetYaxis()->SetTitle("Square Error");
 		gMSEp->Draw("ACP");
+
+		TPad *p4 = (TPad*)c->cd(5);
+		p4->SetLogy();
+		p4->SetLogx();
+		gCurve->SetTitle("Variance - Bias curve ");
+		gCurve->GetYaxis()->SetTitle("Avg Bias");
+		gCurve->GetXaxis()->SetTitle("Avg Variance");
+		gCurve->Draw("ACP");
+
+		TPad *p5 = (TPad*)c->cd(6);
+		p5->SetLogy();
+		gBiasErr->SetTitle("Bias over Bias Error / Ndof ");
+		gBiasErr->GetYaxis()->SetTitle("Bias/Err/Ndof");
+		gBiasErr->GetXaxis()->SetTitle("Number of Iterations");
+		gBiasErr->SetMarkerStyle(2);
+		gBiasErr->SetMarkerSize(3);
+		gBiasErr->Draw("ACP");
+
+
+
 
 		c->SaveAs( (filename+".pdf").c_str(),"pdf");		
 	}
