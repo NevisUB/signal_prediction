@@ -15,11 +15,15 @@
 
 int main(int argc, char** argv) {
 
+	TRandom3 * rangen = new TRandom3(0);
+
 	gStyle->SetOptStat(0);
 	sp::SPIO a;
 	a.set_verbosity((sp::msg::Level_t)0);
 
-	a.add_mc_in_file("/rootfiles/filterd_ccqe_nue_nuebar.root");
+	std::string core = "/home/mark/work/uBooNE/lee_unfolding/";
+
+	a.add_mc_in_file(core+"rootfiles/filterd_ccqe_nue_nuebar.root");
 	//a.add_mc_in_file("/home/vgenty/signal/simplifyTreeOsc/filtered_ccqe_nue_nuebar/filterd_ccqe_nue_nuebar.root");
 	a.set_mc_tree_name("MiniBooNE_CCQE");
 
@@ -28,11 +32,10 @@ int main(int argc, char** argv) {
 
 	a.initialize();
 
-
 	std::vector<std::string> var_truth = {"NuMomT"};
 	std::vector<std::string> var_reco = {"RecoEnuQE"};
 	std::vector<double> bins_reco = {140,225,  300.,  375. , 475.,  550.,  675.,  800.,  950.,  1100.  ,1300. , 1500. , 3000};
-//	std::vector<double> bins_reco = {140,200.,250,300.,350 ,400,450,500., 550., 600, 700., 800., 950.,   1100., 1300., 1500., 3000.};
+	//	std::vector<double> bins_reco = {140,200.,250,300.,350 ,400,450,500., 550., 600, 700., 800., 950.,   1100., 1300., 1500., 3000.};
 	std::vector<double> bins_truth = {140,200,250,300,350,400,450, 500,550, 650,   800.,1000,3000};
 	//std::vector<double> bins_truth = {140,200.0,250,300,350,400,300,320,340,360,380,400,440,480,500, 550, 600., 650,   800.,1000,3000};
 	int N_bins_reco = bins_reco.size()-1;
@@ -53,8 +56,8 @@ int main(int argc, char** argv) {
 
 	std::cout << "Beginning" << std::endl;
 
-	sp::UnfoldAlgoDAgnostini alg; 
-	//sp::UnfoldAlgoSVD alg; 
+	//sp::UnfoldAlgoDAgnostini alg; 
+	sp::UnfoldAlgoSVD alg; 
 
 	alg.set_verbosity((sp::msg::Level_t)0);
 	alg.Initialize(&(a.Responses().front()));
@@ -69,8 +72,8 @@ int main(int argc, char** argv) {
 	double Nsignal = 0;
 
 	std::cout<<"Loading in MC and Dirt."<<std::endl;
-	std::string fname = "/rootfiles/filtered_passosc.root";
-	std::string fname_dirt = "/rootfiles/merged_filtered_out_osc_mc_dirt.root";
+	std::string fname = core + "rootfiles/filtered_passosc.root";
+	std::string fname_dirt = core + "/rootfiles/merged_filtered_out_osc_mc_dirt.root";
 	std::string param = var_reco.at(0);
 	std::vector<double> summed_mc(N_bins_reco,0.0);
 
@@ -78,8 +81,8 @@ int main(int argc, char** argv) {
 	//
 	// Get the vector of histograms for each background type
 	//
-	 sp::SPIO spio;
-	 spio.set_verbosity((sp::msg::Level_t)0);
+	sp::SPIO spio;
+	spio.set_verbosity((sp::msg::Level_t)0);
 
 	std::cout<<"Generating Background"<<std::endl;
 	auto th1d_v = spio.gen_background(fname,fname_dirt,param,bins_reco);
@@ -91,22 +94,22 @@ int main(int argc, char** argv) {
 
 	}
 	/*
-	for(size_t bkgd_id = 0; bkgd_id < (size_t) sp::kBKGD_MAX; ++bkgd_id) {
-		if ((sp::StackedBkgdType_t)bkgd_id == sp::kBKGD_INVALID) continue;
-		std::cout<<"Loading up: "<<sp::StackedBkgd2String((sp::StackedBkgdType_t)bkgd_id)<<std::endl;
-		auto& th1d = th1d_v[bkgd_id];
+	   for(size_t bkgd_id = 0; bkgd_id < (size_t) sp::kBKGD_MAX; ++bkgd_id) {
+	   if ((sp::StackedBkgdType_t)bkgd_id == sp::kBKGD_INVALID) continue;
+	   std::cout<<"Loading up: "<<sp::StackedBkgd2String((sp::StackedBkgdType_t)bkgd_id)<<std::endl;
+	   auto& th1d = th1d_v[bkgd_id];
 
-		for(size_t bin_id=1; bin_id < bins_reco.size(); ++bin_id) {
+	   for(size_t bin_id=1; bin_id < bins_reco.size(); ++bin_id) {
 
-			summed_mc.at(bin_id-1) += th1d.GetBinContent(bin_id)*pot_scale;
+	   summed_mc.at(bin_id-1) += th1d.GetBinContent(bin_id)*pot_scale;
 
-		}
-	}
-	*/
+	   }
+	   }
+	 */
 
 
 	std::cout<<"Loading Data"<<std::endl;
-	TFile * f_data = new TFile("/rootfiles/output_osc_data_detail_1.root");
+	TFile * f_data = new TFile( (core+"rootfiles/output_osc_data_detail_1.root").c_str());
 	TTree * data = (TTree*)f_data->Get("MiniBooNE_CCQE");
 	float d_Weight,d_Energy,d_CosTheta,d_RecoEnuQE;
 	data->SetBranchAddress("Weight",&d_Weight);
@@ -121,13 +124,13 @@ int main(int argc, char** argv) {
 		h_data->Fill(1000*d_RecoEnuQE, d_Weight);
 	}
 
-	
+
 
 	/*std::cout<<"Have loaded Data and MC"<<std::endl;
-	for(int i=0; i< summed_mc.size();i++){
-		std::cout<<"Data || Ours: "<<h_data->GetBinContent(i+1)<<" Published: "<<miniobs.at(i)<<std::endl;
-		std::cout<<"MC || Ours: "<<summed_mc.at(i)<<" Published: "<<minibkg.at(i)<<std::endl;
-	}*/
+	  for(int i=0; i< summed_mc.size();i++){
+	  std::cout<<"Data || Ours: "<<h_data->GetBinContent(i+1)<<" Published: "<<miniobs.at(i)<<std::endl;
+	  std::cout<<"MC || Ours: "<<summed_mc.at(i)<<" Published: "<<minibkg.at(i)<<std::endl;
+	  }*/
 
 
 	//changed briefly... 
@@ -140,7 +143,7 @@ int main(int argc, char** argv) {
 
 		Nsignal += mini_signal(i);
 		sigerr.at(i) =sqrt(h_data->GetBinContent(i+1)+summed_mc.at(i)) ;
-		
+
 		if(sigerr.at(i)!=sigerr.at(i)) {
 			std::cout<<"Failure, should fabs"<<std::endl;
 			exit(EXIT_FAILURE);
@@ -177,6 +180,8 @@ int main(int argc, char** argv) {
 
 	TH1D ans =  alg.GetHistU();
 	TH1D sig = alg.GetHistD();
+
+	TH1D sig_events = alg.GetHistD(); //pure for chi^2 calc
 
 	TH1D reco = alg.GetHistR();
 	TH1D truth = alg.GetHistT();
@@ -325,19 +330,35 @@ int main(int argc, char** argv) {
 	TCanvas *cu2 =  new TCanvas("cu2","cu2",1200,1200);
 	TCanvas *cU =  new TCanvas("c2","c2",3000,3000);
 	TCanvas *cR =  new TCanvas("cR","cR",3000,3000);
+	TCanvas *cBias = new TCanvas("cBias","cBias",3000,3000);
+
 	c2->Divide(3,3);
 	cU->Divide(3,3);
 	cR->Divide(3,3);
+	cBias->Divide(3,3);
 
 
-	std::vector<int> kreg = {1,2,3,4,5,6,7,8,10};
+	std::vector<int> kreg = {1,2,3,4,5,6,8,10,11};
 	std::vector<int> cols = {kBlue-7,kGreen-6,kRed-7, kOrange-3, kMagenta-3, kGreen+3, kBlue-7,kGreen-6,kRed-7};
 	std::vector<TH1D> us(kreg.size());
 	std::vector<TH2D> US(kreg.size());
 	std::vector<TH1D> uR(kreg.size());
+	std::vector<TH1D> uBias(kreg.size());
 	std::vector<TLegend*> leg(kreg.size());
 	std::vector<TH1D> us_stat(kreg.size());
 	//std::vector<int> kreg = {1,2,5,8,100};
+
+	//Some basic Lcurve and Chi^2 analysis on refolded spectra
+	TCanvas *c_chicurve = new TCanvas("lc","lc,",1200,1200);	
+	std::vector<double> refold_avg_chi;
+	std::vector<double> refold_k;
+
+	std::vector<double> bias_avg;
+
+
+	double N_random_refold = 50.0;
+	int N_mc_bias = 20;
+
 
 	for(int k=0; k<kreg.size(); k++){
 		std::string nam = "Reg " +std::to_string(kreg.at(k)) ;
@@ -419,7 +440,6 @@ int main(int argc, char** argv) {
 			truth.Draw("same hist");
 			leg.at(k)->Draw();
 			us.at(k).GetXaxis()->SetRangeUser(bins_truth.front(),1000);
-
 		}
 
 
@@ -433,18 +453,106 @@ int main(int argc, char** argv) {
 		cR->cd(k+1);
 		uR.at(k) = alg.GetHistRefold();
 		uR.at(k).SetTitle(nam.c_str());
+		double ch2 = uR.at(k).Chi2Test(&sig_events,"CHI2,WW");
+
+		double Nrefold_2 = uR.at(k).GetSumOfWeights();
 		uR.at(k).Scale(1,"width");
 		uR.at(k).SetMarkerStyle(29);
 		uR.at(k).SetMarkerColor(kBlack);
 		uR.at(k).SetLineColor(kBlack);
 		uR.at(k).SetMarkerSize(2);
 
-		
 
-		double ch2 = uR.at(k).Chi2Test(&sig,"CHI2,WW");
-		std::string s_ch2 = "#chi^{2} : " + std::to_string(ch2);
-		TLegend * legR = new TLegend(0.58,0.6,0.89,0.89);
+		//RandomRefolding && MC bias calculation
+		std::vector<double> bias(alg.n_t,0);
+		std::vector<double> avgu(alg.n_t,0);
+
+		double avg_refold_chi = 0;
+		for(int k=0;k<(int)N_random_refold;k++){
+			TH1D tmp = alg.GetHistRandRefold(rangen);
+
+			double temp_chi = tmp.Chi2Test(&sig_events,"CHI2,WW");
+
+			avg_refold_chi +=temp_chi;
+			std::cout<<"RandRefold: "<<k<<" chi^2: "<<temp_chi<<std::endl;
+
+
+			//and MC bias calc
+			TVectorD tmpV(alg.n_r);
+			for(int i=0; i<alg.n_r; i++){
+				tmpV(i)=tmp.GetBinContent(i+1);
+			}
+
+			auto tmp_alg = alg;
+			tmp_alg.Setd(&tmpV);
+			tmp_alg.Unfold();
+			for(int a=0; a<alg.n_t; a++){
+				avgu.at(a) += tmp_alg.u(a)/N_random_refold;
+			}
+
+		}
+
+		for(int a=0;a<alg.n_t; a++){
+			bias.at(a) = avgu.at(a)-alg.u(a);
+			std::cout<<"ThisBias bin:"<<a<<" "<<bias.at(a)<<" "<<alg.b(a)<<std::endl;
+		}
+
+		double avg_bias = 0;//Just average the bins		
+		for(auto b: bias){
+			avg_bias += b/((double)N_bins_truth);
+		}
+
+		bias_avg.push_back(pow(fabs(avg_bias),2.0));
+		std::cout<<"ThisBias Avg: "<<avg_bias<<std::endl;
+
+
+
+
+
+		//Step 1. Get random (but slightly different "true" spectra)
+
+
+		/* This is multi-truth biasing
+		   TVectorD pois_u = alg.u;
+		   std::vector<double> bias(alg.n_t,0.0);
+		   for(int i=0; i< N_mc_bias; i++){
+
+		   for(int a=0; a<alg.n_t; a++){
+		   pois_u(a) = rangen->Poisson( alg.u(a) ); 
+		   }
+
+
+		   TVectorD re = alg.A*pois_u;
+		   auto tmp_alg = alg;
+		   tmp_alg.Setd(&re);
+		   tmp_alg.Unfold();
+
+		   for(int a=0; a<alg.n_t; a++){
+		   double thisbias = tmp_alg.u(a)-pois_u(a);
+		   bias.at(a) += (thisbias)/((double)N_mc_bias);
+		   }			
+		   }
+		   double avg_bias = 0;			
+		   for(auto b: bias){
+		   avg_bias += b/((double)N_bins_truth);
+		   }
+
+		   bias_avg.push_back(pow(fabs(avg_bias),2.0));
+		   std::cout<<"ThisBias Avg: "<<avg_bias<<std::endl;
+		 */
+
+		//This is multi 
+
+
+		std::cout<<"RandRefoldAverage: "<<avg_refold_chi/N_random_refold<<std::endl;
+		refold_avg_chi.push_back(avg_refold_chi/(N_random_refold*(double)N_bins_reco));
+		refold_k.push_back((double)kreg.at(k));
+
+		std::string s_ch2 = "#chi^{2}/ndof : " + std::to_string(ch2)+"/"+std::to_string(N_bins_reco);
+		TLegend * legR = new TLegend(0.3,0.7,0.89,0.89);
 		legR->SetHeader(s_ch2.c_str() );
+		legR->AddEntry(&sig, ("MiniBooNE Excess: " + std::to_string(Nsignal)).c_str() ,"lp");
+		legR->AddEntry(&uR.at(k), ("Refolded Excess: "+std::to_string(Nrefold_2)).c_str(),"l");
 		uR.at(k).Draw("hist");
 		sig.Draw("same");
 		legR->Draw();
@@ -454,14 +562,69 @@ int main(int argc, char** argv) {
 
 
 
+		//Bias plot filling
+		cBias->cd(k+1);
+		uBias.at(k) = alg.GetHistBias();	
+		uBias.at(k).SetTitle(  nam.c_str() );
+		uBias.at(k).GetYaxis()->SetTitle("Bias/MeV");
+		uBias.at(k).GetXaxis()->SetTitle("True E_{#nu} [MeV]");
+		uBias.at(k).SetLineColor(kBlack);
+		uBias.at(k).SetLineWidth(2);
+		uBias.at(k).SetFillColor(cols.at(k));
+		uBias.at(k).Scale(1,"width"); // should it be bias /MeV?
+		uBias.at(k).Draw("E2");
+
+
+
 	}
+
+	alg.TestRegularization("CCQE_lcurves", 1,12,12);
+	alg.SetDirectRegularization(1000);
+	alg.TestRegularization("CCQE_lcurves_direct", -20,13,200);
+
+	c_chicurve->cd();
+	c_chicurve->SetLogy();
+
+	TGraph *g_chi = new TGraph(kreg.size(), &refold_k[0], &refold_avg_chi[0] );
+	g_chi->SetTitle("Average #chi^{2}/ndof ");
+	g_chi->GetXaxis()->SetTitle("Regularisation Parameter k");
+	g_chi->GetYaxis()->SetTitle("#chi^{2}/ndof ");
+	g_chi->SetMarkerSize(2);
+	g_chi->SetMarkerStyle(2);
+	g_chi->Draw("ACP");
+	TLine l_chicurve(refold_k.front(),1,refold_k.back(),1);
+	l_chicurve.Draw();
+	c_chicurve->Write();
+	c_chicurve->SaveAs("CCQE_chicurve.pdf","pdf");
+
+	TCanvas * c_bias = new TCanvas("cbias","cbias",1200,1200);
+	c_bias->cd();
+	c_bias->SetLogy();
+
+	TGraph *g_bias = new TGraph(kreg.size(), &refold_k[0], &bias_avg[0] );
+	g_bias->SetTitle("Average Bias MC ");
+	g_bias->GetXaxis()->SetTitle("Regularisation Parameter k");
+	g_bias->GetYaxis()->SetTitle("<bias> ");
+	g_bias->SetMarkerSize(2);
+	g_bias->SetMarkerStyle(2);
+	g_bias->Draw("ACP");
+	//TLine l_bias(refold_k.front(),1,refold_k.back(),1);
+	//l_bias.Draw();
+	c_bias->Write();
+	c_bias->SaveAs("CCQE_bias.pdf","pdf");
+
+
+
+
+
 	c2->Write();
 	cU->Write();
+	cBias->Write();
 	cu2->SaveAs("CCQE_unfolded.pdf","pdf");
 	c2->SaveAs("CCQE_reg_vary.pdf","pdf");
 	cU->SaveAs("CCQE_reg_corr.pdf","pdf");
 	cR->SaveAs("CCQE_reg_refold.pdf","pdf");
-
+	cBias->SaveAs("CCQE_reg_bias.pdf","pdf");
 
 
 	TCanvas *cr = new TCanvas();
@@ -488,7 +651,7 @@ int main(int argc, char** argv) {
 
 
 	TCanvas *cr_scaled = new TCanvas();
-	TFile * fr = new TFile("/home/mark/work/uBooNE/request_of_MB_data/cross_section_generator_difference/ratio_out.root");
+	TFile * fr = new TFile((core+"cross_section_generator_difference/ratio_out.root").c_str());
 	TGraph * gr = (TGraph*)fr->Get("Graph");
 	TH1D * ratio_scaled = (TH1D*)ratio.Clone("scaled");
 

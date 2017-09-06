@@ -26,6 +26,9 @@ namespace sp {
     TMatrixD dudd; //nt x nr
 
     void Unfold();
+
+    void SetDirectRegularization(double tau);
+    bool direct_regularization;
     
   protected:
     

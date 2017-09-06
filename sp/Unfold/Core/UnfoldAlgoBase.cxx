@@ -280,6 +280,22 @@ namespace sp {
 		return *hist_u;
 	}
 
+	TH1D UnfoldAlgoBase::GetHistBias(){
+		std::vector<double> err;
+		for(int a=0; a<n_t; a++){
+			err.push_back( B(a,a));
+		}
+
+		for(int a=0; a<n_t; a++){
+			hist_u->SetBinContent(a+1, b(a));
+		}
+		hist_u->SetError(&err[0]);
+
+		return *hist_u;
+	}
+
+
+
 	TH2D UnfoldAlgoBase::GetCovU(){
 		TH2D tmp("","",n_t,0,n_t,n_t,0,n_t);
 		for(int i=0; i<n_t; i++){
@@ -348,16 +364,16 @@ namespace sp {
 
 		return *hist_r;
 	}
-	TH1D UnfoldAlgoBase::GetHistRandRefold(){
-	
-		TRandom3 * rangen = new TRandom3(seed);
+	TH1D UnfoldAlgoBase::GetHistRandRefold(TRandom3 *rangen){
+		//After unfolding, perform a poissonian draw from the unfolded spectra, then refold it.	
+		//TRandom3 * rangen = new TRandom3(seed);
 		TVectorD pois_u = u;
 
 		for(int a=0; a<n_t; a++){
 			pois_u(a) = rangen->Poisson( u(a) ); 
 		}
 
-	
+
 		TVectorD re = A*pois_u;
 
 
@@ -506,15 +522,15 @@ namespace sp {
 		SP_DEBUG() << "end" << std::endl;
 	}
 
-        TH1D UnfoldAlgoBase::SampleCovarianceU(TVectorT<double> &result){
+	TH1D UnfoldAlgoBase::SampleCovarianceU(TVectorT<double> &result){
 		TRandom3 * rangen = new TRandom3(0);
 		TDecompChol * chol = new TDecompChol(U,0.0);
 		TMatrixT<double> upper_trian(n_t,n_t);
 		upper_trian = chol->GetU();
-		
+
 		TVectorT<double> gaus_sample(n_t);
 		for(int i=0; i<n_t; i++){
-				gaus_sample(i) = rangen->Gaus( u(i), sqrt(U(i,i)));	
+			gaus_sample(i) = rangen->Gaus( u(i), sqrt(U(i,i)));	
 		}
 		gaus_sample = U*gaus_sample;
 
@@ -527,13 +543,44 @@ namespace sp {
 
 
 	}
+	void UnfoldAlgoBase::MCbiasCalc(TRandom3 * rangen ){
+		//Step 1. Get random (but slightly different "true" spectra)
+		TVectorD pois_u = u;
+/*		
+		b.Zero();
+		int num_mc = 1;
+		for(int i=0; i< num_mc; i++){
+
+			for(int a=0; a<n_t; a++){
+				pois_u(a) = rangen->Poisson( u(a) ); 
+			}
+
+
+			TVectorD re = A*pois_u;
+			auto tmp_alg = new UnfoldAlgoBase(*this);
+			tmp_alg->Setd(&re);
+			tmp_alg->Unfold();
+
+			for(int a=0; a<n_t; a++){
+				b(a) += (tmp_alg.u(a)-pois_u(a))/((double)num_mc);
+			}			
+}
+*/
+		}
+
 
 
 	void UnfoldAlgoBase::TestRegularization(std::string filename, double low_kreg, double high_kreg, int num_kreg){
 		TCanvas * c = new TCanvas("","",1200,800);
 		c->Divide(2,2);
+		bool logscale = false;
 
 		SP_DEBUG()<<"Starting test from k="<<low_kreg<<" to "<<high_kreg<<std::endl;
+		
+		if(low_kreg < 0){//must be a log scale
+			logscale= true;
+		}
+
 
 		std::vector<double> MSE(num_kreg,0);
 		std::vector<double> MSEp(num_kreg,0);
@@ -543,6 +590,9 @@ namespace sp {
 
 		for(double k=0; k<num_kreg; k++){
 			double kreg = ceil( (high_kreg-low_kreg)*k/num_kreg+low_kreg );
+			if(logscale){
+				kreg = pow(10, (high_kreg-low_kreg)*k/num_kreg+low_kreg );
+			}
 
 			SP_DEBUG()<<"On k="<<kreg<<std::endl;
 
@@ -550,7 +600,8 @@ namespace sp {
 			this->Unfold();
 
 			for(int a=0; a<n_t; a++){
-				SP_DEBUG()<<"R: "<<sqrt(U(a,a))<<" "<<fabs(b(a))<<std::endl;
+				//if( hist_u->GetBinCenter(a) > 800 ) break;
+				SP_DEBUG()<<"Bin: "<<a<<" U: "<<U(a,a)<<" b^2 "<<fabs(b(a)*b(a))<<std::endl;
 				MSE[k] += 1.0/((double)n_t)*( U(a,a) + b(a)*b(a));
 				MSEp[k] += 1.0/((double)n_t)*(  (U(a,a) + b(a)*b(a))/u(a) );
 				MV[k] += 1.0/((double)n_t)*U(a,a);
@@ -559,8 +610,11 @@ namespace sp {
 
 			SP_DEBUG()<<"RS: "<<" "<<(double)n_t*MV[k]<<" "<<(double)n_t*MB[k]<<std::endl;
 
-
+			if(logscale){
+			x[k]=log10(kreg);
+			}else{
 			x[k]=kreg;
+			}
 
 			this->U.Zero();
 			this->b.Zero();

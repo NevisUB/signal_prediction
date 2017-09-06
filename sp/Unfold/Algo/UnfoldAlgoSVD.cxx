@@ -6,7 +6,9 @@
 
 namespace sp {
 
-	UnfoldAlgoSVD::UnfoldAlgoSVD() : UnfoldAlgoBase("SVD") {}
+	UnfoldAlgoSVD::UnfoldAlgoSVD() : UnfoldAlgoBase("SVD") {
+	direct_regularization = false;
+	}
 
 	void UnfoldAlgoSVD::_Initialize_() 
 	{
@@ -137,8 +139,14 @@ namespace sp {
 		SP_DEBUG() << "Apply regularization" << std::endl;
 
 		assert(regularization >= 0);
-		assert(regularization < s_taic.GetNrows());
-		double tau = s_taic(regularization) * s_taic(regularization);
+		//assert(regularization < s_taic.GetNrows());
+		std::cout<<"STAIC: "<<s_taic(0)<<" "<<s_taic(n_t-1)<<std::endl;
+		double tau;
+		if(direct_regularization){
+			tau = regularization;
+		}else{
+			tau = s_taic(regularization) * s_taic(regularization);
+		}
 
 		z.ResizeTo(n_t);
 		Z.ResizeTo(n_t,n_t);
@@ -177,8 +185,9 @@ namespace sp {
 		for(int a=0; a<n_t; a++){
 			u(a) = t(a) * w(a);
 
-			for(int b=0; b<n_t; b++)
+			for(int b=0; b<n_t; b++){
 				U(a,b) = t(a) * W(a,b) * t(b);
+			}
 		}
 
 		SP_DEBUG() << "Unfolded u ==> " << std::endl;
@@ -186,39 +195,91 @@ namespace sp {
 			u.Print();
 
 
+		//Marks quick tests of matrix formulism.
+		TMatrixD S(n_t, n_r);
+		S.Zero();
+		for(int i=0; i< n_r; i++){
+			for(int a=0; a<n_t; a++){
+				if(a==i){
+					S(a,i) = s_taic(a)/(s_taic(a)*s_taic(a)+tau );
+				}
 
+			}
+		}
 
+		TVectorD w_other(n_t);
+		
+		w_other = inv_C * V_taic* S * UT_taic *tilde_d;
+
+		for(int a=0; a<n_t;a++){
+			std::cout<<"TESTA1: "<<a<<" Old "<<w(a)<<" New: "<<w_other(a)<<std::endl;
+		}	
 
 
 		SP_DEBUG()<<"Begininning calculation of bias, using derivative + taylor approx. NOT YET filled. Derivatives not so easy here."<<std::endl;
 		// And bias! This may not be taking it into account properly as of yet. Using bias approximation from cowans book. should be sufficient. 
-		for(int a =0; a<n_t;a++){
 
+		TMatrixD dw_dtilded(n_t, n_r);
+		dw_dtilded = inv_C * V_taic* S * UT_taic;
+
+	
+		for(int a =0; a<n_t;a++){
 			b(a) = 0;
+
+
+
 			for(int j=0; j<n_r; j++){
 				double vj = 0;
+				
 				for(int b=0; b<n_t; b++){
-					vj+= A(j,b)*u(b);
+					vj+= tilde_A(j,b)*w(b);
 				}
-				b(a) += dudd(a,j)*(vj-d(j));
-				//b(a) += Munfold(a,j)*(vj-d(j));
+
+				b(a) += t(a)*dw_dtilded(a,j)*(vj-tilde_d(j));
 			}
 		}
 
 
+		SP_DEBUG()<<"Begininning calculation of Covariance on the bias, ignoring dn/dd variance."<<std::endl;
+		TMatrixD unit(n_t,n_t);
+		unit.Zero();
+		for(int a=0;a<n_t;a++){
+			unit(a,a)=1.0;
+		} 
+		
 
+		TMatrixD CRmI(n_t, n_t);
+		//CRmI = dw_dtilded*tilde_A-unit;
+		for(int a=0; a<n_t; a++){
+			for(int b=0; b< n_t; b++){
+				CRmI(a,b)=0;
 
+				for( int i=0; i< n_r; i++){
+					CRmI(a,b) +=t(a)*dw_dtilded(a,i)*tilde_A(i,b);
+				}
+			}
+		}
+		CRmI = CRmI-unit;
+	
 
-
-
-
-
-
-
-
+		TMatrixD CRmI_T = CRmI;
+		CRmI_T.T();
+		
+		B.ResizeTo(n_t,n_t);
+		B = CRmI*W*CRmI_T;
+		
+	
 
 
 	}
+
+	void UnfoldAlgoSVD::SetDirectRegularization(double reg){
+		SP_DEBUG()<<"Setting Direct regularization parameter to "<<reg<<std::endl;
+		direct_regularization = true;
+		regularization = reg;
+	}
+
+
 
 	void UnfoldAlgoSVD::rotate_rescale(TMatrixD& tilde_Ain, 
 			const TVectorD& rin,
