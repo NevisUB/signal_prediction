@@ -338,7 +338,7 @@ int main(int argc, char** argv) {
 	cBias->Divide(3,3);
 
 
-	std::vector<int> kreg = {1,2,3,4,5,6,8,10,11};
+	std::vector<int> kreg = {1,2,3,4,5,6,7,8,9};
 	std::vector<int> cols = {kBlue-7,kGreen-6,kRed-7, kOrange-3, kMagenta-3, kGreen+3, kBlue-7,kGreen-6,kRed-7};
 	std::vector<TH1D> us(kreg.size());
 	std::vector<TH2D> US(kreg.size());
@@ -389,7 +389,7 @@ int main(int argc, char** argv) {
 			errA.at(i) = sqrt(fabs(alg.UA(i,i)));
 			errS.at(i) = sqrt(fabs(alg.u(i)));
 			err.at(i) = sqrt(fabs(alg.UA(i,i)+alg.U(i,i)));
-			std::cout<<"u= "<<alg.u(i)<<" +/-(stat) "<<errS.at(i)<<" +/-(D) "<<errD.at(i)<<" +/-(A) "<<errA.at(i)<<" +/-(AD) "<<err.at(i)<<" bias "<<alg.b(i)<<std::endl;
+			std::cout<<"u= "<<alg.u(i)<<" +/-(stat) "<<errS.at(i)<<" +/-(D) "<<errD.at(i)<<" +/-(A) "<<errA.at(i)<<" +/-(AD) "<<err.at(i)<<" bias "<<alg.b(i)<<" +/- "<<sqrt(alg.B(i,i))<<std::endl;
 		}
 
 
@@ -574,11 +574,13 @@ int main(int argc, char** argv) {
 		uBias.at(k).Scale(1,"width"); // should it be bias /MeV?
 		uBias.at(k).Draw("E2");
 		uBias.at(k).GetXaxis()->SetRangeUser(bins_truth.front(),1000);
-
-
+/* At this point the standard
+deviations of the biases are approximately equal to the biases themselves, and
+therefore any further bias reduction would introduce as much error as it removes.
+*/
 	}
 
-	alg.TestRegularization("CCQE_lcurves", 0,11,11);
+	alg.TestRegularization("CCQE_lcurves", 1,11,11);
 	//alg.SetDirectRegularization(1000);
 	//alg.TestRegularization("CCQE_lcurves_direct", -8,8,200);  //-20 13
 

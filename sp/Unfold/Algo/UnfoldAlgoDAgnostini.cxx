@@ -15,6 +15,13 @@ namespace sp {
 
 		std::vector<std::vector<std::vector<double>>> dudA_last(n_t, std::vector<std::vector<double>>(n_r, std::vector<double>(n_t,0)));
 
+		//Useful to define a n_t unit matrix here	
+		TMatrixD unit(n_t,n_t);
+		unit.Zero();
+		for(int a=0;a<n_t;a++){
+			unit(a,a)=1.0;
+		} 
+
 
 
 		SP_DEBUG()<<"Setting initial guess."<<std::endl;
@@ -46,6 +53,8 @@ namespace sp {
 			//u(a) = ntruth/((double)n_t); 
 		}
 
+		
+		B.ResizeTo(n_t,n_t);
 
 
 		for(int k=0; k<regularization; k++){
@@ -215,7 +224,12 @@ namespace sp {
 				}
 			}
 
+	
+			TMatrixD temp = dudd*A-unit;
+			temp.T();
 
+			B = (dudd*A-unit)*U*temp;
+	
 
 
 			dudA_last = dudA;

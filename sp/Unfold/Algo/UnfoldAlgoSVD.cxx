@@ -217,36 +217,41 @@ namespace sp {
 
 
 		SP_DEBUG()<<"Begininning calculation of bias, using derivative + taylor approx from Cowan. Calc on w and btilde, then propagate."<<std::endl;
-		// And bias! This may not be taking it into account properly as of yet. Using bias approximation from cowans book. should be sufficient. 
+	
+		//Useful to define a n_t unit matrix here	
 		TMatrixD unit(n_t,n_t);
 		unit.Zero();
 		for(int a=0;a<n_t;a++){
 			unit(a,a)=1.0;
 		} 
 
+
+		//Error propagation matrix, dw/d(tilde_d), explicitly assumes that V_taic and S are NOT dependent on tilde_b, which isn't super true as tilde_A has scaled out by r_i
 		TMatrixD dw_dtilded(n_t, n_r);
 		dw_dtilded = inv_C * V_taic* S * UT_taic;
 
-	
+
 		for(int a =0; a<n_t;a++){
 			b(a) = 0;
 
 			for(int j=0; j<n_r; j++){
-				double vj = 0;
+				double refold_j = 0;
 				
 				for(int b=0; b<n_t; b++){
-					vj+= tilde_A(j,b)*w(b);
+					refold_j += tilde_A(j,b)*w(b);
 				}
-				//Bias is techically on w(a) then multiply by t(a);
-				b(a) += t(a)*dw_dtilded(a,j)*(vj-tilde_d(j));
+				//Bias is currently on  w(a)
+				b(a) += dw_dtilded(a,j)*(refold_j-tilde_d(j));
 			}
 		}
-			
+		
+		//and move from bias on w to bias on u	
+		for(int a =0; a<n_t;a++){
+			b(a) *= t(a);
+		}
+
 
 		SP_DEBUG()<<"Begininning calculation of Covariance on the bias, ignoring dn/dd variance."<<std::endl;
-	
-		
-
 		TMatrixD CRmI(n_t, n_t);
 		//CRmI = dw_dtilded*tilde_A-unit;
 		for(int a=0; a<n_t; a++){
@@ -254,7 +259,7 @@ namespace sp {
 				CRmI(a,b)=0;
 
 				for( int i=0; i< n_r; i++){
-					CRmI(a,b) +=t(a)*dw_dtilded(a,i)*tilde_A(i,b);
+					CRmI(a,b) += t(a)*dw_dtilded(a,i)*tilde_A(i,b);
 				}
 			}
 		}
@@ -277,7 +282,6 @@ namespace sp {
 		direct_regularization = true;
 		regularization = reg;
 	}
-
 
 
 	void UnfoldAlgoSVD::rotate_rescale(TMatrixD& tilde_Ain, 
