@@ -18,9 +18,9 @@ int main(int argc, char** argv) {
 
 	std::string param = "RecoEnuQE";
 	//std::vector<double> bins_reco = {200,300.,375.,475.,550.,675.,800.,950.,1100.,1300.,1500.,3000.};
-	std::vector<double> bins_reco = {150,200,300.,375.,475.,550.,675.,800.,950.,1100.,1300.,1500.,3000.};
+	//std::vector<double> bins_reco = {150,200,300.,375.,475.,550.,675.,800.,950.,1100.,1300.,1500.,3000.};
 	//std::vector<double> bins_reco = {150,200,250,300.,350,400,450,500,550,600,650,700,750,800.,850,900,950.,1000,1100.,1300.,1500.,3000.};
-	//std::vector<double> bins_reco = {150,175,200,225,250,275,300.,325,350,375,400,425,450,475,500,525,550,575,600,650,700,750,800.,850,900,950.,1000,1100.,1300.,1500.,3000.};
+	std::vector<double> bins_reco = {150,175,200,225,250,275,300.,325,350,375,400,425,450,475,500,525,550,575,600,650,700,750,800.,850,900,950.,1000,1100.,1300.,1500.,3000.};
 	
 	std::vector<double> summed_mc(bins_reco.size()-1,0.0);
 
@@ -67,6 +67,25 @@ int main(int argc, char** argv) {
 
 
 	auto th1d_v = spio.gen_background(fname,fname_dirt,param,bins_reco);
+
+	std::vector<double> summed_mc_err(bins_reco.size()-1,0.0);
+	TH1D* sum_bkg = (TH1D*)th1d_v.at(0).Clone("sum");
+	sum_bkg->Reset();
+	sum_bkg->Sumw2();
+	  TList *list = new TList;
+  	  for(auto &v: th1d_v){
+		list->Add(&v);
+	}
+  	sum_bkg->Merge(list);
+	sum_bkg->Scale(pot_scale);
+	for(int i=0; i<bins_reco.size()-1; i++){
+		summed_mc_err.at(i) = sum_bkg->GetBinError(i+1);
+	}
+
+
+
+
+
 
 	TApplication app("app", 0, 0);
 
@@ -115,7 +134,7 @@ int main(int argc, char** argv) {
 	std::vector<double> excess_err;
 	for(int i=0; i<bins_reco.size()-1;i++){
 		summed_excess.push_back( summed_data.at(i)-summed_mc.at(i));
-		excess_err.push_back(sqrt(summed_data.at(i) +summed_mc.at(i))/h_data->GetBinWidth(i+1) );
+		excess_err.push_back(sqrt(summed_data.at(i) +pow(summed_mc_err.at(i),2) )/h_data->GetBinWidth(i+1) );
 	}
 	
 

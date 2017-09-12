@@ -641,6 +641,10 @@ namespace sp {
 		gMV->SetTitle("Minimum Variance");
 		gMV->GetXaxis()->SetTitle("Number of Iterations");
 		gMV->GetYaxis()->SetTitle("Average Variance");
+		
+		gMV->SetMarkerStyle(2);
+		gMV->SetMarkerSize(3);
+
 		gMV->Draw("ACP");
 
 
@@ -649,18 +653,26 @@ namespace sp {
 		gMB->SetTitle("Minimum Bias");
 		gMB->GetXaxis()->SetTitle("Number of Iterations");
 		gMB->GetYaxis()->SetTitle("Average Bias");
+		gMB->SetMarkerStyle(2);
+		gMB->SetMarkerSize(3);
 		gMB->Draw("ACP");
 
 		c->cd(3)->SetLogy();
 		gMSE->SetTitle("Minimum Square Error MSE");
 		gMSE->GetXaxis()->SetTitle("Number of Iterations");
 		gMSE->GetYaxis()->SetTitle("Square Error");
+		gMSE->SetMarkerStyle(2);
+		gMSE->SetMarkerSize(3);
+
 		gMSE->Draw("ACP");
 
 		c->cd(4)->SetLogy();
 		gMSEp->SetTitle("Modified Minimum Square Error MSE");
 		gMSEp->GetXaxis()->SetTitle("Number of Iterations");
 		gMSEp->GetYaxis()->SetTitle("Square Error");
+	gMSEp->SetMarkerStyle(2);
+		gMSEp->SetMarkerSize(3);
+
 		gMSEp->Draw("ACP");
 
 		TPad *p4 = (TPad*)c->cd(5);
@@ -669,7 +681,10 @@ namespace sp {
 		gCurve->SetTitle("Variance - Bias curve ");
 		gCurve->GetYaxis()->SetTitle("Avg Bias");
 		gCurve->GetXaxis()->SetTitle("Avg Variance");
-		gCurve->Draw("ACP");
+	gCurve->SetMarkerStyle(2);
+		gCurve->SetMarkerSize(3);
+	
+	gCurve->Draw("ACP");
 
 		TPad *p5 = (TPad*)c->cd(6);
 		p5->SetLogy();

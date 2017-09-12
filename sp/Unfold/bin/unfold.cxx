@@ -34,9 +34,9 @@ int main(int argc, char** argv) {
 
 	std::vector<std::string> var_truth = {"NuMomT"};
 	std::vector<std::string> var_reco = {"RecoEnuQE"};
-	std::vector<double> bins_reco = {200,  300.,  375. , 475.,  550.,  675.,  800.,  950.,  1100.  ,1300. , 1500. , 2000};
-	//	std::vector<double> bins_reco = {140,200.,250,300.,350 ,400,450,500., 550., 600, 700., 800., 950.,   1100., 1300., 1500., 3000.};
-	std::vector<double> bins_truth = {200,250,300,350,400,450, 500, 550, 650,  800.,1000,2000};
+	//std::vector<double> bins_reco = {200,  300.,  375. , 475.,  550.,  675.,  800.,  950.,  1100.  ,1300. , 1500. , 2000};
+	std::vector<double> bins_reco = {200 ,300,  375. , 475.,  550.,  675.,  800.,  950.,  1100.  ,1300. , 1500. , 2000};
+	std::vector<double> bins_truth = {200,250,300,350,400,450, 500,550,650,  800.,1000,2000};
 	//std::vector<double> bins_truth = {140,200.0,250,300,350,400,300,320,340,360,380,400,440,480,500, 550, 600., 650,   800.,1000,3000};
 	int N_bins_reco = bins_reco.size()-1;
 	int N_bins_truth = bins_truth.size()-1;
@@ -76,6 +76,7 @@ int main(int argc, char** argv) {
 	std::string fname_dirt = core + "/rootfiles/merged_filtered_out_osc_mc_dirt.root";
 	std::string param = var_reco.at(0);
 	std::vector<double> summed_mc(N_bins_reco,0.0);
+	std::vector<double> summed_mc_err(N_bins_reco,0.0);
 
 	std::vector<double> sigerr(N_bins_reco,0);
 	//
@@ -87,12 +88,29 @@ int main(int argc, char** argv) {
 	std::cout<<"Generating Background"<<std::endl;
 	auto th1d_v = spio.gen_background(fname,fname_dirt,param,bins_reco);
 
+
+	TH1D* sum_bkg = (TH1D*)th1d_v.at(0).Clone("sum");
+	sum_bkg->Reset();
+	sum_bkg->Sumw2();
+	  TList *list = new TList;
+  	  for(auto &v: th1d_v){
+		list->Add(&v);
+	}
+  	sum_bkg->Merge(list);
+	sum_bkg->Scale(pot_scale);
+
 	for(auto & v :th1d_v){
 		for(int i=0; i< N_bins_reco;i++){
 			summed_mc.at(i) += v.GetBinContent(i+1)*pot_scale;
 		}
 
 	}
+	for(int i=0; i<N_bins_reco; i++){
+		std::cout<<"ERRORCHECK: sumw2: "<<sum_bkg->GetBinContent(i+1)<<" +/- "<<sum_bkg->GetBinError(i+1)<<" obv: "<<summed_mc.at(i)<<" +/- "<<sqrt(summed_mc.at(i))<<std::endl;
+		summed_mc_err.at(i) = sum_bkg->GetBinError(i+1);
+	}
+
+
 	/*
 	   for(size_t bkgd_id = 0; bkgd_id < (size_t) sp::kBKGD_MAX; ++bkgd_id) {
 	   if ((sp::StackedBkgdType_t)bkgd_id == sp::kBKGD_INVALID) continue;
@@ -142,19 +160,22 @@ int main(int argc, char** argv) {
 
 
 		Nsignal += mini_signal(i);
-		sigerr.at(i) =sqrt(h_data->GetBinContent(i+1)+summed_mc.at(i)) ;
+		sigerr.at(i) =sqrt(h_data->GetBinContent(i+1)+ pow(summed_mc_err.at(i),2.0) ) ;
 
 		if(sigerr.at(i)!=sigerr.at(i)) {
 			std::cout<<"Failure, should fabs"<<std::endl;
 			exit(EXIT_FAILURE);
 
 		}
+
+		
+
 	}
 
 	TMatrixD sigcorr(N_bins_reco, N_bins_reco);
 	sigcorr.Zero();
 	for(int i=0; i<N_bins_reco;i++){
-		sigcorr(i,i)=h_data->GetBinContent(i+1)+summed_mc.at(i);
+		sigcorr(i,i)=h_data->GetBinContent(i+1)+pow(summed_mc_err.at(i),2.0);
 		std::cout<<"MYD(i,i) "<<sigcorr(i,i)<<std::endl;
 	}
 	alg.Setd(&mini_signal);
@@ -300,6 +321,7 @@ int main(int argc, char** argv) {
 	sig.SetLineWidth(2);
 	sig.Draw("e1");
 	sig.GetXaxis()->SetRange(1,10);
+	sig.SetMinimum(0);
 
 	reco.SetFillColor(kGray);
 	reco.SetMarkerColor(kBlack);
@@ -338,7 +360,7 @@ int main(int argc, char** argv) {
 	cBias->Divide(3,3);
 
 
-	std::vector<int> kreg = {1,2,3,4,5,6,7,8,9};
+	std::vector<int> kreg = {1,2,3,4,5,6,7,8};
 	std::vector<int> cols = {kBlue-7,kGreen-6,kRed-7, kOrange-3, kMagenta-3, kGreen+3, kBlue-7,kGreen-6,kRed-7};
 	std::vector<TH1D> us(kreg.size());
 	std::vector<TH2D> US(kreg.size());
@@ -434,6 +456,7 @@ int main(int argc, char** argv) {
 			us_stat.at(k).SetLineColor(kGreen+2);
 			us_stat.at(k).SetMarkerColor(kBlack);
 			us_stat.at(k).SetMarkerStyle(29);
+			us_stat.at(k).SetMarkerSize(2);
 			us.at(k).Draw("E2");
 			us_stat.at(k).Draw("same E2");
 			us_stat.at(k).Draw("same P");
@@ -453,7 +476,14 @@ int main(int argc, char** argv) {
 		cR->cd(k+1);
 		uR.at(k) = alg.GetHistRefold();
 		uR.at(k).SetTitle(nam.c_str());
-		double ch2 = uR.at(k).Chi2Test(&sig_events,"CHI2,WW");
+		double ch2 =0;// uR.at(k).Chi2Test(&sig_events,"CHI2,WW");
+		for(int i=1; i < N_bins_reco; i++){
+			double tmp = pow(uR.at(k).GetBinContent(i)-sig_events.GetBinContent(i),2.0)/sigcorr(i-1,i-1);
+			ch2 += tmp;
+			std::cout<<"CHI k: "<<k<<" bin: "<<i<<" "<<uR.at(k).GetBinContent(i)<<" "<<sig_events.GetBinContent(i)<<" tmp: "<<tmp<<" chi: "<<ch2<<std::endl;		
+		}
+
+
 
 		double Nrefold_2 = uR.at(k).GetSumOfWeights();
 		uR.at(k).Scale(1,"width");
@@ -468,10 +498,19 @@ int main(int argc, char** argv) {
 		std::vector<double> avgu(alg.n_t,0);
 
 		double avg_refold_chi = 0;
-		for(int k=0;k<(int)N_random_refold;k++){
+		for(int j=0;j<(int)N_random_refold;j++){
 			TH1D tmp = alg.GetHistRandRefold(rangen);
 
-			double temp_chi = tmp.Chi2Test(&sig_events,"CHI2,WW");
+			double temp_chi =0;// tmp.Chi2Test(&sig_events,"CHI2,WW");
+
+			for(int i=1; i < N_bins_reco; i++){
+				double thischi = pow(tmp.GetBinContent(i)-sig_events.GetBinContent(i),2.0)/sigcorr(i,i);
+				temp_chi += thischi;
+				//std::cout<<"CHI k: "<<k<<" bin: "<<i<<" "<<uR.at(k).GetBinContent(i)<<" "<<sig_events.GetBinContent(i)<<" tmp: "<<tmp<<" chi: "<<ch2<<std::endl;		
+			}
+
+
+
 
 			avg_refold_chi +=temp_chi;
 			std::cout<<"RandRefold: "<<k<<" chi^2: "<<temp_chi<<std::endl;
@@ -547,7 +586,7 @@ int main(int argc, char** argv) {
 		std::cout<<"RandRefoldAverage: "<<avg_refold_chi/N_random_refold<<std::endl;
 		refold_avg_chi.push_back(avg_refold_chi/(N_random_refold*(double)N_bins_reco));
 		refold_k.push_back((double)kreg.at(k));
-
+	
 		std::string s_ch2 = "#chi^{2}/ndof : " + std::to_string(ch2)+"/"+std::to_string(N_bins_reco);
 		TLegend * legR = new TLegend(0.3,0.7,0.89,0.89);
 		legR->SetHeader(s_ch2.c_str() );
@@ -558,6 +597,7 @@ int main(int argc, char** argv) {
 		legR->Draw();
 		uR.at(k).GetXaxis()->SetRangeUser(bins_truth.front(),1000);
 		uR.at(k).SetMaximum(1.2);
+		uR.at(k).SetMinimum(0.0);
 
 
 
@@ -565,6 +605,8 @@ int main(int argc, char** argv) {
 		//Bias plot filling
 		cBias->cd(k+1);
 		uBias.at(k) = alg.GetHistBias();	
+		uBias.at(k).SetMarkerStyle(2);
+		uBias.at(k).SetMarkerSize(2);
 		uBias.at(k).SetTitle(  nam.c_str() );
 		uBias.at(k).GetYaxis()->SetTitle("Bias/MeV");
 		uBias.at(k).GetXaxis()->SetTitle("True E_{#nu} [MeV]");
@@ -580,7 +622,7 @@ therefore any further bias reduction would introduce as much error as it removes
 */
 	}
 
-	alg.TestRegularization("CCQE_lcurves", 1,11,11);
+	alg.TestRegularization("CCQE_lcurves", 0,5,5);
 	//alg.SetDirectRegularization(1000);
 	//alg.TestRegularization("CCQE_lcurves_direct", -8,8,200);  //-20 13
 
@@ -629,6 +671,18 @@ therefore any further bias reduction would introduce as much error as it removes
 	cBias->SaveAs("CCQE_reg_bias.pdf","pdf");
 
 
+/*	Not finished yet
+	TCanvas *c_sample =  new TCanvas();
+	c_sample->cd();
+	TVectorD result(n_t); 
+	std::vector<TH1D*> sample_list;
+	us.at(i)
+	for(int i=0; i< 4; i++){
+		sample_list.at(i) = alg.SampleCovarianceU(&result);
+		sample_list.at(i)->Draw();		
+	}
+*/
+
 	TCanvas *cr = new TCanvas();
 	TH1D ratio = us.at(1);	
 	ratio.Divide(&truth);
@@ -637,8 +691,9 @@ therefore any further bias reduction would introduce as much error as it removes
 	ratio.SetMarkerStyle(5);
 	ratio.SetMarkerSize(1);
 	ratio.Draw("e2");
-	ratio.SetMaximum(22);
+	ratio.SetMaximum(8);
 	ratio.GetXaxis()->SetRangeUser(bins_truth.front(),1000);
+	ratio.GetYaxis()->SetTitleOffset(1.1);
 
 	TLegend * leg2 = new TLegend(0.58,0.6,0.89,0.89);
 	leg2->AddEntry(&ratio,"Intrinsic #nu_{e} CCQE Model","lf");
@@ -694,6 +749,8 @@ therefore any further bias reduction would introduce as much error as it removes
 
 	TFile* f_graph_out =  new TFile("CCQE_final_tgraph.root","RECREATE");
 	f_graph_out->cd();
+	
+	ratio.Write();
 	TGraph * graph_out = new TGraph(bincenter.size(), &bincenter[0], &binval[0]  );
 	graph_out->Write();
 	f_graph_out->Close();
