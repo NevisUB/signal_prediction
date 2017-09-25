@@ -52,7 +52,9 @@ namespace sp {
 		for(int i =0; i<n_t; i++){
 			if(t(i)==0){
 				SP_WARNING()<<"Truth has a 0 @ position: "<<i<<" of "<<t.GetNrows()<<std::endl;
-			}	
+			}else{
+				SP_DEBUG()<<"Truth has "<<t(i)<<" @ position: "<<i<<" of "<<t.GetNrows()<<std::endl;
+			}
 		}
 
 

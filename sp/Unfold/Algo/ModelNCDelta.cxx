@@ -35,8 +35,9 @@ namespace sp {
 				}
 
 			}
-			//return NuMomT*1000;
-			return gamma_max*1000;
+
+			return NuMomT*1000;
+			//return gamma_max*1000;
 
 		}
 		return -99;

@@ -40,6 +40,9 @@ int main(int argc, char** argv) {
 	//std::vector<double> bins_truth = {140,200.0,250,300,350,400,300,320,340,360,380,400,440,480,500, 550, 600., 650,   800.,1000,3000};
 	int N_bins_reco = bins_reco.size()-1;
 	int N_bins_truth = bins_truth.size()-1;
+
+	int N_bins_lee = 5; 
+
 	std::cout<<"# True Bins: "<<N_bins_truth<<" # Reco Bins: "<<N_bins_reco<<std::endl;
 
 	a.add_true_parameter(var_truth,bins_truth,sp::kOP_GEV2MEV);
@@ -92,11 +95,11 @@ int main(int argc, char** argv) {
 	TH1D* sum_bkg = (TH1D*)th1d_v.at(0).Clone("sum");
 	sum_bkg->Reset();
 	sum_bkg->Sumw2();
-	  TList *list = new TList;
-  	  for(auto &v: th1d_v){
+	TList *list = new TList;
+	for(auto &v: th1d_v){
 		list->Add(&v);
 	}
-  	sum_bkg->Merge(list);
+	sum_bkg->Merge(list);
 	sum_bkg->Scale(pot_scale);
 
 	for(auto & v :th1d_v){
@@ -168,7 +171,7 @@ int main(int argc, char** argv) {
 
 		}
 
-		
+
 
 	}
 
@@ -359,7 +362,6 @@ int main(int argc, char** argv) {
 	cR->Divide(3,3);
 	cBias->Divide(3,3);
 
-
 	std::vector<int> kreg = {1,2,3,4,5,6,7,8};
 	std::vector<int> cols = {kBlue-7,kGreen-6,kRed-7, kOrange-3, kMagenta-3, kGreen+3, kBlue-7,kGreen-6,kRed-7};
 	std::vector<TH1D> us(kreg.size());
@@ -382,6 +384,27 @@ int main(int argc, char** argv) {
 	int N_mc_bias = 10;
 
 
+
+
+	/**********************************************************
+	 *
+	 *		Some rudimentary Reg Choice
+	 *
+	 **********************************************************/
+
+	int best_reg=-1;
+	std::vector<int> v_best_reg;
+
+
+
+
+
+
+
+
+
+
+
 	for(int k=0; k<kreg.size(); k++){
 		std::string nam = "Reg " +std::to_string(kreg.at(k)) ;
 
@@ -396,8 +419,6 @@ int main(int argc, char** argv) {
 			Nrefold+=refolded(i);
 		}
 		std::cout<<std::setprecision(10)<<"REFOLD || On k="<<kreg.at(k)<<" and refolded-number-of-events is "<<Nrefold<<" . Data is "<<Nsignal<<std::endl;
-
-
 
 
 
@@ -450,21 +471,6 @@ int main(int argc, char** argv) {
 		leg.at(k)->SetBorderSize(0);
 		leg.at(k)->Draw();
 
-		if(k==1){
-			cu2->cd();
-			us_stat.at(k).SetFillColor(kGreen+2);
-			us_stat.at(k).SetLineColor(kGreen+2);
-			us_stat.at(k).SetMarkerColor(kBlack);
-			us_stat.at(k).SetMarkerStyle(29);
-			us_stat.at(k).SetMarkerSize(2);
-			us.at(k).Draw("E2");
-			us_stat.at(k).Draw("same E2");
-			us_stat.at(k).Draw("same P");
-			truth.Draw("same hist");
-			leg.at(k)->Draw();
-			us.at(k).GetXaxis()->SetRangeUser(bins_truth.front(),1000);
-		}
-
 
 		cU->cd(k+1);//->SetLogz();
 		US.at(k) = alg.GetCovU();
@@ -477,9 +483,13 @@ int main(int argc, char** argv) {
 		uR.at(k) = alg.GetHistRefold();
 		uR.at(k).SetTitle(nam.c_str());
 		double ch2 =0;// uR.at(k).Chi2Test(&sig_events,"CHI2,WW");
+		double ch2_lee = 0;
+		double ch2_max = 0;
 		for(int i=1; i < N_bins_reco; i++){
 			double tmp = pow(uR.at(k).GetBinContent(i)-sig_events.GetBinContent(i),2.0)/sigcorr(i-1,i-1);
 			ch2 += tmp;
+			if(i<N_bins_lee) ch2_lee +=tmp;
+			if(tmp > ch2_max && i <N_bins_reco-1) ch2_max = tmp;
 			std::cout<<"CHI k: "<<k<<" bin: "<<i<<" "<<uR.at(k).GetBinContent(i)<<" "<<sig_events.GetBinContent(i)<<" tmp: "<<tmp<<" chi: "<<ch2<<std::endl;		
 		}
 
@@ -545,7 +555,15 @@ int main(int argc, char** argv) {
 		std::cout<<"ThisBias Avg: "<<avg_bias<<std::endl;
 
 
-
+		bool bias_zero = true;
+		double bias_insig = 100;
+		//bias consistent with zero
+		for(int a=0; a<alg.n_t; a++){
+			double this_bias_insig = alg.b(a)/sqrt(alg.B(a,a));	
+			double this_bias_zero = fabs(alg.b(a)) - sqrt(alg.B(a,a)) ;
+			if(this_bias_insig < bias_insig) bias_insig = this_bias_insig;
+			if(this_bias_zero > 0) bias_zero = false;
+		}
 
 
 		//Step 1. Get random (but slightly different "true" spectra)
@@ -586,8 +604,9 @@ int main(int argc, char** argv) {
 		std::cout<<"RandRefoldAverage: "<<avg_refold_chi/N_random_refold<<std::endl;
 		refold_avg_chi.push_back(avg_refold_chi/(N_random_refold*(double)N_bins_reco));
 		refold_k.push_back((double)kreg.at(k));
-	
-		std::string s_ch2 = "#chi^{2}/ndof : " + std::to_string(ch2)+"/"+std::to_string(N_bins_reco);
+
+		std::string s_ch2 = "#chi^{2}/ndof : " + std::to_string(ch2)+"/"+std::to_string(N_bins_reco) + " || " + std::to_string(ch2_lee)+"/"+std::to_string(N_bins_lee) +" || " + std::to_string(ch2_max)+"/"+std::to_string(1);
+		;
 		TLegend * legR = new TLegend(0.3,0.7,0.89,0.89);
 		legR->SetHeader(s_ch2.c_str() );
 		legR->AddEntry(&sig, ("MiniBooNE Excess: " + std::to_string(Nsignal)).c_str() ,"lp");
@@ -616,13 +635,56 @@ int main(int argc, char** argv) {
 		uBias.at(k).Scale(1,"width"); // should it be bias /MeV?
 		uBias.at(k).Draw("E2");
 		uBias.at(k).GetXaxis()->SetRangeUser(bins_truth.front(),1000);
-/* At this point the standard
-deviations of the biases are approximately equal to the biases themselves, and
-therefore any further bias reduction would introduce as much error as it removes.
-*/
+		/* At this point the standard
+		   deviations of the biases are approximately equal to the biases themselves, and
+		   therefore any further bias reduction would introduce as much error as it removes.
+		 */
+	
+		
+		if(ch2/N_bins_reco < 1 && bias_insig < 1 && bias_zero){
+			v_best_reg.push_back(k);
+		}
+
+
 	}
 
-	alg.TestRegularization("CCQE_lcurves", 0,5,5);
+	if(v_best_reg.size()==0){
+		best_reg = 1;
+	}else{
+		best_reg = v_best_reg.front();
+	}
+
+
+
+
+
+
+	cu2->cd();
+	us_stat.at(best_reg).SetFillColor(kGreen+2);
+	us_stat.at(best_reg).SetLineColor(kGreen+2);
+	us_stat.at(best_reg).SetMarkerColor(kBlack);
+	us_stat.at(best_reg).SetMarkerStyle(29);
+	us_stat.at(best_reg).SetMarkerSize(2);
+	us.at(best_reg).Draw("E2");
+	us_stat.at(best_reg).Draw("same E2");
+	us_stat.at(best_reg).Draw("same P");
+	truth.Draw("same hist");
+	leg.at(best_reg)->Draw();
+	us.at(best_reg).GetXaxis()->SetRangeUser(bins_truth.front(),1000);
+
+
+
+
+
+
+
+
+
+
+
+
+
+	alg.TestRegularization("CCQE_lcurves", 1,6,5);
 	//alg.SetDirectRegularization(1000);
 	//alg.TestRegularization("CCQE_lcurves_direct", -8,8,200);  //-20 13
 
@@ -671,20 +733,20 @@ therefore any further bias reduction would introduce as much error as it removes
 	cBias->SaveAs("CCQE_reg_bias.pdf","pdf");
 
 
-/*	Not finished yet
-	TCanvas *c_sample =  new TCanvas();
-	c_sample->cd();
-	TVectorD result(n_t); 
-	std::vector<TH1D*> sample_list;
-	us.at(i)
-	for(int i=0; i< 4; i++){
+	/*	Not finished yet
+		TCanvas *c_sample =  new TCanvas();
+		c_sample->cd();
+		TVectorD result(n_t); 
+		std::vector<TH1D*> sample_list;
+		us.at(i)
+		for(int i=0; i< 4; i++){
 		sample_list.at(i) = alg.SampleCovarianceU(&result);
 		sample_list.at(i)->Draw();		
-	}
-*/
+		}
+	 */
 
 	TCanvas *cr = new TCanvas();
-	TH1D ratio = us.at(1);	
+	TH1D ratio = us.at(best_reg);	
 	ratio.Divide(&truth);
 	ratio.SetFillColor(kBlue-7);
 	ratio.GetYaxis()->SetTitle("Ratio to MiniBooNE MC Central Value");
@@ -749,7 +811,7 @@ therefore any further bias reduction would introduce as much error as it removes
 
 	TFile* f_graph_out =  new TFile("CCQE_final_tgraph.root","RECREATE");
 	f_graph_out->cd();
-	
+
 	ratio.Write();
 	TGraph * graph_out = new TGraph(bincenter.size(), &bincenter[0], &binval[0]  );
 	graph_out->Write();

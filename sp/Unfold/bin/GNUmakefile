@@ -8,7 +8,7 @@ LDFLAGS += -L$(SP_LIBDIR) -lSP_Base -lSP_UnfoldCore -lSP_UnfoldAlgo -lSP_Combine
 
 CXX = g++
 
-PROGRAMS = unfold stacked_backgrounds
+PROGRAMS = NCunfold unfold stacked_backgrounds
 
 all:	clean $(PROGRAMS)
 
