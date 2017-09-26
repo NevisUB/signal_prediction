@@ -605,7 +605,7 @@ int main(int argc, char** argv) {
 		refold_avg_chi.push_back(avg_refold_chi/(N_random_refold*(double)N_bins_reco));
 		refold_k.push_back((double)kreg.at(k));
 
-		std::string s_ch2 = "#chi^{2}/ndof : " + std::to_string(ch2)+"/"+std::to_string(N_bins_reco) + " || " + std::to_string(ch2_lee)+"/"+std::to_string(N_bins_lee) +" || " + std::to_string(ch2_max)+"/"+std::to_string(1);
+		std::string s_ch2 = "#chi^{2}/ndof : " + std::to_string(ch2)+"/"+std::to_string(N_bins_reco) + " || " + std::to_string(ch2_lee)+"/"+std::to_string(N_bins_lee);// +" || " + std::to_string(ch2_max)+"/"+std::to_string(1);
 		;
 		TLegend * legR = new TLegend(0.3,0.7,0.89,0.89);
 		legR->SetHeader(s_ch2.c_str() );

@@ -14,15 +14,18 @@ namespace sp {
 	{
 		name = "SVD";
 
-		SP_DEBUG() << "start n_t = " << n_t << std::endl;
+		SP_DEBUG() << "Starting SVD initilization, n_t  = " << n_t <<" and n_r = "<<n_r<<std::endl;
 
+		assert(n_r>=n_t);
+
+		//resizing up some matricies
 		dudd.ResizeTo(n_t,n_r);
-
 		C.ResizeTo(n_t,n_t);
 		inv_C.ResizeTo(n_t,n_t);
 
-		double xi = 1e-5;
 
+		//Making the curvature matrix C, xi is a small off diagonal to invert
+		double xi = 1e-6;
 		for(int i=0; i<n_t;i++){
 			for(int j=0; j<n_t;j++){
 				if(i == j){
@@ -42,6 +45,8 @@ namespace sp {
 			C(i+1,i  ) = 1;
 		}
 
+
+		//This is just to invert C, via SVD
 		TDecompSVD svd_C(C);
 
 		const auto& cs = svd_C.GetSig();
@@ -68,27 +73,39 @@ namespace sp {
 		auto cUT = cU;
 		cUT.T();
 
+		//And save the value of the inverted C
 		inv_C = cV * c_inv_s * cUT;
 
-		R.ResizeTo(n_t, n_t);
+
+
+		//R and T are the uncertanties on R and T in MC, unsure if they are used.
+		R.ResizeTo(n_r, n_r);
 		T.ResizeTo(n_t, n_t);
 
-		for(int j=0; j<n_t; j++){
+		for(int j=0; j<n_r; j++){
 			R(j,j) = std::max(1.0, std::sqrt( r(j) ));
-			T(j,j) = std::max(1.0, std::sqrt( t(j) ));
 		}
 
-		SP_DEBUG() << "end" << std::endl;
+		for(int a=0; a<n_t; a++){
+			T(a,a) = std::max(1.0, std::sqrt( t(a) ));
+		}
+
+
+		SP_DEBUG() << "Finished intializing SVD algorithm" << std::endl;
 	}
 
 
 	void UnfoldAlgoSVD::Unfold(){
-		SP_INFO() << "Unfold" << std::endl;
+		SP_INFO() << "Unfold() Begin" << std::endl;
 
+		//The tilde variables are to keep the rotated and rescaled
 		TMatrixD tilde_A(n_r,n_t);
 		TVectorD tilde_d(n_r);
 
+		//We decompose D (the covariance matrix of the observed Data) for the rescaling
 		SP_DEBUG() << "Decomposing D ==> " << std::endl;
+		
+		//This should be true
 		for(int i=0; i<n_r; i++){
 			assert(D(i,i)>0);
 
@@ -96,7 +113,7 @@ namespace sp {
 
 
 		TDecompSVD svd_D(D);
-		const auto& r_D = svd_D.GetSig();
+		const auto& r_D = svd_D.GetSig();//get significant values
 		const auto& Q_D = svd_D.GetU();
 
 		SP_DEBUG() << "Return r_D ==> " << std::endl;
@@ -119,6 +136,10 @@ namespace sp {
 
 		TDecompSVD svd_taic(tilde_A_inv_C);
 
+
+
+		//After decomposition  we have A(n_r, n_t) = U(n_r,n_r) S(n_r, n_t) Vt (n_t,n_t)
+		//But as S is diagonal we just keep its diagonal which is the ssmaller one, n_t as n_r>=n_t 
 		s_taic.ResizeTo(n_t);
 		s_taic = svd_taic.GetSig();
 
@@ -129,7 +150,7 @@ namespace sp {
 		UT_taic.T();
 
 		UT_td.ResizeTo(n_r);
-		SP_DEBUG() << "3 " <<n_t<<" "<<n_r<<" UT: "<<UT_taic.GetNcols()<<" "<<UT_taic.GetNrows()<< " VT: "<<V_taic.GetNcols()<<" "<<V_taic.GetNrows()<<std::endl;	
+		//SP_DEBUG() << "3 " <<n_t<<" "<<n_r<<" UT: "<<UT_taic.GetNcols()<<" "<<UT_taic.GetNrows()<< " VT: "<<V_taic.GetNcols()<<" "<<V_taic.GetNrows()<<std::endl;	
 		UT_td = UT_taic * tilde_d;
 
 		SP_DEBUG() << "di ==> " << std::endl;
@@ -141,6 +162,8 @@ namespace sp {
 		assert(regularization >= 0);
 		//assert(regularization < s_taic.GetNrows());
 		std::cout<<"STAIC: "<<s_taic(0)<<" "<<s_taic(n_t-1)<<std::endl;
+		
+		//Either pass in a integer or a direct tau
 		double tau;
 		if(direct_regularization){
 			tau = regularization;
@@ -148,8 +171,10 @@ namespace sp {
 			tau = s_taic(regularization) * s_taic(regularization);
 		}
 
+		// z is the final unknown we are solving for, a function of w which is itself t (all n_t)
 		z.ResizeTo(n_t);
 		Z.ResizeTo(n_t,n_t);
+
 
 		for(int a=0; a<n_t; a++){
 			double num = UT_td(a)  * s_taic(a);
@@ -169,11 +194,12 @@ namespace sp {
 
 		w = inv_C * V_taic * z;
 
+		//transpose a bit
 		auto inv_CT  = inv_C;
 		auto VT_taic = V_taic;
-
 		inv_CT.T();
 		VT_taic.T();
+
 
 		W = inv_C * V_taic * Z * VT_taic * inv_CT;
 
@@ -182,13 +208,20 @@ namespace sp {
 		u.Zero();
 		U.Zero();
 
+
 		for(int a=0; a<n_t; a++){
 			u(a) = t(a) * w(a);
 
+
+
 			for(int b=0; b<n_t; b++){
 				U(a,b) = t(a) * W(a,b) * t(b);
+
+				//if(a==b)std::cout<<"LBIN: "<<a<<" t "<<t(a)<<" w "<<w(a)<<" b "<<b<<" t "<<t(b)<<" w "<<w(b)<<" W "<<W(a,b)<<" "<<U(a,b)<<" Err :" <<sqrt(U(a,b))<<std::endl;
 			}
 		}
+	
+
 
 		SP_DEBUG() << "Unfolded u ==> " << std::endl;
 		if(this->logger().level() == msg::kDEBUG)
@@ -196,8 +229,10 @@ namespace sp {
 
 
 		//Marks quick tests of matrix formulism.
+		//Note S is not necessarily matrix of signular values
 		TMatrixD S(n_t, n_r);
 		S.Zero();
+
 		for(int i=0; i< n_r; i++){
 			for(int a=0; a<n_t; a++){
 				if(a==i){
@@ -208,11 +243,12 @@ namespace sp {
 		}
 
 		TVectorD w_other(n_t);
-		
+	
+		//	nt x nt * nt_nt * n_t x n_r  * nr x nr * n_r	
 		w_other = inv_C * V_taic* S * UT_taic *tilde_d;
 
 		for(int a=0; a<n_t;a++){
-			std::cout<<"TESTA1: "<<a<<" Old "<<w(a)<<" New: "<<w_other(a)<<std::endl;
+			std::cout<<"TESTA1: "<<a<<" Old "<<w(a)<<" New: "<<w_other(a)<<" "<<w(a)-w_other(a)<<std::endl;
 		}	
 
 
@@ -237,29 +273,32 @@ namespace sp {
 			for(int j=0; j<n_r; j++){
 				double refold_j = 0;
 				
-				for(int b=0; b<n_t; b++){
-					refold_j += tilde_A(j,b)*w(b);
+				for(int g=0; g<n_t; g++){
+					refold_j += tilde_A(j,g)*w(g);
 				}
+
 				//Bias is currently on  w(a)
 				b(a) += dw_dtilded(a,j)*(refold_j-tilde_d(j));
 			}
 		}
 		
-		//and move from bias on w to bias on u	
+		//and move from bias on w to bias on u by removing t-scaling	
 		for(int a =0; a<n_t;a++){
-			b(a) *= t(a);
+			b(a) = b(a)*t(a);
 		}
 
 
+
 		SP_DEBUG()<<"Begininning calculation of Covariance on the bias, ignoring dn/dd variance."<<std::endl;
+		
 		TMatrixD CRmI(n_t, n_t);
 		//CRmI = dw_dtilded*tilde_A-unit;
 		for(int a=0; a<n_t; a++){
-			for(int b=0; b< n_t; b++){
-				CRmI(a,b)=0;
+			for(int g=0; g< n_t; g++){
+				CRmI(a,g)=0;
 
 				for( int i=0; i< n_r; i++){
-					CRmI(a,b) += t(a)*dw_dtilded(a,i)*tilde_A(i,b);
+					CRmI(a,g) += t(a)*dw_dtilded(a,i)*tilde_A(i,g);
 				}
 			}
 		}
@@ -269,11 +308,17 @@ namespace sp {
 		TMatrixD CRmI_T = CRmI;
 		CRmI_T.T();
 		
-		B.ResizeTo(n_t,n_t);
+		B.ResizeTo(n_t, n_t);
 		B = CRmI*W*CRmI_T;
-		
 	
+		for(int a=0;a<n_t; a++){
+			std::cout<<"BIN: "<<a<<" B "<<B(a,a)<<" W "<<W(a,a)<<std::endl;
 
+		}
+
+		//Bit of comparing to wiener
+
+		SP_DEBUG()<<"Finished Unfold() call"<<std::endl;
 
 	}
 

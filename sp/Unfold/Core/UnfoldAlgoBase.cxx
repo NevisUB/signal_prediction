@@ -284,6 +284,8 @@ namespace sp {
 
 	TH1D UnfoldAlgoBase::GetHistBias(){
 		std::vector<double> err;
+		//need to push one back as overflow
+		err.push_back(0);
 		for(int a=0; a<n_t; a++){
 			err.push_back( sqrt(B(a,a)));
 		}

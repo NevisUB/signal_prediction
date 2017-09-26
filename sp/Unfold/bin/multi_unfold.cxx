@@ -14,7 +14,84 @@
 #include "TLine.h"
 #include "TLatex.h"
 
+#include <getopt.h>
+#define no_argument 0
+#define required_argument 1
+#define optional_argument 2
+
+
+#define ALGO_SVD 0
+#define ALGO_DAG 1
+
+#define MODEL_CCQE 0
+#define MODEL_DELTARES 1
+
 int main(int argc, char** argv) {
+	int c;
+	int index; 
+	int iarg = 0;
+	opterr=1;
+
+
+	int ALGO = ALGO_SVD;
+	int MODEL = MODEL_CCQE;
+
+	std::string base_name = "CCQE_SVD";
+	std::string algo_name = "SVD";
+	std::string model_name = "CCQE";
+
+
+	const struct option longopts[] = 
+	{
+		{"algo",	 	required_argument, 	0, 'a'},
+		{"model",		required_argument,	0, 'm'},
+		{0,			no_argument, 		0,  0}
+	};
+	const char * tin;
+
+	while(iarg != -1)
+	{
+		iarg = getopt_long(argc,argv, "a:m:", longopts, &index);
+
+		switch(iarg)
+		{
+			case 'a':
+				tin = optarg;//way to read in null terminated c strings and compare to known list
+				if(strcmp(tin, "svd")==0){ ALGO = ALGO_SVD; algo_name = "SVD";}
+				if(strcmp(tin, "dag")==0) { ALGO = ALGO_DAG; algo_name = "DAG";}
+				break;
+			case 'm':
+				tin = optarg;//way to read in null terminated c strings and compare to known list
+				if(strcmp(tin, "ncdelta")==0){ MODEL = MODEL_CCQE; model_name = "CCQE";}
+				if(strcmp(tin, "ccqe")==0) { MODEL = MODEL_DELTARES; model_name = "DELTARES";}
+				break;
+
+			case '?':
+				std::cout<<"Abandon hope all ye who enter this value. "<<std::endl;
+			case 'h':
+				std::cout<<"******************************************"<<std::endl;
+				std::cout<<"Allowed arguments:"<<std::endl;
+				std::cout<<"\t-m, --model\t\t\tSets the model, ncdelta or ccqe [default ccqe]"<<std::endl;
+				std::cout<<"\t-a, --algo\t\t\tSets the unfolding algo, svd or dag [default svd]"<<std::endl;
+				std::cout<<"******************************************"<<std::endl;
+
+				return 0;
+		}
+
+	}
+
+	//Define naming scheme
+	base_name = model_name +"_"+algo_name;
+
+
+
+
+
+
+
+
+
+
 
 	TRandom3 * rangen = new TRandom3(0);
 
@@ -22,53 +99,77 @@ int main(int argc, char** argv) {
 	sp::SPIO a;
 	a.set_verbosity((sp::msg::Level_t)0);
 
+
+
 	std::string core = "/home/mark/work/uBooNE/lee_unfolding/";
-
-	std::string use_file = "rootfiles/filtered_nc_delta.root";
-	//	std::string use_file = "rootfiles/filterd_ccqe_nue_nuebar.root";
-
 	std::string bkg_file = "rootfiles/filtered_passosc.root";
 	std::string data_file = "rootfiles/output_osc_data_detail_1.root";	
 	std::string dirt_file =  "rootfiles/merged_filtered_out_osc_mc_dirt.root";
 
 
-
+	std::string use_file;
+	switch(MODEL)
+	{
+		case MODEL_CCQE:
+			use_file = "rootfiles/filterd_ccqe_nue_nuebar.root";
+			break;
+		case MODEL_DELTARES:
+			use_file= "rootfiles/filtered_nc_delta.root";
+			break;
+	}
 
 
 	a.add_mc_in_file(core +use_file);
 	a.set_mc_tree_name("MiniBooNE_CCQE");
 
-	
-	sp::ModelNCDelta model;
-	a.set_model(&model);
+
+	sp::ModelNueCCQE CCmodel;
+	sp::ModelNCDelta NCmodel;
+
+	switch(MODEL)
+	{
+		case MODEL_CCQE:
+			a.set_model(&CCmodel); 
+			break;
+		case MODEL_DELTARES:
+			a.set_model(&NCmodel);
+			break;
+	}
+
 
 	a.initialize();
 
 	std::vector<std::string> var_truth = {"NuMomT"};
 	std::vector<std::string> var_reco = {"RecoEnuQE"};
-	//std::vector<double> bins_reco = {200,  300.,  375. , 475.,  550.,  675.,  800.,  950.,  1100.  ,1300. , 1500. , 2000};
-	//std::vector<double> bins_reco = {200 ,300,  375. , 475.,  550.,  675.,  800.,  950.,  1100.  ,1300. , 1500. , 2000};
-	//std::vector<double> bins_reco = {200 ,300,  375. , 475.,  550.,  675.,  800.,  950.,  1100.  ,1300. , 1500. , 2000};
-	//std::vector<double> bins_truth = {200,250,300,350,400,450, 500,550,650,  800.,1000,2000};
-	//std::vector<double> bins_truth = {140,200.0,250,300,350,400,300,320,340,360,380,400,440,480,500, 550, 600., 650,   800.,1000,3000};
 
 
-	// This is more photon related
-	//std::vector<double> bins_truth = {300,450,600,700,800,1000,1200,1500,1750,2000,3000};
-	//std::vector<double> bins_truth = {300,500,700,900,1100,1300,1500,1900,3000};
-	std::vector<double> bins_truth =  {300,   475.,  550.,  675.,  800.,  950.,  1100.  ,1300. , 1500.,2500 };
-	std::vector<double> bins_reco =  {200 ,300,  375. , 475.,  550.,  675.,  800.,  950.,  1100.  ,1300. , 1500. , 2000};
 
+	std::vector<double> bins_truth ;//=  {300,   475.,  550.,  675.,  800.,  950.,  1100.  ,1300. , 1500.,2500 };
+	std::vector<double> bins_reco ;//=  {200 ,300,  375. , 475.,  550.,  675.,  800.,  950.,  1100.  ,1300. , 1500. , 2000};
+
+
+	switch(MODEL)
+	{
+		case MODEL_CCQE:
+			bins_reco = {200 ,300,  375. , 475.,  550.,  675.,  800.,  950.,  1100.  ,1300. , 1500.,1750 , 2000,2500};
+			bins_truth = {200,250,300,350,400,450, 500,600,  800.,1000,1500,2000,2500};
+			break;
+		case MODEL_DELTARES:
+			bins_truth =  {300,   475.,  550.,  675.,  800.,  950.,  1100.  ,1300. , 1500. ,2500};
+			bins_reco =  {200 ,300,  375. , 475.,  550.,  675.,  800.,  950.,  1100.  ,1300. , 1500. , 2000};
+			break;
+	}
 
 	//double max_plot_bin_truth  = 1000; //CCQE
-	double max_plot_bin_truth = 2000;
-	double max_plot_bin_reco = 1500;
+	double max_plot_bin_truth = bins_truth.back() ;//2000;
+	double max_plot_bin_reco = bins_reco.back() ;//1500;
 
 
 	int N_bins_reco = bins_reco.size()-1;
 	int N_bins_truth = bins_truth.size()-1;
 
 	int N_bins_lee = 5; 
+
 
 	std::cout<<"# True Bins: "<<N_bins_truth<<" # Reco Bins: "<<N_bins_reco<<std::endl;
 
@@ -86,11 +187,22 @@ int main(int argc, char** argv) {
 
 	std::cout << "Beginning" << std::endl;
 
-	//sp::UnfoldAlgoDAgnostini alg; 
-	sp::UnfoldAlgoSVD alg; 
 
-	alg.set_verbosity((sp::msg::Level_t)0);
-	alg.Initialize(&(a.Responses().front()));
+	sp::UnfoldAlgoBase * alg2;
+
+	switch(ALGO)
+	{
+		case ALGO_SVD:
+			alg2 = new sp::UnfoldAlgoSVD();
+			break;
+		case ALGO_DAG:
+			alg2 = new sp::UnfoldAlgoDAgnostini();
+			break;
+	}
+
+
+	alg2->set_verbosity((sp::msg::Level_t)0);
+	alg2->Initialize(&(a.Responses().front()));
 
 
 	double pot_scale = 6.46/41.10;
@@ -118,7 +230,7 @@ int main(int argc, char** argv) {
 	//
 	// Get the vector of histograms for each background type
 	//
-	
+
 	sp::SPIO spio;
 	spio.set_verbosity((sp::msg::Level_t)0);
 	//spio.set_model(&model);
@@ -187,11 +299,11 @@ int main(int argc, char** argv) {
 	TVectorD mini_signal(N_bins_reco);
 	for(int i=0; i<N_bins_reco; i++){
 		//This one is the old working one
-		//mini_signal(i) = (miniobs.at(i)-minibkg.at(i))+alg.r(i)*pot_scale    ;
+		//mini_signal(i) = (miniobs.at(i)-minibkg.at(i))+alg2->r(i)*pot_scale    ;
 
 		h_excess->SetBinContent(i+1, h_data->GetBinContent(i+1)-summed_mc.at(i));
 
-		mini_signal(i) = (h_data->GetBinContent(i+1)-summed_mc.at(i))+alg.r(i)*pot_scale    ;
+		mini_signal(i) = (h_data->GetBinContent(i+1)-summed_mc.at(i))+alg2->r(i)*pot_scale    ;
 
 
 		Nsignal += mini_signal(i);
@@ -214,17 +326,14 @@ int main(int argc, char** argv) {
 		std::cout<<"MYD(i,i) "<<sigcorr(i,i)<<std::endl;
 	}
 
-	alg.Setd(&mini_signal);
-	alg.SetD(&sigcorr);
+	alg2->Setd(&mini_signal);
+	alg2->SetD(&sigcorr);
 	std::cout<<"juuust setting D"<<std::endl;
-	alg.Unfold();
+	alg2->Unfold();
 
 
-	//	alg.SetRegularization(3);
-	//	alg.TestUnfolding("CCQE_poison_unfold_test");
-
-
-
+	//	alg2->SetRegularization(3);
+	//	alg2->TestUnfolding("CCQE_poison_unfold_test");
 
 
 
@@ -235,17 +344,23 @@ int main(int argc, char** argv) {
 
 
 
-	TH1D ans =  alg.GetHistU();
-	TH1D sig =  alg.GetHistD();
 
-	TH1D sig_events = alg.GetHistD(); //pure for chi^2 calc
 
-	TH1D reco = alg.GetHistR();
-	TH1D truth = alg.GetHistT();
+
+	TH1D ans =  alg2->GetHistU();
+	TH1D sig =  alg2->GetHistD();
+
+	TH1D sig_events = alg2->GetHistD(); //pure for chi^2 calc
+
+	TH1D reco = alg2->GetHistR();
+	TH1D truth = alg2->GetHistT();
 	sig.SetLineColor(kRed); 
 	ans.SetLineColor(kBlue); 
 	truth.SetLineColor(kBlack);
 	reco.SetLineColor(kBlack); 
+
+	//silly SetError expects underflow
+	sigerr.insert ( sigerr.begin() , 0 );	
 
 	sig.SetMarkerStyle(21);
 	sig.SetError(&sigerr[0]);
@@ -328,7 +443,7 @@ int main(int argc, char** argv) {
 
 
 	c_responce->cd(4)->SetRightMargin(0.175);
-	TH2D prob_MC = alg.GetHistA();
+	TH2D prob_MC = alg2->GetHistA();
 	gStyle->SetPalette(kInvertedDarkBodyRadiator);
 
 	prob_MC.GetYaxis()->SetTitle("Truth E_{#nu} Bin");
@@ -342,11 +457,11 @@ int main(int argc, char** argv) {
 	prob_MC.GetYaxis()->SetRange(1,10);
 
 	c_responce->cd(3);
-	TH1D eff = alg.GetHistEff();
+	TH1D eff = alg2->GetHistEff();
 
-	std::vector<double> errEff(alg.n_t);
-	for(int b=0; b<errEff.size();b++){
-		errEff.at(b)=sqrt(alg.Ep(b,b));  ;
+	std::vector<double> errEff(alg2->n_t+1,0.0);
+	for(int b=1; b<errEff.size();b++){
+		errEff.at(b)=sqrt(alg2->Ep(b-1,b-1));  ;
 	}
 	eff.SetError(&errEff[0]);
 
@@ -357,7 +472,7 @@ int main(int argc, char** argv) {
 	eff.SetMaximum(0.4);
 
 
-	c_responce->SaveAs("CCQE_eff_response.pdf","pdf");
+	c_responce->SaveAs( (base_name+"_eff_response.pdf").c_str(),"pdf");
 
 
 
@@ -386,7 +501,7 @@ int main(int argc, char** argv) {
 	h_data->Draw("same E1");
 	sum_bkg->SetMaximum(2.5);
 
-	c_obsv->SaveAs("CCQE_obsv.pdf","pdf");
+	c_obsv->SaveAs( (base_name+ "_obsv.pdf").c_str(),"pdf");
 
 
 
@@ -401,7 +516,7 @@ int main(int argc, char** argv) {
 	h_excess->GetYaxis()->SetTitle("Events/MeV");
 	h_excess->GetXaxis()->SetTitle("Reco E^{QE}_{#nu} [MeV]");
 
-	c_excess->SaveAs("CCQE_excess.pdf","pdf");
+	c_excess->SaveAs((base_name +"_excess.pdf").c_str(),"pdf");
 
 
 
@@ -441,7 +556,7 @@ int main(int argc, char** argv) {
 
 
 	c_signal->Write();
-	c_signal->SaveAs("CCQE_signal.pdf","pdf");
+	c_signal->SaveAs((base_name+"_signal.pdf").c_str(),"pdf");
 
 
 	/************************* Plot 3s**********************/
@@ -505,34 +620,34 @@ int main(int argc, char** argv) {
 		std::string nam = "Reg " +std::to_string(kreg.at(k)) ;
 
 		c_vary->cd(k+1)->SetLeftMargin(0.1);
-		alg.SetRegularization(kreg.at(k));
-		alg.Unfold();
+		alg2->SetRegularization(kreg.at(k));
+		alg2->Unfold();
 
 		//Section to re-fold and calc numbers of events.
-		TVectorD refolded = alg.A*alg.u;
+		TVectorD refolded = alg2->A*alg2->u;
 		double Nrefold = 0;
-		for(int i=0; i<alg.n_r; i++){
+		for(int i=0; i<alg2->n_r; i++){
 			Nrefold+=refolded(i);
 		}
 		std::cout<<std::setprecision(10)<<"REFOLD || On k="<<kreg.at(k)<<" and refolded-number-of-events is "<<Nrefold<<" . Data is "<<Nsignal<<std::endl;
 
 
 
-		std::vector<double> errA(alg.n_t,0.0);
-		std::vector<double> errD(alg.n_t,0.0);
-		std::vector<double> err(alg.n_t,0.0);
-		std::vector<double> errS(alg.n_t,0.0);
+		std::vector<double> errA(alg2->n_t+1,0.0);
+		std::vector<double> errD(alg2->n_t+1,0.0);
+		std::vector<double> err(alg2->n_t+1,0.0);
+		std::vector<double> errS(alg2->n_t+1,0.0);
 
-		for(int i=0;i<err.size(); i++){
-			errD.at(i) = sqrt(fabs(alg.U(i,i)));
-			errA.at(i) = sqrt(fabs(alg.UA(i,i)));
-			errS.at(i) = sqrt(fabs(alg.u(i)));
-			err.at(i) = sqrt(fabs(alg.UA(i,i)+alg.U(i,i)));
-			std::cout<<"u= "<<alg.u(i)<<" +/-(stat) "<<errS.at(i)<<" +/-(D) "<<errD.at(i)<<" +/-(A) "<<errA.at(i)<<" +/-(AD) "<<err.at(i)<<" bias "<<alg.b(i)<<" +/- "<<sqrt(alg.B(i,i))<<std::endl;
+		for(int i=1;i<err.size(); i++){
+			errD.at(i) = sqrt(fabs(alg2->U(i-1,i-1)));
+			errA.at(i) = sqrt(fabs(alg2->UA(i-1,i-1)));
+			errS.at(i) = sqrt(fabs(alg2->u(i-1)));
+			err.at(i) = sqrt(fabs(alg2->UA(i-1,i-1)+alg2->U(i-1,i-1)));
+			std::cout<<"u= "<<alg2->u(i-1)<<" +/-(stat) "<<errS.at(i-1)<<" +/-(D) "<<errD.at(i-1)<<" +/-(A) "<<errA.at(i-1)<<" +/-(AD) "<<err.at(i-1)<<" bias "<<alg2->b(i-1)<<" +/- "<<sqrt(alg2->B(i,i-1))<<std::endl;
 		}
 
 
-		us.at(k) = alg.GetHistU();
+		us.at(k) = alg2->GetHistU();
 		us.at(k).SetTitle(  nam.c_str() );
 		us.at(k).GetYaxis()->SetTitle("Events/MeV");
 		us.at(k).GetXaxis()->SetTitle("True E_{#nu} [MeV]");
@@ -547,7 +662,7 @@ int main(int argc, char** argv) {
 		us.at(k).GetXaxis()->SetRangeUser(bins_truth.front(),max_plot_bin_truth);
 		us.at(k).SetMaximum(10);//has to be after!
 
-		us_stat.at(k) = alg.GetHistU();
+		us_stat.at(k) = alg2->GetHistU();
 		us_stat.at(k).SetError(&errS[0]);
 		us_stat.at(k).SetLineColor(kBlack);
 		us_stat.at(k).SetLineWidth(1);
@@ -569,19 +684,19 @@ int main(int argc, char** argv) {
 
 
 		c_corr->cd(k+1);//->SetLogz();
-		US.at(k) = alg.GetCovU();
+		US.at(k) = alg2->GetCovU();
 		US.at(k).SetTitle(  nam.c_str() );
 		US.at(k).GetYaxis()->SetTitle("True E_{#nu} Bin a");
 		US.at(k).GetXaxis()->SetTitle("True E_{#nu} Bin b");
 		US.at(k).Draw("colz");
 
 		c_refold->cd(k+1);
-		uR.at(k) = alg.GetHistRefold();
+		uR.at(k) = alg2->GetHistRefold();
 		uR.at(k).SetTitle(nam.c_str());
 		double ch2 =0;// uR.at(k).Chi2Test(&sig_events,"CHI2,WW");
 		double ch2_lee = 0;
 		double ch2_max = 0;
-	
+
 		for(int i=1; i < N_bins_reco; i++){
 			double tmp = pow(uR.at(k).GetBinContent(i)-sig_events.GetBinContent(i),2.0)/sigcorr(i-1,i-1);
 			ch2 += tmp;
@@ -601,12 +716,12 @@ int main(int argc, char** argv) {
 
 
 		//RandomRefolding && MC bias calculation
-		std::vector<double> bias(alg.n_t,0);
-		std::vector<double> avgu(alg.n_t,0);
+		std::vector<double> bias(alg2->n_t,0);
+		std::vector<double> avgu(alg2->n_t,0);
 
 		double avg_refold_chi = 0;
 		for(int j=0;j<(int)N_random_refold;j++){
-			TH1D tmp = alg.GetHistRandRefold(rangen);
+			TH1D tmp = alg2->GetHistRandRefold(rangen);
 
 			double temp_chi =0;// tmp.Chi2Test(&sig_events,"CHI2,WW");
 
@@ -624,23 +739,23 @@ int main(int argc, char** argv) {
 
 
 			//and MC bias calc
-			TVectorD tmpV(alg.n_r);
-			for(int i=0; i<alg.n_r; i++){
+			TVectorD tmpV(alg2->n_r);
+			for(int i=0; i<alg2->n_r; i++){
 				tmpV(i)=tmp.GetBinContent(i+1);
 			}
 
-			auto tmp_alg = alg;
-			tmp_alg.Setd(&tmpV);
-			tmp_alg.Unfold();
-			for(int a=0; a<alg.n_t; a++){
-				avgu.at(a) += tmp_alg.u(a)/N_random_refold;
+			auto tmp_alg2= alg2;
+			tmp_alg2->Setd(&tmpV);
+			tmp_alg2->Unfold();
+			for(int a=0; a<alg2->n_t; a++){
+				avgu.at(a) += tmp_alg2->u(a)/N_random_refold;
 			}
 
 		}
 
-		for(int a=0;a<alg.n_t; a++){
-			bias.at(a) = avgu.at(a)-alg.u(a);
-			std::cout<<"ThisBias bin:"<<a<<" "<<bias.at(a)<<" "<<alg.b(a)<<std::endl;
+		for(int a=0;a<alg2->n_t; a++){
+			bias.at(a) = avgu.at(a)-alg2->u(a);
+			std::cout<<"ThisBias bin:"<<a<<" "<<bias.at(a)<<" "<<alg2->b(a)<<std::endl;
 		}
 
 		double avg_bias = 0;//Just average the bins		
@@ -655,11 +770,13 @@ int main(int argc, char** argv) {
 		bool bias_zero = true;
 		double bias_insig = 100;
 		//bias consistent with zero
-		for(int a=0; a<alg.n_t; a++){
-			double this_bias_insig = alg.b(a)/sqrt(alg.B(a,a));	
-			double this_bias_zero = fabs(alg.b(a)) - sqrt(alg.B(a,a)) ;
+		for(int a=0; a<alg2->n_t; a++){
+			std::cout<<"BINOUT: "<<a<<" B "<<alg2->B(a,a)<<" sqrt(B) "<<sqrt(alg2->B(a,a))<<std::endl;
+
+			double this_bias_insig = alg2->b(a)/sqrt(alg2->B(a,a));	
+			double this_bias_zero = fabs(alg2->b(a)) - sqrt(alg2->B(a,a)) ;
 			if(this_bias_insig < bias_insig) bias_insig = this_bias_insig;
-			if(fabs(alg.b(a)) >= sqrt(alg.B(a,a))    ) bias_zero = false;
+			if(fabs(alg2->b(a)) >= sqrt(alg2->B(a,a))    ) bias_zero = false;
 		}
 
 
@@ -667,22 +784,22 @@ int main(int argc, char** argv) {
 
 
 		/* This is multi-truth biasing
-		   TVectorD pois_u = alg.u;
-		   std::vector<double> bias(alg.n_t,0.0);
+		   TVectorD pois_u = alg2->u;
+		   std::vector<double> bias(alg2->n_t,0.0);
 		   for(int i=0; i< N_mc_bias; i++){
 
-		   for(int a=0; a<alg.n_t; a++){
-		   pois_u(a) = rangen->Poisson( alg.u(a) ); 
+		   for(int a=0; a<alg2->n_t; a++){
+		   pois_u(a) = rangen->Poisson( alg2->u(a) ); 
 		   }
 
 
-		   TVectorD re = alg.A*pois_u;
-		   auto tmp_alg = alg;
-		   tmp_alg.Setd(&re);
-		   tmp_alg.Unfold();
+		   TVectorD re = alg2->A*pois_u;
+		   auto tmp_alg2->= alg2->
+		   tmp_alg2->Setd(&re);
+		   tmp_alg2->Unfold();
 
-		   for(int a=0; a<alg.n_t; a++){
-		   double thisbias = tmp_alg.u(a)-pois_u(a);
+		   for(int a=0; a<alg2->n_t; a++){
+		   double thisbias = tmp_alg2->u(a)-pois_u(a);
 		   bias.at(a) += (thisbias)/((double)N_mc_bias);
 		   }			
 		   }
@@ -720,16 +837,16 @@ int main(int argc, char** argv) {
 
 		//Bias plot filling
 		c_bias->cd(k+1);
-		uBias.at(k) = alg.GetHistBias();	
+		uBias.at(k) = alg2->GetHistBias();	
 		uBias.at(k).SetMarkerStyle(2);
 		uBias.at(k).SetMarkerSize(2);
 		uBias.at(k).SetTitle(  nam.c_str() );
-		uBias.at(k).GetYaxis()->SetTitle("Bias/MeV");
+		uBias.at(k).GetYaxis()->SetTitle("Bias");
 		uBias.at(k).GetXaxis()->SetTitle("True E_{#nu} [MeV]");
 		uBias.at(k).SetLineColor(kBlack);
 		uBias.at(k).SetLineWidth(2);
 		uBias.at(k).SetFillColor(cols.at(k));
-		uBias.at(k).Scale(1,"width"); // should it be bias /MeV?
+		//uBias.at(k).Scale(1,"width"); // should it be bias /MeV? doubt it really
 		uBias.at(k).Draw("E2");
 		uBias.at(k).GetXaxis()->SetRangeUser(bins_truth.front(),max_plot_bin_truth);
 		/* At this point the standard
@@ -784,9 +901,9 @@ int main(int argc, char** argv) {
 
 
 
-	alg.TestRegularization("CCQE_lcurves", 1,6,5);
-	//alg.SetDirectRegularization(1000);
-	//alg.TestRegularization("CCQE_lcurves_direct", -8,8,200);  //-20 13
+	alg2->TestRegularization("CCQE_lcurves", 1,6,5);
+	//alg2->SetDirectRegularization(1000);
+	//alg2->TestRegularization("CCQE_lcurves_direct", -8,8,200);  //-20 13
 
 	c_chicurve->cd();
 	c_chicurve->SetLogy();
@@ -801,7 +918,7 @@ int main(int argc, char** argv) {
 	TLine l_chicurve(refold_k.front(),1,refold_k.back(),1);
 	l_chicurve.Draw();
 	c_chicurve->Write();
-	c_chicurve->SaveAs("CCQE_chicurve.pdf","pdf");
+	c_chicurve->SaveAs((base_name+"_chicurve.pdf").c_str(),"pdf");
 
 	TCanvas * c_mcbias = new TCanvas("cmcbias","cmcbias",1200,1200);
 	c_mcbias->cd();
@@ -817,19 +934,19 @@ int main(int argc, char** argv) {
 	//TLine l_bias(refold_k.front(),1,refold_k.back(),1);
 	//l_bias.Draw();
 	c_mcbias->Write();
-	c_mcbias->SaveAs("CCQE_bias.pdf","pdf");
+	c_mcbias->SaveAs((base_name+"_bias.pdf").c_str(),"pdf");
 
 
 
 	c_vary->Write();
 	c_corr->Write();
 	c_bias->Write();
-	
-	c_unfold->SaveAs("CCQE_unfolded.pdf","pdf");
-	c_vary->SaveAs("CCQE_reg_vary.pdf","pdf");
-	c_corr->SaveAs("CCQE_reg_corr.pdf","pdf");
-	c_refold->SaveAs("CCQE_reg_refold.pdf","pdf");
-	c_bias->SaveAs("CCQE_reg_bias.pdf","pdf");
+
+	c_unfold->SaveAs((base_name+"_unfolded.pdf").c_str(),"pdf");
+	c_vary->SaveAs((base_name+"_reg_vary.pdf").c_str(),"pdf");
+	c_corr->SaveAs((base_name+"_reg_corr.pdf").c_str(),"pdf");
+	c_refold->SaveAs((base_name+"_reg_refold.pdf").c_str(),"pdf");
+	c_bias->SaveAs((base_name+"_reg_bias.pdf").c_str(),"pdf");
 
 
 	/*	Not finished yet
@@ -839,7 +956,7 @@ int main(int argc, char** argv) {
 		std::vector<TH1D*> sample_list;
 		us.at(i)
 		for(int i=0; i< 4; i++){
-		sample_list.at(i) = alg.SampleCovarianceU(&result);
+		sample_list.at(i) = alg2->SampleCovarianceU(&result);
 		sample_list.at(i)->Draw();		
 		}
 	 */
@@ -894,8 +1011,7 @@ int main(int argc, char** argv) {
 
 	leg2->Draw();
 	line->Draw();
-	cr_scaled->SaveAs("CCQE_model_ratio_scaleo.pdf","pdf");
-
+	cr_scaled->SaveAs((base_name+"_model_ratio_scaleo.pdf").c_str(),"pdf");
 
 
 
@@ -904,11 +1020,11 @@ int main(int argc, char** argv) {
 		std::cout<<"Ratio "<<ratio.GetBinContent(i)<<" "<<ratio_scaled->GetBinContent(i)<<std::endl;
 	}
 	cr->Write();
-	cr->SaveAs("CCQE_model_ratio.pdf","pdf");
+	cr->SaveAs((base_name+"_model_ratio.pdf").c_str(),"pdf");
 
 	f->Close();
 
-	TFile* f_graph_out =  new TFile("CCQE_final_tgraph.root","RECREATE");
+	TFile* f_graph_out =  new TFile((base_name+"_final_tgraph.root").c_str(),"RECREATE");
 	f_graph_out->cd();
 
 	ratio.Write();
