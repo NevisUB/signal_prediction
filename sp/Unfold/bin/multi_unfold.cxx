@@ -148,7 +148,7 @@ int main(int argc, char** argv) {
 			bins_truth = {200,250,300,350,400,450, 500,600,  800.,1000,1500,2000,2500};
 			break;
 		case MODEL_DELTARES:
-			bins_truth =  {300,   475.,  550.,  675.,  800.,  950.,  1100.  ,1300. , 1500. ,2500};
+			bins_truth =  {300,  475.,  550.,  675.,  800.,  950.,  1100.  ,1300. , 1500. ,2500};
 			bins_reco =  {200 ,300,  375. , 475.,  550.,  675.,  800.,  950.,  1100.  ,1300. , 1500. , 2000};
 			break;
 	}
@@ -531,7 +531,7 @@ int main(int argc, char** argv) {
 	sig.SetMarkerStyle(21);
 	sig.SetLineWidth(2);
 	sig.Draw("e1");
-	sig.GetXaxis()->SetRangeUser(bins_truth.front(),max_plot_bin_truth);
+	sig.GetXaxis()->SetRangeUser(bins_reco.front(),max_plot_bin_reco);
 
 	sig.SetMinimum(0);
 
