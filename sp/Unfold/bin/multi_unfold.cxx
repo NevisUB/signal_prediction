@@ -57,13 +57,13 @@ int main(int argc, char** argv) {
 		{
 			case 'a':
 				tin = optarg;//way to read in null terminated c strings and compare to known list
-				if(strcmp(tin, "svd")==0){ ALGO = ALGO_SVD; algo_name = "SVD";}
+				if(strcmp(tin, "svd")==0){  ALGO = ALGO_SVD; algo_name = "SVD";}
 				if(strcmp(tin, "dag")==0) { ALGO = ALGO_DAG; algo_name = "DAG";}
 				break;
 			case 'm':
 				tin = optarg;//way to read in null terminated c strings and compare to known list
-				if(strcmp(tin, "ncdelta")==0){ MODEL = MODEL_CCQE; model_name = "CCQE";}
-				if(strcmp(tin, "ccqe")==0) { MODEL = MODEL_DELTARES; model_name = "DELTARES";}
+				if(strcmp(tin, "ccqe")==0){ MODEL = MODEL_CCQE; model_name = "CCQE";}
+				if(strcmp(tin, "deltares")==0) {  MODEL = MODEL_DELTARES; model_name = "DELTARES";}
 				break;
 
 			case '?':
@@ -87,18 +87,11 @@ int main(int argc, char** argv) {
 
 
 
-
-
-
-
-
-
 	TRandom3 * rangen = new TRandom3(0);
 
 	gStyle->SetOptStat(0);
 	sp::SPIO a;
 	a.set_verbosity((sp::msg::Level_t)0);
-
 
 
 	std::string core = "/home/mark/work/uBooNE/lee_unfolding/";
@@ -199,6 +192,9 @@ int main(int argc, char** argv) {
 			alg2 = new sp::UnfoldAlgoDAgnostini();
 			break;
 	}
+
+
+//	sp::UnfoldAlgoSVD * alg2 = new sp::UnfoldAlgoSVD();
 
 
 	alg2->set_verbosity((sp::msg::Level_t)0);
@@ -744,12 +740,14 @@ int main(int argc, char** argv) {
 				tmpV(i)=tmp.GetBinContent(i+1);
 			}
 
-			auto tmp_alg2= alg2;
-			tmp_alg2->Setd(&tmpV);
-			tmp_alg2->Unfold();
+			/*
+			auto tmp_alg = *alg2;
+			tmp_alg.Setd(&tmpV);
+			tmp_alg.Unfold();
 			for(int a=0; a<alg2->n_t; a++){
-				avgu.at(a) += tmp_alg2->u(a)/N_random_refold;
+				avgu.at(a) += tmp_alg.u(a)/N_random_refold;
 			}
+			*/ //currently broke
 
 		}
 
