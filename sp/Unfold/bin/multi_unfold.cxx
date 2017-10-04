@@ -593,6 +593,7 @@ int main(int argc, char** argv) {
 	std::vector<TH1D> us_stat(kreg.size());
 
 	std::vector<std::vector<TH1D>> u_chols( kreg.size(), std::vector<TH1D>(N_chols)   );
+	std::vector<std::vector<TH1D>> u_chols_ratio( kreg.size(), std::vector<TH1D>(N_chols)   );
 
 	//std::vector<int> kreg = {1,2,5,8,100};
 
@@ -704,7 +705,10 @@ int main(int argc, char** argv) {
 				int rnd_col = rec_cols.at(rangen->Integer(rec_cols.size()));
 				rnd_col = rnd_col+ rangen->Integer(20)-10;
 				u_chols.at(k).at(i).SetLineColor(rnd_col);
-			 
+			
+				u_chols_ratio.at(k).at(i) = u_chols.at(k).at(i);
+				u_chols_ratio.at(k).at(i).Scale(1,"width");
+				u_chols_ratio.at(k).at(i).Divide(&truth); 
 		}
 
 
@@ -969,6 +973,37 @@ int main(int argc, char** argv) {
 	
 
 	c_chol->SaveAs((base_name+"_chol.pdf").c_str(),"pdf");
+
+
+
+	/***********************************************************************
+				Draw Colerated pairs! Ratio
+	 ***********************************************************************/
+	TCanvas *c_chols_ratio = new TCanvas("chols_ratio","chols_ratio",1200,800);
+	c_chols_ratio->cd();
+
+
+
+	int use_chols_ratio = 2;//best_reg;
+		u_chols_ratio.at(use_chols_ratio).at(0).Draw("hist");
+		u_chols_ratio.at(use_chols_ratio).at(0).GetXaxis()->SetRangeUser(bins_truth.front(), max_plot_bin_truth);
+		u_chols_ratio.at(use_chols_ratio).at(0).SetMaximum(8);
+		u_chols_ratio.at(use_chols_ratio).at(0).SetMinimum(0);
+	
+	for(int i=1; i< N_chols; i++){
+		u_chols_ratio.at(use_chols_ratio).at(i).Draw("same hist");
+	}
+	
+	TLine *line_chol_ratio = new TLine(bins_truth.front(),1,max_plot_bin_truth,1);
+	line_chol_ratio->SetLineColor(kBlack);
+	line_chol_ratio->SetLineStyle(2);
+	line_chol_ratio->Draw();
+
+
+
+	c_chols_ratio->SaveAs((base_name+"_chols_ratio.pdf").c_str(),"pdf");
+
+
 
 
 
