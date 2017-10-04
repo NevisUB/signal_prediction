@@ -194,7 +194,7 @@ int main(int argc, char** argv) {
 	}
 
 
-//	sp::UnfoldAlgoSVD * alg2 = new sp::UnfoldAlgoSVD();
+	//	sp::UnfoldAlgoSVD * alg2 = new sp::UnfoldAlgoSVD();
 
 
 	alg2->set_verbosity((sp::msg::Level_t)0);
@@ -568,15 +568,23 @@ int main(int argc, char** argv) {
 	c_refold->Divide(3,3);
 	c_bias->Divide(3,3);
 
+	double N_random_refold = 10.0;
+	int N_mc_bias = 10;
+	int N_chols = 5;
+
 
 	std::vector<int> kreg = {1,2,3,4,5,6,7,8};
 	std::vector<int> cols = {kBlue-7,kGreen-6,kRed-7, kOrange-3, kMagenta-3, kGreen+3, kBlue-7,kGreen-6,kRed-7};
 	std::vector<TH1D> us(kreg.size());
+	std::vector<TMatrixT<double>> UU(kreg.size());
 	std::vector<TH2D> US(kreg.size());
 	std::vector<TH1D> uR(kreg.size());
 	std::vector<TH1D> uBias(kreg.size());
 	std::vector<TLegend*> leg(kreg.size());
 	std::vector<TH1D> us_stat(kreg.size());
+
+	std::vector<std::vector<TH1D>> u_chols( kreg.size(), std::vector<TH1D>(N_chols)   );
+
 	//std::vector<int> kreg = {1,2,5,8,100};
 
 	//Some basic Lcurve and Chi^2 analysis on refolded spectra
@@ -585,10 +593,6 @@ int main(int argc, char** argv) {
 	std::vector<double> refold_k;
 
 	std::vector<double> bias_avg;
-
-
-	double N_random_refold = 10.0;
-	int N_mc_bias = 10;
 
 
 
@@ -639,11 +643,12 @@ int main(int argc, char** argv) {
 			errA.at(i) = sqrt(fabs(alg2->UA(i-1,i-1)));
 			errS.at(i) = sqrt(fabs(alg2->u(i-1)));
 			err.at(i) = sqrt(fabs(alg2->UA(i-1,i-1)+alg2->U(i-1,i-1)));
-			std::cout<<"u= "<<alg2->u(i-1)<<" +/-(stat) "<<errS.at(i-1)<<" +/-(D) "<<errD.at(i-1)<<" +/-(A) "<<errA.at(i-1)<<" +/-(AD) "<<err.at(i-1)<<" bias "<<alg2->b(i-1)<<" +/- "<<sqrt(alg2->B(i,i-1))<<std::endl;
+			std::cout<<"u= "<<alg2->u(i-1)<<" +/-(stat) "<<errS.at(i-1)<<" +/-(D) "<<errD.at(i-1)<<" +/-(A) "<<errA.at(i-1)<<" +/-(AD) "<<err.at(i-1)<<" bias "<<alg2->b(i-1)<<" +/- "<<sqrt(fabs(alg2->B(i-1,i-1) ) )<<std::endl;
 		}
 
 
 		us.at(k) = alg2->GetHistU();
+		UU.at(k) = alg2->U;
 		us.at(k).SetTitle(  nam.c_str() );
 		us.at(k).GetYaxis()->SetTitle("Events/MeV");
 		us.at(k).GetXaxis()->SetTitle("True E_{#nu} [MeV]");
@@ -677,6 +682,14 @@ int main(int argc, char** argv) {
 		leg.at(k)->SetFillStyle(0);
 		leg.at(k)->SetBorderSize(0);
 		leg.at(k)->Draw();
+
+
+		// Cholosky Decomp
+		for(int i=0; i<N_chols; i++){
+				std::cout<<"On Chol Deco #: "<<i<<std::endl;
+				u_chols.at(k).at(i) = alg2->SampleCovarianceU();
+		}
+
 
 
 		c_corr->cd(k+1);//->SetLogz();
@@ -741,13 +754,13 @@ int main(int argc, char** argv) {
 			}
 
 			/*
-			auto tmp_alg = *alg2;
-			tmp_alg.Setd(&tmpV);
-			tmp_alg.Unfold();
-			for(int a=0; a<alg2->n_t; a++){
-				avgu.at(a) += tmp_alg.u(a)/N_random_refold;
-			}
-			*/ //currently broke
+			   auto tmp_alg = *alg2;
+			   tmp_alg.Setd(&tmpV);
+			   tmp_alg.Unfold();
+			   for(int a=0; a<alg2->n_t; a++){
+			   avgu.at(a) += tmp_alg.u(a)/N_random_refold;
+			   }
+			 */ //currently broke
 
 		}
 
@@ -890,6 +903,26 @@ int main(int argc, char** argv) {
 
 
 
+	/***********************************************************************
+				Draw Colerated pairs!
+	 ***********************************************************************/
+	TCanvas *c_chol = new TCanvas("chol","chol",1200,800);
+	c_chol->cd();
+
+
+
+	int use_chol = 2;//best_reg;
+	us.at(use_chol).Draw("E2");
+	truth.Draw("same hist");
+	us.at(use_chol).GetXaxis()->SetRangeUser(bins_truth.front(), max_plot_bin_truth);
+
+	for(int i=0; i< N_chols; i++){
+		u_chols.at(use_chol).at(i).Scale(1,"width");
+		u_chols.at(use_chol).at(i).Draw("same hist");
+	}
+	
+
+	c_chol->SaveAs((base_name+"_chol.pdf").c_str(),"pdf");
 
 
 

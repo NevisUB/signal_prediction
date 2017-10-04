@@ -12,6 +12,7 @@
 #include "math.h"
 #include <TDecompChol.h>
 
+#include "TMatrixDEigen.h"
 namespace sp {
 
 	class UnfoldAlgoBase : public sp_base {
@@ -89,7 +90,7 @@ namespace sp {
 			void MCbiasCalc(TRandom3* );
 			void TestRegularization( std::string filename, double low, double high, int num);
 			void TestUnfolding(std::string in);
-			TH1D SampleCovarianceU(TVectorT<double> &result);  
+			TH1D SampleCovarianceU();  
 
 			//
 			// Getters

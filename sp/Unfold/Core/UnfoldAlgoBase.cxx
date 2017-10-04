@@ -526,51 +526,123 @@ namespace sp {
 		SP_DEBUG() << "end" << std::endl;
 	}
 
-	TH1D UnfoldAlgoBase::SampleCovarianceU(TVectorT<double> &result){
+	TH1D UnfoldAlgoBase::SampleCovarianceU(){
 		TRandom3 * rangen = new TRandom3(0);
-		TDecompChol * chol = new TDecompChol(U,0.0);
+
+
+		double tol = 1e-8;
+
+		//First up, we have some problems with positive semi-definite and not positive definite
+		TMatrixDEigen eigen (U);
+		TVectorD eigen_values = eigen.GetEigenValuesRe();
+
+		SP_DEBUG()<<"Eigenvalues of U are: "<<std::endl;
+		for(int i=0; i< eigen_values.GetNoElements(); i++){
+			
+			SP_DEBUG()<<"Eigen "<<i<<" : "<<eigen_values(i)<<std::endl;
+			
+			if(eigen_values(i)<=0){
+		
+				if(fabs(eigen_values(i))< tol){
+					SP_WARNING()<<"U has a very small, < "<<tol<<" , negative eigenvalue. Adding it back to diagonal of U: "<<eigen_values(i)<<std::endl;
+					
+					for(int a =0; a<n_t; a++){
+						U(a,a) += eigen_values(i);
+					}
+
+				}else{
+	
+					SP_ERROR()<<"U has a Zero or Negative eigenvalue: "<<eigen_values(i)<<" @ "<<i<<std::endl;
+					throw sperr();
+				}
+			}
+
+			if(fabs(eigen_values(i))< tol){
+				SP_WARNING()<<"U has a very small, < "<<tol<<", eigenvalue which for some reason fails to decompose. Adding 1e9 to diagonal of U"<<std::endl;
+				
+				for(int a =0; a<n_t; a++){
+					U(a,a) += tol;
+				}
+
+			}	
+		}
+
+
+
+		//Seconndly attempt a Cholosky Decomposition
+
+		TDecompChol * chol = new TDecompChol(U,0.1);
+		bool worked = chol->Decompose();
+
+		if(!worked){
+			SP_WARNING()<<"Cholosky Decomposition Failed!."<<std::endl;
+			throw sperr();
+		}
+
 		TMatrixT<double> upper_trian(n_t,n_t);
+		TMatrixT<double> lower_trian(n_t,n_t);
 		upper_trian = chol->GetU();
+		lower_trian = upper_trian;
+		lower_trian.T();
+
+		//lower_trian.Print();
 
 		TVectorT<double> gaus_sample(n_t);
-		for(int i=0; i<n_t; i++){
-			gaus_sample(i) = rangen->Gaus( u(i), sqrt(U(i,i)));	
+		TVectorT<double> multi_sample(n_t);
+		for(int a=0; a<n_t; a++){
+			gaus_sample(a) = rangen->Gaus(0,1);	
 		}
-		gaus_sample = U*gaus_sample;
 
 
-		for(int i=0; i<n_t; i++){
-			hist_u->SetBinContent(i+1, gaus_sample(i));
-			result(i) = gaus_sample(i); 
+		multi_sample = u + lower_trian*gaus_sample;
+
+
+		for(int a=0; a<n_t; a++){
+			//multi_sample(a) = u(a);	
+			for(int b=0; b<n_t; b++){
+				std::cout<<"U: "<<U(a,b)<<" up: "<<upper_trian(a,b)<<" lo: "<<lower_trian(a,b)<<std::endl;
+
+				//	multi_sample(a) += upper_trian(b,a)*gaus_sample(b);
+			}
+			std::cout<<"CHOL M: " <<multi_sample(a)<<" "<<gaus_sample(a)<<" "<<u(a)<<" +/- "<<sqrt(U(a,a))<<std::endl;
 		}
+
+
+		std::vector<double> err;
+		err.push_back(0);
+		for(int i=0; i<n_t; i++){
+			hist_u->SetBinContent(i+1, multi_sample(i));
+			err.push_back( sqrt(fabs(U(i,i))) );
+		}
+		hist_u->SetError(&err[0]);	
+
 		return *hist_u;
-
 
 	}
 	void UnfoldAlgoBase::MCbiasCalc(TRandom3 * rangen ){
 		//Step 1. Get random (but slightly different "true" spectra)
 		TVectorD pois_u = u;
-/*		
-		b.Zero();
-		int num_mc = 1;
-		for(int i=0; i< num_mc; i++){
+		/*		
+				b.Zero();
+				int num_mc = 1;
+				for(int i=0; i< num_mc; i++){
 
-			for(int a=0; a<n_t; a++){
+				for(int a=0; a<n_t; a++){
 				pois_u(a) = rangen->Poisson( u(a) ); 
-			}
+				}
 
 
-			TVectorD re = A*pois_u;
-			auto tmp_alg = new UnfoldAlgoBase(*this);
-			tmp_alg->Setd(&re);
-			tmp_alg->Unfold();
+				TVectorD re = A*pois_u;
+				auto tmp_alg = new UnfoldAlgoBase(*this);
+				tmp_alg->Setd(&re);
+				tmp_alg->Unfold();
 
-			for(int a=0; a<n_t; a++){
+				for(int a=0; a<n_t; a++){
 				b(a) += (tmp_alg.u(a)-pois_u(a))/((double)num_mc);
-			}			
-}
-*/
-		}
+				}			
+				}
+		 */
+	}
 
 
 
@@ -580,7 +652,7 @@ namespace sp {
 		bool logscale = false;
 
 		SP_DEBUG()<<"Starting test from k="<<low_kreg<<" to "<<high_kreg<<std::endl;
-		
+
 		if(low_kreg < 0){//must be a log scale
 			logscale= true;
 		}
@@ -592,7 +664,7 @@ namespace sp {
 		std::vector<double> x(num_kreg,0);    	
 		std::vector<double> MB(num_kreg,0);    	
 		std::vector<double> MBoE(num_kreg,0);    	
-		
+
 
 		for(double k=0; k<num_kreg; k++){
 			double kreg = ceil( (high_kreg-low_kreg)*k/num_kreg+low_kreg );
@@ -613,16 +685,16 @@ namespace sp {
 				MV[k] += 1.0/((double)n_t)*U(a,a);
 				MB[k] += 1.0/((double)n_t)*fabs(b(a)*b(a));
 				MBoE[k] += 1.0/((double)n_t)*fabs(b(a)*b(a))/B(a,a);
-					
+
 
 			}
 
 			SP_DEBUG()<<"RS: "<<" "<<(double)n_t*MV[k]<<" "<<(double)n_t*MB[k]<<std::endl;
 
 			if(logscale){
-			x[k]=log10(kreg);
+				x[k]=log10(kreg);
 			}else{
-			x[k]=kreg;
+				x[k]=kreg;
 			}
 
 			this->U.Zero();
@@ -645,7 +717,7 @@ namespace sp {
 		gMV->SetTitle("Minimum Variance");
 		gMV->GetXaxis()->SetTitle("Number of Iterations");
 		gMV->GetYaxis()->SetTitle("Average Variance");
-		
+
 		gMV->SetMarkerStyle(2);
 		gMV->SetMarkerSize(3);
 
@@ -674,7 +746,7 @@ namespace sp {
 		gMSEp->SetTitle("Modified Minimum Square Error MSE");
 		gMSEp->GetXaxis()->SetTitle("Number of Iterations");
 		gMSEp->GetYaxis()->SetTitle("Square Error");
-	gMSEp->SetMarkerStyle(2);
+		gMSEp->SetMarkerStyle(2);
 		gMSEp->SetMarkerSize(3);
 
 		gMSEp->Draw("ACP");
@@ -685,10 +757,10 @@ namespace sp {
 		gCurve->SetTitle("Variance - Bias curve ");
 		gCurve->GetYaxis()->SetTitle("Avg Bias");
 		gCurve->GetXaxis()->SetTitle("Avg Variance");
-	gCurve->SetMarkerStyle(2);
+		gCurve->SetMarkerStyle(2);
 		gCurve->SetMarkerSize(3);
-	
-	gCurve->Draw("ACP");
+
+		gCurve->Draw("ACP");
 
 		TPad *p5 = (TPad*)c->cd(6);
 		p5->SetLogy();
