@@ -559,25 +559,34 @@ int main(int argc, char** argv) {
 
 	TCanvas *c_vary =  new TCanvas("c1","c1",1200,1200);
 	TCanvas *c_unfold =  new TCanvas("c_unfold","c_unfold",1200,1200);
-	TCanvas *c_corr =  new TCanvas("c_vary","c_vary",3000,3000);
 	TCanvas *c_refold =  new TCanvas("c_refold","c_refold",3000,3000);
 	TCanvas *c_bias = new TCanvas("c_bias","c_bias",3000,3000);
+	TCanvas *c_frac_cov =  new TCanvas("c_frac_cov","c_frac_cov",3000,3000);
+	TCanvas *c_full_cov =  new TCanvas("c_full_cov","c_full_cov",3000,3000);
+	TCanvas *c_corr =  new TCanvas("c_vary","c_vary",3000,3000);
 
 	c_vary->Divide(3,3);
-	c_corr->Divide(3,3);
 	c_refold->Divide(3,3);
 	c_bias->Divide(3,3);
+	c_corr->Divide(3,3);
+	c_frac_cov->Divide(3,3);
+	c_full_cov->Divide(3,3);
 
 	double N_random_refold = 10.0;
 	int N_mc_bias = 10;
-	int N_chols = 5;
+	int N_chols = 10;
+
 
 
 	std::vector<int> kreg = {1,2,3,4,5,6,7,8};
 	std::vector<int> cols = {kBlue-7,kGreen-6,kRed-7, kOrange-3, kMagenta-3, kGreen+3, kBlue-7,kGreen-6,kRed-7};
 	std::vector<TH1D> us(kreg.size());
 	std::vector<TMatrixT<double>> UU(kreg.size());
-	std::vector<TH2D> US(kreg.size());
+	std::vector<TH2D> U_full_cov(kreg.size());
+	std::vector<TH2D> U_frac_cov(kreg.size());
+	std::vector<TH2D> U_corr(kreg.size());
+	
+
 	std::vector<TH1D> uR(kreg.size());
 	std::vector<TH1D> uBias(kreg.size());
 	std::vector<TLegend*> leg(kreg.size());
@@ -612,9 +621,12 @@ int main(int argc, char** argv) {
 
 
 
+	
 
-
-
+	std::vector<std::vector<int>> base_cols;
+	std::vector<int> tri_cols = {kRed, kMagenta,kBlue,kCyan,kGreen,kYellow};
+	std::vector<int> rec_cols = {kOrange, kPink,kViolet,kAzure,kTeal,kSpring};	
+	
 
 	for(int k=0; k<kreg.size(); k++){
 		std::string nam = "Reg " +std::to_string(kreg.at(k)) ;
@@ -688,16 +700,50 @@ int main(int argc, char** argv) {
 		for(int i=0; i<N_chols; i++){
 				std::cout<<"On Chol Deco #: "<<i<<std::endl;
 				u_chols.at(k).at(i) = alg2->SampleCovarianceU();
+				u_chols.at(k).at(i).SetLineWidth(1);
+				int rnd_col = rec_cols.at(rangen->Integer(rec_cols.size()));
+				rnd_col = rnd_col+ rangen->Integer(20)-10;
+				u_chols.at(k).at(i).SetLineColor(rnd_col);
+			 
 		}
 
 
 
+		c_full_cov->cd(k+1);//->SetLogz();
+		U_full_cov.at(k) = alg2->GetCovU();
+		U_full_cov.at(k).SetTitle(  nam.c_str() );
+		U_full_cov.at(k).GetYaxis()->SetTitle("True E_{#nu} Bin a");
+		U_full_cov.at(k).GetXaxis()->SetTitle("True E_{#nu} Bin b");
+		U_full_cov.at(k).Draw("colz");
+
+		//Fractional 
+		c_frac_cov->cd(k+1);//->SetLogz();
+		U_frac_cov.at(k) = U_full_cov.at(k);
+			for(int a=0; a< alg2->n_t; a++){
+				for(int b=0; b< alg2->n_t; b++){
+					U_frac_cov.at(k).SetBinContent(a+1,b+1,  U_full_cov.at(k).GetBinContent(a+1,b+1)/(alg2->u(a)* alg2->u(b)    ));	
+				}
+			}
+
+		U_frac_cov.at(k).SetTitle(  nam.c_str() );
+		U_frac_cov.at(k).GetYaxis()->SetTitle("True E_{#nu} Bin a");
+		U_frac_cov.at(k).GetXaxis()->SetTitle("True E_{#nu} Bin b");
+		U_frac_cov.at(k).Draw("colz");
+
+		//Correlation 
 		c_corr->cd(k+1);//->SetLogz();
-		US.at(k) = alg2->GetCovU();
-		US.at(k).SetTitle(  nam.c_str() );
-		US.at(k).GetYaxis()->SetTitle("True E_{#nu} Bin a");
-		US.at(k).GetXaxis()->SetTitle("True E_{#nu} Bin b");
-		US.at(k).Draw("colz");
+		U_corr.at(k) = U_full_cov.at(k);
+			for(int a=0; a< alg2->n_t; a++){
+				for(int b=0; b< alg2->n_t; b++){
+					U_corr.at(k).SetBinContent(a+1,b+1,  U_full_cov.at(k).GetBinContent(a+1,b+1)/(sqrt(U_full_cov.at(k).GetBinContent(a+1,a+1)*U_full_cov.at(k).GetBinContent(b+1,b+1)   ) ));	
+				}
+			}
+		U_corr.at(k).SetTitle(  nam.c_str() );
+		U_corr.at(k).GetYaxis()->SetTitle("True E_{#nu} Bin a");
+		U_corr.at(k).GetXaxis()->SetTitle("True E_{#nu} Bin b");
+		U_corr.at(k).Draw("colz");
+
+
 
 		c_refold->cd(k+1);
 		uR.at(k) = alg2->GetHistRefold();
@@ -912,7 +958,7 @@ int main(int argc, char** argv) {
 
 
 	int use_chol = 2;//best_reg;
-	us.at(use_chol).Draw("E2");
+	us.at(use_chol).Draw("E1");
 	truth.Draw("same hist");
 	us.at(use_chol).GetXaxis()->SetRangeUser(bins_truth.front(), max_plot_bin_truth);
 
@@ -971,11 +1017,15 @@ int main(int argc, char** argv) {
 
 	c_vary->Write();
 	c_corr->Write();
+	c_full_cov->Write();
+	c_frac_cov->Write();
 	c_bias->Write();
 
 	c_unfold->SaveAs((base_name+"_unfolded.pdf").c_str(),"pdf");
 	c_vary->SaveAs((base_name+"_reg_vary.pdf").c_str(),"pdf");
 	c_corr->SaveAs((base_name+"_reg_corr.pdf").c_str(),"pdf");
+	c_frac_cov->SaveAs((base_name+"_reg_frac_cov.pdf").c_str(),"pdf");
+	c_full_cov->SaveAs((base_name+"_reg_full_cov.pdf").c_str(),"pdf");
 	c_refold->SaveAs((base_name+"_reg_refold.pdf").c_str(),"pdf");
 	c_bias->SaveAs((base_name+"_reg_bias.pdf").c_str(),"pdf");
 
