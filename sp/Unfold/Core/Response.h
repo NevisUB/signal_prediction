@@ -5,6 +5,7 @@
 
 #include "TH2D.h"
 #include "TVectorD.h"
+#include "TRandom3.h"
 #include "TMatrixD.h"
 
 namespace sp {
@@ -38,6 +39,11 @@ namespace sp {
     
     bool filled() const;
     void dump() const;
+
+
+    bool poisson_all(TRandom3 *);
+    bool remake_parameters();
+
 
     ClassDef(sp::Response,1); 
   };

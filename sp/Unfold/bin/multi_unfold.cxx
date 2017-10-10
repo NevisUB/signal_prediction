@@ -148,7 +148,7 @@ int main(int argc, char** argv) {
 	switch(MODEL)
 	{
 		case MODEL_CCQE:
-			bins_reco = {200,300,  375. , 475.,  550.,  675.,  800.,  950.,  1100.  ,1300. , 1500.,1750 , 2000,2500};
+			bins_reco = {140,200,300,  375. , 475.,  550.,  675.,  800.,  950.,  1100.  ,1300. , 1500.,1750 , 2000,2500};
 			bins_truth = {200,250,300,350,400,450, 500,600,  800.,1000,1500,2000,2500,3000};
 			break;
 		case MODEL_DELTARES:
@@ -181,6 +181,7 @@ int main(int argc, char** argv) {
 
 
 
+	//a.poisson_all();
 
 	std::cout << "write" << std::endl;
 	a.write_unfold_file();
@@ -960,13 +961,15 @@ int main(int argc, char** argv) {
 
 
 	c_unfold->cd();
-	us_stat.at(best_reg).SetFillColor(kGreen+2);
-	us_stat.at(best_reg).SetLineColor(kGreen+2);
+	us_stat.at(best_reg).SetFillColor(cols.at(best_reg)+2);
+	us_stat.at(best_reg).SetLineColor(cols.at(best_reg)+2);
 	us_stat.at(best_reg).SetMarkerColor(kBlack);
 	us_stat.at(best_reg).SetMarkerStyle(29);
 	us_stat.at(best_reg).SetMarkerSize(2);
-	us.at(best_reg).Draw("E2");
-	us_stat.at(best_reg).Draw("same E2");
+	TH1D  bfun = *(TH1D*)us.at(best_reg).Clone("bfun");
+	bfun.SetTitle("");
+	bfun.Draw("E2");
+	us_stat.at(best_reg).Draw("same E1");
 	us_stat.at(best_reg).Draw("same P");
 	truth.Draw("same hist");
 	leg.at(best_reg)->Draw();
@@ -974,18 +977,26 @@ int main(int argc, char** argv) {
 
 
 	c_bf_bias->cd();
-	uBias.at(best_reg).Draw("E2");
+	TH1D  bfbi = *(TH1D*)uBias.at(best_reg).Clone("bfbi");
+	bfbi.SetTitle("");
+	bfbi.Draw("E2");
 	TLine * lbias = new TLine(bins_truth.front(), 0, max_plot_bin_truth,0);
 	lbias->Draw();
 
 
 	c_bf_refold->cd();
-	uR.at(best_reg).Draw("hist");
+	TH1D  bfre = *(TH1D*)uR.at(best_reg).Clone("bfre");
+	bfre.SetTitle("");
+	bfre.Draw("hist");
 	sig.Draw("same");
 	uRleg.at(best_reg)->Draw();
 	
 	c_bf_corr->cd();
-	U_corr.at(best_reg).Draw("colz");
+	TH2D  bfcorr = *(TH2D*)U_corr.at(best_reg).Clone("bfcorr");
+	bfcorr.SetTitle("");
+	bfcorr.Draw("hist");
+	
+	bfcorr.Draw("colz");
 
 
 	/***********************************************************************

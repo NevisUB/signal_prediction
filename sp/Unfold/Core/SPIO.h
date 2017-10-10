@@ -10,6 +10,8 @@
 #include "TFile.h"
 #include "UnfoldTypes.h"
 #include "SPModelBase.h"
+#include "TRandom3.h"
+
 
 
 namespace sp {
@@ -61,6 +63,8 @@ namespace sp {
     //
     // Private variables
     //
+
+    TRandom3* rangen;
 
     std::vector<std::string> _in_mc_file_v;
     std::string _mc_tree_name;

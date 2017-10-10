@@ -173,6 +173,8 @@ namespace sp {
 		SP_DEBUG() << "Initialize" << std::endl;
 		TH1::AddDirectory(kFALSE);
 
+		rangen = new TRandom3(0);
+
 		if(_unfold_file_name.empty())  {
 			SP_DEBUG() << "Unfold filename not set" << std::endl;
 			_unfold_file_name = "unfold_data.root";
@@ -441,8 +443,10 @@ namespace sp {
 
 
 	bool SPIO::poisson_all(){
-		
-
+		//This function will be used to poisson scale the Response matrix, A, along with t and r 		
+		for(auto &re: _response_v){
+			re.poisson_all(rangen);
+		}	 
 
 		return true;
 	}
