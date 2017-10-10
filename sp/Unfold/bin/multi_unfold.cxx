@@ -1,3 +1,6 @@
+#include <iomanip> // setprecision
+#include <sstream> // stringstream
+
 #include "Unfold/Core/SPIO.h"
 #include "Unfold/Algo/UnfoldAlgoDAgnostini.h"
 #include "Unfold/Algo/UnfoldAlgoInverse.h"
@@ -104,7 +107,8 @@ int main(int argc, char** argv) {
 	switch(MODEL)
 	{
 		case MODEL_CCQE:
-			use_file = "rootfiles/filterd_ccqe_nue_nuebar.root";
+			use_file = "rootfiles/filtered_all_nue_nuebar.root";
+			//use_file = "rootfiles/filterd_ccqe_nue_nuebar.root";
 			break;
 		case MODEL_DELTARES:
 			use_file= "rootfiles/filtered_nc_delta.root";
@@ -144,8 +148,8 @@ int main(int argc, char** argv) {
 	switch(MODEL)
 	{
 		case MODEL_CCQE:
-			bins_reco = {200 ,300,  375. , 475.,  550.,  675.,  800.,  950.,  1100.  ,1300. , 1500.,1750 , 2000,2500};
-			bins_truth = {200,250,300,350,400,450, 500,600,  800.,1000,1500,2000,2500};
+			bins_reco = {200,300,  375. , 475.,  550.,  675.,  800.,  950.,  1100.  ,1300. , 1500.,1750 , 2000,2500};
+			bins_truth = {200,250,300,350,400,450, 500,600,  800.,1000,1500,2000,2500,3000};
 			break;
 		case MODEL_DELTARES:
 			bins_truth =  {300,  475.,  550.,  675.,  800.,  950.,  1100.  ,1300. , 1500. ,2500};
@@ -154,9 +158,9 @@ int main(int argc, char** argv) {
 	}
 
 	//double max_plot_bin_truth  = 1000; //CCQE
-	double max_plot_bin_truth = bins_truth.back() ;//2000;
+	double max_plot_bin_truth = 1500;//bins_truth.back() ;//2000;
 	double max_plot_bin_reco = bins_reco.back() ;//1500;
-
+	double max_ratio_height = 7;
 
 	int N_bins_reco = bins_reco.size()-1;
 	int N_bins_truth = bins_truth.size()-1;
@@ -174,6 +178,9 @@ int main(int argc, char** argv) {
 
 	std::cout << "fill resp" << std::endl;
 	a.fill_responses();
+
+
+
 
 	std::cout << "write" << std::endl;
 	a.write_unfold_file();
@@ -378,7 +385,7 @@ int main(int argc, char** argv) {
 
 
 
-	TCanvas *c_responce = new TCanvas("c_response","c_response",1200,1200);
+	TCanvas *c_responce = new TCanvas("c_response","c_response",2000,1600);
 	c_responce->Divide(2,2);
 	c_responce->cd(1);
 
@@ -396,9 +403,9 @@ int main(int argc, char** argv) {
 	tt.SetMinimum(0);
 	tt.SetTitle("True Variable");
 	//tt.SetMaximum(5);
-	tt.GetXaxis()->SetRange(1,10);
+	//tt.GetXaxis()->SetRange(1,10);
 
-	TLegend * legr = new TLegend(0.58,0.6,0.89,0.89);
+	TLegend * legr = new TLegend(0.58,0.75,0.89,0.89);
 	legr->AddEntry(&tt,"True E_{#nu} MC","lep");
 	legr->SetFillStyle(0);
 	//	legr->SetBorderSize(0.1);
@@ -423,12 +430,12 @@ int main(int argc, char** argv) {
 	rr.SetMinimum(0);
 	rr.SetTitle("Reconstructed Variable");
 	//rr.SetMaximum(5);
-	rr.GetXaxis()->SetRange(1,10);
+	//rr.GetXaxis()->SetRange(1,10);
 
 
 
 
-	TLegend * legr2 = new TLegend(0.58,0.6,0.89,0.89);
+	TLegend * legr2 = new TLegend(0.58,0.75,0.89,0.89);
 	legr2->AddEntry(&rr,"Reco E_{QE} MC","lep");
 	legr2->SetFillStyle(0);
 	rr.Draw();
@@ -460,12 +467,16 @@ int main(int argc, char** argv) {
 		errEff.at(b)=sqrt(alg2->Ep(b-1,b-1));  ;
 	}
 	eff.SetError(&errEff[0]);
+	eff.GetXaxis()->SetTitleOffset(1.1);
+	eff.GetYaxis()->SetTitleOffset(1.1);
 
+
+	eff.SetTitle("Efficiency");
 	eff.GetYaxis()->SetTitle("Efficiency");
 	eff.GetXaxis()->SetTitle("Truth Bin");
 	eff.Draw("E1");
 	eff.SetMinimum(0);
-	eff.SetMaximum(0.4);
+	eff.SetMaximum(0.2);
 
 
 	c_responce->SaveAs( (base_name+"_eff_response.pdf").c_str(),"pdf");
@@ -523,7 +534,7 @@ int main(int argc, char** argv) {
 
 	TCanvas *c_signal = new TCanvas("c_signal","c_signal",1200,800);
 
-	sig.SetTitle("Reconstructed E^{QE}" );
+	sig.SetTitle("MiniBooNE excess" );
 	sig.GetYaxis()->SetTitle("Events/MeV");
 	sig.GetXaxis()->SetTitle("Reco E^{QE}_{#nu} [MeV]");
 	sig.SetLineColor(kRed-7);
@@ -545,7 +556,7 @@ int main(int argc, char** argv) {
 	TLegend * leg1 = new TLegend(0.58,0.6,0.89,0.89);
 	leg1->AddEntry(&sig,"6.46e20 POT #nu-mode data","lep");
 	//leg1->AddEntry(&reco,"MC intrinsic #nu_{e} CCQE","lef");
-	leg1->AddEntry(&reco,"MC intrinsic #nu_{e} CCQE","l");
+	leg1->AddEntry(&reco,"MC intrinsic #nu_{e} event events");
 	leg1->SetFillStyle(0);
 	leg1->SetBorderSize(0.0);
 	leg1->Draw();
@@ -559,6 +570,9 @@ int main(int argc, char** argv) {
 
 	TCanvas *c_vary =  new TCanvas("c1","c1",1200,1200);
 	TCanvas *c_unfold =  new TCanvas("c_unfold","c_unfold",1200,1200);
+	TCanvas *c_bf_bias =  new TCanvas("c_bfbias","c_bfbias",1200,1200);
+	TCanvas *c_bf_refold =  new TCanvas("c_bfrefold","c_bfrefold",1200,1200);
+	TCanvas *c_bf_corr =  new TCanvas("c_bfcorr","c_bfcorr",1200,1200);
 	TCanvas *c_refold =  new TCanvas("c_refold","c_refold",3000,3000);
 	TCanvas *c_bias = new TCanvas("c_bias","c_bias",3000,3000);
 	TCanvas *c_frac_cov =  new TCanvas("c_frac_cov","c_frac_cov",3000,3000);
@@ -578,8 +592,8 @@ int main(int argc, char** argv) {
 
 
 
-	std::vector<int> kreg = {1,2,3,4,5,6,7,8};
-	std::vector<int> cols = {kBlue-7,kGreen-6,kRed-7, kOrange-3, kMagenta-3, kGreen+3, kBlue-7,kGreen-6,kRed-7};
+	std::vector<int> kreg = {1,2,3,4,5,6,7,8,9};
+	std::vector<int> cols = {kBlue-7,kGreen-6,kRed-7, kOrange-3, kMagenta-3, kGreen+3, kTeal, kAzure, kOrange};
 	std::vector<TH1D> us(kreg.size());
 	std::vector<TMatrixT<double>> UU(kreg.size());
 	std::vector<TH2D> U_full_cov(kreg.size());
@@ -588,6 +602,7 @@ int main(int argc, char** argv) {
 	
 
 	std::vector<TH1D> uR(kreg.size());
+	std::vector<TLegend*> uRleg(kreg.size());
 	std::vector<TH1D> uBias(kreg.size());
 	std::vector<TLegend*> leg(kreg.size());
 	std::vector<TH1D> us_stat(kreg.size());
@@ -630,7 +645,7 @@ int main(int argc, char** argv) {
 	
 
 	for(int k=0; k<kreg.size(); k++){
-		std::string nam = "Reg " +std::to_string(kreg.at(k)) ;
+		std::string nam = "Reg Number k: " +std::to_string(kreg.at(k)) ;
 
 		c_vary->cd(k+1)->SetLeftMargin(0.1);
 		alg2->SetRegularization(kreg.at(k));
@@ -674,7 +689,9 @@ int main(int argc, char** argv) {
 
 		us.at(k).SetMinimum(0);
 		us.at(k).GetXaxis()->SetRangeUser(bins_truth.front(),max_plot_bin_truth);
-		us.at(k).SetMaximum(10);//has to be after!
+		double tm = 12;
+		if(kreg.at(k)> 6){ tm = 15;}
+		us.at(k).SetMaximum(tm);//has to be after!
 
 		us_stat.at(k) = alg2->GetHistU();
 		us_stat.at(k).SetError(&errS[0]);
@@ -691,7 +708,7 @@ int main(int argc, char** argv) {
 
 		leg.at(k) = new TLegend(0.5,0.65,0.89,0.89);
 		leg.at(k)->AddEntry(&us.at(k),"Raw excess","lef");
-		leg.at(k)->AddEntry(&truth,"MC True #nu_{e} CCQE","l");
+		leg.at(k)->AddEntry(&truth,"MC True #nu_{e} spectra","l");
 		leg.at(k)->SetFillStyle(0);
 		leg.at(k)->SetBorderSize(0);
 		leg.at(k)->Draw();
@@ -746,6 +763,7 @@ int main(int argc, char** argv) {
 		U_corr.at(k).GetYaxis()->SetTitle("True E_{#nu} Bin a");
 		U_corr.at(k).GetXaxis()->SetTitle("True E_{#nu} Bin b");
 		U_corr.at(k).Draw("colz");
+
 
 
 
@@ -848,17 +866,13 @@ int main(int argc, char** argv) {
 		   TVectorD pois_u = alg2->u;
 		   std::vector<double> bias(alg2->n_t,0.0);
 		   for(int i=0; i< N_mc_bias; i++){
-
 		   for(int a=0; a<alg2->n_t; a++){
 		   pois_u(a) = rangen->Poisson( alg2->u(a) ); 
 		   }
-
-
 		   TVectorD re = alg2->A*pois_u;
 		   auto tmp_alg2->= alg2->
 		   tmp_alg2->Setd(&re);
 		   tmp_alg2->Unfold();
-
 		   for(int a=0; a<alg2->n_t; a++){
 		   double thisbias = tmp_alg2->u(a)-pois_u(a);
 		   bias.at(a) += (thisbias)/((double)N_mc_bias);
@@ -868,7 +882,6 @@ int main(int argc, char** argv) {
 		   for(auto b: bias){
 		   avg_bias += b/((double)N_bins_truth);
 		   }
-
 		   bias_avg.push_back(pow(fabs(avg_bias),2.0));
 		   std::cout<<"ThisBias Avg: "<<avg_bias<<std::endl;
 		 */
@@ -880,18 +893,25 @@ int main(int argc, char** argv) {
 		refold_avg_chi.push_back(avg_refold_chi/(N_random_refold*(double)N_bins_reco));
 		refold_k.push_back((double)kreg.at(k));
 
-		std::string s_ch2 = "#chi^{2}/ndof : " + std::to_string(ch2)+"/"+std::to_string(N_bins_reco) + " || " + std::to_string(ch2_lee)+"/"+std::to_string(N_bins_lee) +" || " + std::to_string(ch2_max)+"/"+std::to_string(1);
+		std::stringstream ss, ss1, ss2;
+		ss<<std::setprecision(3)<< ch2;
+		ss1<<std::setprecision(4)<< Nsignal;
+		ss2<<std::setprecision(4)<< Nrefold_2;
+
+
+		std::string s_ch2 = "#chi^{2}/ndof : " + ss.str()+"/"+std::to_string(N_bins_reco) ;// " || " + std::to_string(ch2_lee)+"/"+std::to_string(N_bins_lee) +" || " + std::to_string(ch2_max)+"/"+std::to_string(1);
 		;
 		TLegend * legR = new TLegend(0.3,0.7,0.89,0.89);
 		legR->SetHeader(s_ch2.c_str() );
-		legR->AddEntry(&sig, ("MiniBooNE Excess: " + std::to_string(Nsignal)).c_str() ,"lp");
-		legR->AddEntry(&uR.at(k), ("Refolded Excess: "+std::to_string(Nrefold_2)).c_str(),"l");
+		legR->AddEntry(&sig, ("MiniBooNE Excess: " + ss1.str()).c_str() ,"lp");
+		legR->AddEntry(&uR.at(k), ("Refolded Excess: "+ss2.str()).c_str(),"l");
 		uR.at(k).Draw("hist");
 		sig.Draw("same");
 		legR->Draw();
 		uR.at(k).GetXaxis()->SetRangeUser(bins_reco.front(),max_plot_bin_reco);
 		uR.at(k).SetMaximum(1.2);
 		uR.at(k).SetMinimum(0.0);
+		uRleg.at(k) = (TLegend*)legR->Clone();
 
 
 
@@ -902,14 +922,17 @@ int main(int argc, char** argv) {
 		uBias.at(k).SetMarkerStyle(2);
 		uBias.at(k).SetMarkerSize(2);
 		uBias.at(k).SetTitle(  nam.c_str() );
-		uBias.at(k).GetYaxis()->SetTitle("Bias");
+		uBias.at(k).GetYaxis()->SetTitle("Bias/MeV");
 		uBias.at(k).GetXaxis()->SetTitle("True E_{#nu} [MeV]");
 		uBias.at(k).SetLineColor(kBlack);
 		uBias.at(k).SetLineWidth(2);
 		uBias.at(k).SetFillColor(cols.at(k));
-		//uBias.at(k).Scale(1,"width"); // should it be bias /MeV? doubt it really
+		uBias.at(k).Scale(1,"width"); // should it be bias /MeV? doubt it really
 		uBias.at(k).Draw("E2");
 		uBias.at(k).GetXaxis()->SetRangeUser(bins_truth.front(),max_plot_bin_truth);
+		TLine * lbias = new TLine(bins_truth.front(), 0, max_plot_bin_truth,0);
+		lbias->Draw();
+
 		/* At this point the standard
 		   deviations of the biases are approximately equal to the biases themselves, and
 		   therefore any further bias reduction would introduce as much error as it removes.
@@ -936,7 +959,6 @@ int main(int argc, char** argv) {
 	std::cout<<"REGCHECK: chosen :"<<kreg.at(best_reg)<<std::endl;
 
 
-
 	c_unfold->cd();
 	us_stat.at(best_reg).SetFillColor(kGreen+2);
 	us_stat.at(best_reg).SetLineColor(kGreen+2);
@@ -951,6 +973,19 @@ int main(int argc, char** argv) {
 	us.at(best_reg).GetXaxis()->SetRangeUser(bins_truth.front(), max_plot_bin_truth);
 
 
+	c_bf_bias->cd();
+	uBias.at(best_reg).Draw("E2");
+	TLine * lbias = new TLine(bins_truth.front(), 0, max_plot_bin_truth,0);
+	lbias->Draw();
+
+
+	c_bf_refold->cd();
+	uR.at(best_reg).Draw("hist");
+	sig.Draw("same");
+	uRleg.at(best_reg)->Draw();
+	
+	c_bf_corr->cd();
+	U_corr.at(best_reg).Draw("colz");
 
 
 	/***********************************************************************
@@ -989,7 +1024,10 @@ int main(int argc, char** argv) {
 		u_chols_ratio.at(use_chols_ratio).at(0).GetXaxis()->SetRangeUser(bins_truth.front(), max_plot_bin_truth);
 		u_chols_ratio.at(use_chols_ratio).at(0).SetMaximum(8);
 		u_chols_ratio.at(use_chols_ratio).at(0).SetMinimum(0);
-	
+		u_chols_ratio.at(use_chols_ratio).at(0).GetYaxis()->SetTitle("Ratio to MiniBooNE MC Central Value");
+		u_chols_ratio.at(use_chols_ratio).at(0).GetXaxis()->SetTitle("E_{\\nu}^{true} [GeV]");
+
+	u_chols_ratio.at(use_chols_ratio).at(0).GetYaxis()->SetTitleOffset(1.1);
 	for(int i=1; i< N_chols; i++){
 		u_chols_ratio.at(use_chols_ratio).at(i).Draw("same hist");
 	}
@@ -1056,7 +1094,10 @@ int main(int argc, char** argv) {
 	c_frac_cov->Write();
 	c_bias->Write();
 
-	c_unfold->SaveAs((base_name+"_unfolded.pdf").c_str(),"pdf");
+	c_unfold->SaveAs((base_name+"_bf_unfolded.pdf").c_str(),"pdf");
+	c_bf_bias->SaveAs((base_name+"_bf_bias.pdf").c_str(),"pdf");
+	c_bf_refold->SaveAs((base_name+"_bf_refold.pdf").c_str(),"pdf");
+	c_bf_corr->SaveAs((base_name+"_bf_corr.pdf").c_str(),"pdf");
 	c_vary->SaveAs((base_name+"_reg_vary.pdf").c_str(),"pdf");
 	c_corr->SaveAs((base_name+"_reg_corr.pdf").c_str(),"pdf");
 	c_frac_cov->SaveAs((base_name+"_reg_frac_cov.pdf").c_str(),"pdf");
@@ -1085,7 +1126,7 @@ int main(int argc, char** argv) {
 	ratio.SetMarkerStyle(5);
 	ratio.SetMarkerSize(1);
 	ratio.Draw("e2");
-	ratio.SetMaximum(8);
+	ratio.SetMaximum(max_ratio_height);
 	ratio.GetXaxis()->SetRangeUser(bins_truth.front(),max_plot_bin_truth);
 	ratio.GetYaxis()->SetTitleOffset(1.1);
 
@@ -1122,7 +1163,7 @@ int main(int argc, char** argv) {
 
 
 	ratio_scaled->Draw("e2");
-	ratio_scaled->SetMaximum(10);
+	ratio_scaled->SetMaximum(max_ratio_height);
 	ratio_scaled->GetXaxis()->SetRangeUser(bins_truth.front(),max_plot_bin_truth);
 
 	leg2->Draw();
@@ -1145,6 +1186,7 @@ int main(int argc, char** argv) {
 
 	ratio.Write();
 	TGraph * graph_out = new TGraph(bincenter.size(), &bincenter[0], &binval[0]  );
+	
 	graph_out->Write();
 	f_graph_out->Close();
 

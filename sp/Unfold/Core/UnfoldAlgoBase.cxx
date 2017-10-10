@@ -530,7 +530,7 @@ namespace sp {
 		TRandom3 * rangen = new TRandom3(0);
 
 
-		double tol = 1e-8;
+		double tol = 1e-7;
 
 		//First up, we have some problems with positive semi-definite and not positive definite
 		TMatrixDEigen eigen (U);

@@ -439,6 +439,20 @@ namespace sp {
 		return true;
 	}
 
+
+	bool SPIO::poisson_all(){
+		
+
+
+		return true;
+	}
+
+
+
+
+
+
+
 	bool SPIO::write_unfold_file() {
 		SP_DEBUG() << "start" << std::endl;
 

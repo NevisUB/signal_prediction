@@ -30,6 +30,7 @@ namespace sp {
     bool fill_responses();
     bool write_unfold_file();
     
+    bool poisson_all();
   public:
     //
     // Public setters
