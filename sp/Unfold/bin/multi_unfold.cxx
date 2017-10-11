@@ -148,7 +148,7 @@ int main(int argc, char** argv) {
 	switch(MODEL)
 	{
 		case MODEL_CCQE:
-			bins_reco = {140,200,300,  375. , 475.,  550.,  675.,  800.,  950.,  1100.  ,1300. , 1500.,1750 , 2000,2500};
+			bins_reco = {200,300,  375. , 475.,  550.,  675.,  800.,  950.,  1100.  ,1300. , 1500.,1750 , 2000,2500};
 			bins_truth = {200,250,300,350,400,450, 500,600,  800.,1000,1500,2000,2500,3000};
 			break;
 		case MODEL_DELTARES:
@@ -386,67 +386,109 @@ int main(int argc, char** argv) {
 
 
 
-	TCanvas *c_responce = new TCanvas("c_response","c_response",2000,1600);
-	c_responce->Divide(2,2);
-	c_responce->cd(1);
+	TCanvas *c_responce = new TCanvas("c_response","c_response",1200,1200);
+	TCanvas *c_eff = new TCanvas("c_eff","c_eff",1200,1200);
+
+	c_eff->cd();
+
+	TPad *pad1 = new TPad("pad1", "pad1", 0, 0.3, 1, 1.0);
+	pad1->SetBottomMargin(0); // Upper and lower plot are joined
+	pad1->Draw();             // Draw the upper pad: pad1
+	pad1->cd();               // pad1 becomes the current pad
 
 	TH1D tt = truth;
 	tt.SetMarkerStyle(21);
-	tt.SetMarkerColor(kBlue-6);
+	tt.SetMarkerColor(kBlue-3);
+	tt.SetMarkerSize(2);
 	tt.SetLineWidth(2);
 	tt.SetLineColor(kBlue-6);
-	tt.GetXaxis()->SetTitle("Truth [MeV]");
+	tt.GetXaxis()->SetTitle("Neutrino Energy [MeV]");
 	tt.GetYaxis()->SetTitle("Events/MeV");
 	tt.GetXaxis()->SetTitleSize(0.04);
 	tt.GetXaxis()->SetLabelSize(0.04);
 	tt.GetYaxis()->SetLabelSize(0.04);
 	tt.GetYaxis()->SetTitleOffset(1.45);
 	tt.SetMinimum(0);
-	tt.SetTitle("True Variable");
+	//.SetTitle("True Variable");
 	//tt.SetMaximum(5);
 	//tt.GetXaxis()->SetRange(1,10);
 
 	TLegend * legr = new TLegend(0.58,0.75,0.89,0.89);
-	legr->AddEntry(&tt,"True E_{#nu} MC","lep");
+	legr->AddEntry(&tt,"True intrinsic E_{#nu_e} ","lep");
 	legr->SetFillStyle(0);
+	legr->SetLineColor(kWhite);
 	//	legr->SetBorderSize(0.1);
 
-	tt.Draw();
+	tt.Draw("E1");
+	tt.Draw("hist same");
 	//rr.Draw("same ap");
 	legr->Draw();
 
-
-	c_responce->cd(2);
 	TH1D rr = reco;
-	rr.SetMarkerStyle(21);
-	rr.SetMarkerColor(kRed-7);
+	rr.SetMarkerStyle(20);
+	rr.SetMarkerSize(2);
+	rr.SetMarkerColor(kRed-3);
 	rr.SetLineWidth(2);
 	rr.SetLineColor(kRed-7);
-	rr.GetXaxis()->SetTitle("Reco [MeV]");
-	rr.GetYaxis()->SetTitle("Events/MeV");
+	//	rr.GetXaxis()->SetTitle("Neutrino Energy [MeV]");
+	//	rr.GetYaxis()->SetTitle("Events/MeV");
 	rr.GetXaxis()->SetTitleSize(0.04);
 	rr.GetXaxis()->SetLabelSize(0.04);
 	rr.GetYaxis()->SetLabelSize(0.04);
 	rr.GetYaxis()->SetTitleOffset(1.45);
 	rr.SetMinimum(0);
-	rr.SetTitle("Reconstructed Variable");
+	//	rr.SetTitle("Reconstructed Variable");
 	//rr.SetMaximum(5);
 	//rr.GetXaxis()->SetRange(1,10);
 
 
+	legr->AddEntry(&rr,"Reconstructed E_{QE}","lep");
+	rr.Draw("E1 same");
+	rr.Draw("hist same");
+
+	c_eff->cd();          // Go back to the main canvas before defining pad2
+	TPad *pad2 = new TPad("pad2", "pad2", 0, 0.05, 1, 0.3);
+	pad2->SetTopMargin(0);
+	pad2->SetBottomMargin(0.2);
+	pad2->SetGridx(); // vertical grid
+	pad2->Draw();
+	pad2->cd();       // pad2 becomes the current pad
 
 
-	TLegend * legr2 = new TLegend(0.58,0.75,0.89,0.89);
-	legr2->AddEntry(&rr,"Reco E_{QE} MC","lep");
-	legr2->SetFillStyle(0);
-	rr.Draw();
-	legr2->Draw();
+	TH1D eff = alg2->GetHistEff();
+
+	std::vector<double> errEff(alg2->n_t+1,0.0);
+	for(int b=1; b<errEff.size();b++){
+		errEff.at(b)=sqrt(alg2->Ep(b-1,b-1));  ;
+	}
+	
+	gStyle->SetEndErrorSize(4);
+	eff.SetError(&errEff[0]);
+	eff.GetXaxis()->SetTitleOffset(1.1);
+	eff.GetYaxis()->SetTitleOffset(1.1);
+	eff.SetLineColor(kBlack);
+	eff.SetLineWidth(1.5);
+	eff.SetMarkerStyle(20);
+
+
+	eff.GetYaxis()->SetTitle("Efficiency");
+	eff.GetXaxis()->SetTitle("Neutrino Energy [MeV]");
+
+	eff.GetYaxis()->SetTitleOffset(0.6);
+//	eff.GetXaxis()->SetTitleOffset(2);
+
+	eff.GetYaxis()->SetTitleSize(0.07);
+	eff.GetXaxis()->SetTitleSize(0.09);
+	eff.GetYaxis()->SetLabelSize(0.07);
+	eff.GetXaxis()->SetLabelSize(0.09);
+	eff.Draw("E1");
+	eff.SetMinimum(0);
+	eff.SetMaximum(0.17);
 
 
 
 
-
-	c_responce->cd(4)->SetRightMargin(0.175);
+	c_responce->cd()->SetRightMargin(0.175);
 	TH2D prob_MC = alg2->GetHistA();
 	gStyle->SetPalette(kInvertedDarkBodyRadiator);
 
@@ -457,32 +499,12 @@ int main(int argc, char** argv) {
 	prob_MC.GetYaxis()->SetTitleOffset(1.1);
 
 	prob_MC.Draw("colz");
-	prob_MC.GetXaxis()->SetRange(1,10);
-	prob_MC.GetYaxis()->SetRange(1,10);
-
-	c_responce->cd(3);
-	TH1D eff = alg2->GetHistEff();
-
-	std::vector<double> errEff(alg2->n_t+1,0.0);
-	for(int b=1; b<errEff.size();b++){
-		errEff.at(b)=sqrt(alg2->Ep(b-1,b-1));  ;
-	}
-	eff.SetError(&errEff[0]);
-	eff.GetXaxis()->SetTitleOffset(1.1);
-	eff.GetYaxis()->SetTitleOffset(1.1);
+	//prob_MC.GetXaxis()->SetRange(1,10);
+	//prob_MC.GetYaxis()->SetRange(1,10);
 
 
-	eff.SetTitle("Efficiency");
-	eff.GetYaxis()->SetTitle("Efficiency");
-	eff.GetXaxis()->SetTitle("Truth Bin");
-	eff.Draw("E1");
-	eff.SetMinimum(0);
-	eff.SetMaximum(0.2);
-
-
-	c_responce->SaveAs( (base_name+"_eff_response.pdf").c_str(),"pdf");
-
-
+	c_responce->SaveAs( (base_name+"_response.pdf").c_str(),"pdf");
+	c_eff->SaveAs( (base_name+"_eff.pdf").c_str(),"pdf");
 
 	//return 0;
 
@@ -600,7 +622,7 @@ int main(int argc, char** argv) {
 	std::vector<TH2D> U_full_cov(kreg.size());
 	std::vector<TH2D> U_frac_cov(kreg.size());
 	std::vector<TH2D> U_corr(kreg.size());
-	
+
 
 	std::vector<TH1D> uR(kreg.size());
 	std::vector<TLegend*> uRleg(kreg.size());
@@ -638,12 +660,12 @@ int main(int argc, char** argv) {
 
 
 
-	
+
 
 	std::vector<std::vector<int>> base_cols;
 	std::vector<int> tri_cols = {kRed, kMagenta,kBlue,kCyan,kGreen,kYellow};
 	std::vector<int> rec_cols = {kOrange, kPink,kViolet,kAzure,kTeal,kSpring};	
-	
+
 
 	for(int k=0; k<kreg.size(); k++){
 		std::string nam = "Reg Number k: " +std::to_string(kreg.at(k)) ;
@@ -717,16 +739,16 @@ int main(int argc, char** argv) {
 
 		// Cholosky Decomp
 		for(int i=0; i<N_chols; i++){
-				std::cout<<"On Chol Deco #: "<<i<<std::endl;
-				u_chols.at(k).at(i) = alg2->SampleCovarianceU();
-				u_chols.at(k).at(i).SetLineWidth(1);
-				int rnd_col = rec_cols.at(rangen->Integer(rec_cols.size()));
-				rnd_col = rnd_col+ rangen->Integer(20)-10;
-				u_chols.at(k).at(i).SetLineColor(rnd_col);
-			
-				u_chols_ratio.at(k).at(i) = u_chols.at(k).at(i);
-				u_chols_ratio.at(k).at(i).Scale(1,"width");
-				u_chols_ratio.at(k).at(i).Divide(&truth); 
+			std::cout<<"On Chol Deco #: "<<i<<std::endl;
+			u_chols.at(k).at(i) = alg2->SampleCovarianceU();
+			u_chols.at(k).at(i).SetLineWidth(1);
+			int rnd_col = rec_cols.at(rangen->Integer(rec_cols.size()));
+			rnd_col = rnd_col+ rangen->Integer(20)-10;
+			u_chols.at(k).at(i).SetLineColor(rnd_col);
+
+			u_chols_ratio.at(k).at(i) = u_chols.at(k).at(i);
+			u_chols_ratio.at(k).at(i).Scale(1,"width");
+			u_chols_ratio.at(k).at(i).Divide(&truth); 
 		}
 
 
@@ -741,11 +763,11 @@ int main(int argc, char** argv) {
 		//Fractional 
 		c_frac_cov->cd(k+1);//->SetLogz();
 		U_frac_cov.at(k) = U_full_cov.at(k);
-			for(int a=0; a< alg2->n_t; a++){
-				for(int b=0; b< alg2->n_t; b++){
-					U_frac_cov.at(k).SetBinContent(a+1,b+1,  U_full_cov.at(k).GetBinContent(a+1,b+1)/(alg2->u(a)* alg2->u(b)    ));	
-				}
+		for(int a=0; a< alg2->n_t; a++){
+			for(int b=0; b< alg2->n_t; b++){
+				U_frac_cov.at(k).SetBinContent(a+1,b+1,  U_full_cov.at(k).GetBinContent(a+1,b+1)/(alg2->u(a)* alg2->u(b)    ));	
 			}
+		}
 
 		U_frac_cov.at(k).SetTitle(  nam.c_str() );
 		U_frac_cov.at(k).GetYaxis()->SetTitle("True E_{#nu} Bin a");
@@ -755,11 +777,11 @@ int main(int argc, char** argv) {
 		//Correlation 
 		c_corr->cd(k+1);//->SetLogz();
 		U_corr.at(k) = U_full_cov.at(k);
-			for(int a=0; a< alg2->n_t; a++){
-				for(int b=0; b< alg2->n_t; b++){
-					U_corr.at(k).SetBinContent(a+1,b+1,  U_full_cov.at(k).GetBinContent(a+1,b+1)/(sqrt(U_full_cov.at(k).GetBinContent(a+1,a+1)*U_full_cov.at(k).GetBinContent(b+1,b+1)   ) ));	
-				}
+		for(int a=0; a< alg2->n_t; a++){
+			for(int b=0; b< alg2->n_t; b++){
+				U_corr.at(k).SetBinContent(a+1,b+1,  U_full_cov.at(k).GetBinContent(a+1,b+1)/(sqrt(U_full_cov.at(k).GetBinContent(a+1,a+1)*U_full_cov.at(k).GetBinContent(b+1,b+1)   ) ));	
 			}
+		}
 		U_corr.at(k).SetTitle(  nam.c_str() );
 		U_corr.at(k).GetYaxis()->SetTitle("True E_{#nu} Bin a");
 		U_corr.at(k).GetXaxis()->SetTitle("True E_{#nu} Bin b");
@@ -990,17 +1012,17 @@ int main(int argc, char** argv) {
 	bfre.Draw("hist");
 	sig.Draw("same");
 	uRleg.at(best_reg)->Draw();
-	
+
 	c_bf_corr->cd();
 	TH2D  bfcorr = *(TH2D*)U_corr.at(best_reg).Clone("bfcorr");
 	bfcorr.SetTitle("");
 	bfcorr.Draw("hist");
-	
+
 	bfcorr.Draw("colz");
 
 
 	/***********************************************************************
-				Draw Colerated pairs!
+	  Draw Colerated pairs!
 	 ***********************************************************************/
 	TCanvas *c_chol = new TCanvas("chol","chol",1200,800);
 	c_chol->cd();
@@ -1016,14 +1038,14 @@ int main(int argc, char** argv) {
 		u_chols.at(use_chol).at(i).Scale(1,"width");
 		u_chols.at(use_chol).at(i).Draw("same hist");
 	}
-	
+
 
 	c_chol->SaveAs((base_name+"_chol.pdf").c_str(),"pdf");
 
 
 
 	/***********************************************************************
-				Draw Colerated pairs! Ratio
+	  Draw Colerated pairs! Ratio
 	 ***********************************************************************/
 	TCanvas *c_chols_ratio = new TCanvas("chols_ratio","chols_ratio",1200,800);
 	c_chols_ratio->cd();
@@ -1031,18 +1053,18 @@ int main(int argc, char** argv) {
 
 
 	int use_chols_ratio = 2;//best_reg;
-		u_chols_ratio.at(use_chols_ratio).at(0).Draw("hist");
-		u_chols_ratio.at(use_chols_ratio).at(0).GetXaxis()->SetRangeUser(bins_truth.front(), max_plot_bin_truth);
-		u_chols_ratio.at(use_chols_ratio).at(0).SetMaximum(8);
-		u_chols_ratio.at(use_chols_ratio).at(0).SetMinimum(0);
-		u_chols_ratio.at(use_chols_ratio).at(0).GetYaxis()->SetTitle("Ratio to MiniBooNE MC Central Value");
-		u_chols_ratio.at(use_chols_ratio).at(0).GetXaxis()->SetTitle("E_{\\nu}^{true} [GeV]");
+	u_chols_ratio.at(use_chols_ratio).at(0).Draw("hist");
+	u_chols_ratio.at(use_chols_ratio).at(0).GetXaxis()->SetRangeUser(bins_truth.front(), max_plot_bin_truth);
+	u_chols_ratio.at(use_chols_ratio).at(0).SetMaximum(8);
+	u_chols_ratio.at(use_chols_ratio).at(0).SetMinimum(0);
+	u_chols_ratio.at(use_chols_ratio).at(0).GetYaxis()->SetTitle("Ratio to MiniBooNE MC Central Value");
+	u_chols_ratio.at(use_chols_ratio).at(0).GetXaxis()->SetTitle("E_{\\nu}^{true} [GeV]");
 
 	u_chols_ratio.at(use_chols_ratio).at(0).GetYaxis()->SetTitleOffset(1.1);
 	for(int i=1; i< N_chols; i++){
 		u_chols_ratio.at(use_chols_ratio).at(i).Draw("same hist");
 	}
-	
+
 	TLine *line_chol_ratio = new TLine(bins_truth.front(),1,max_plot_bin_truth,1);
 	line_chol_ratio->SetLineColor(kBlack);
 	line_chol_ratio->SetLineStyle(2);
@@ -1197,7 +1219,7 @@ int main(int argc, char** argv) {
 
 	ratio.Write();
 	TGraph * graph_out = new TGraph(bincenter.size(), &bincenter[0], &binval[0]  );
-	
+
 	graph_out->Write();
 	f_graph_out->Close();
 
