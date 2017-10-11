@@ -93,6 +93,7 @@ int main(int argc, char** argv) {
 	TRandom3 * rangen = new TRandom3(0);
 
 	gStyle->SetOptStat(0);
+	gStyle->SetEndErrorSize(4);
 	sp::SPIO a;
 	a.set_verbosity((sp::msg::Level_t)0);
 
@@ -152,15 +153,22 @@ int main(int argc, char** argv) {
 			bins_truth = {200,250,300,350,400,450, 500,600,  800.,1000,1500,2000,2500,3000};
 			break;
 		case MODEL_DELTARES:
-			bins_truth =  {300,  475.,  550.,  675.,  800.,  950.,  1100.  ,1300. , 1500. ,2500};
+			//bins_truth =  {300,  475.,  550.,  675.,  800.,  950.,  1100.  ,1300. , 1500. ,2000, 2500,3500};
+			bins_truth =  {250,  500,  750, 1000,   1250,  1500,  1750, 2000,   3000};
 			bins_reco =  {200 ,300,  375. , 475.,  550.,  675.,  800.,  950.,  1100.  ,1300. , 1500. , 2000};
 			break;
 	}
 
 	//double max_plot_bin_truth  = 1000; //CCQE
+	
 	double max_plot_bin_truth = 1500;//bins_truth.back() ;//2000;
+	if(MODEL == MODEL_DELTARES) max_plot_bin_truth = bins_truth.back();
+
 	double max_plot_bin_reco = bins_reco.back() ;//1500;
 	double max_ratio_height = 7;
+	double min_en = bins_truth.front(); if(bins_truth.front()>bins_reco.front()) min_en = bins_reco.front();
+	double max_en = bins_truth.back(); if(bins_truth.back()<bins_reco.back()) min_en = bins_reco.back();
+
 
 	int N_bins_reco = bins_reco.size()-1;
 	int N_bins_truth = bins_truth.size()-1;
@@ -366,7 +374,9 @@ int main(int argc, char** argv) {
 	//silly SetError expects underflow
 	sigerr.insert ( sigerr.begin() , 0 );	
 
-	sig.SetMarkerStyle(21);
+	sig.SetLineWidth(1);	
+	sig.SetMarkerStyle(20);
+	sig.SetMarkerSize(2);
 	sig.SetError(&sigerr[0]);
 	sig.Scale(1,"width");
 	ans.Scale(1,"width");
@@ -411,10 +421,9 @@ int main(int argc, char** argv) {
 	tt.SetMinimum(0);
 	//.SetTitle("True Variable");
 	//tt.SetMaximum(5);
-	//tt.GetXaxis()->SetRange(1,10);
 
 	TLegend * legr = new TLegend(0.58,0.75,0.89,0.89);
-	legr->AddEntry(&tt,"True intrinsic E_{#nu_e} ","lep");
+	legr->AddEntry(&tt,"True intrinsic E_{#nu_{e}} ","lep");
 	legr->SetFillStyle(0);
 	legr->SetLineColor(kWhite);
 	//	legr->SetBorderSize(0.1);
@@ -423,6 +432,7 @@ int main(int argc, char** argv) {
 	tt.Draw("hist same");
 	//rr.Draw("same ap");
 	legr->Draw();
+	tt.GetXaxis()->SetRangeUser(min_en,max_en);
 
 	TH1D rr = reco;
 	rr.SetMarkerStyle(20);
@@ -442,7 +452,7 @@ int main(int argc, char** argv) {
 	//rr.GetXaxis()->SetRange(1,10);
 
 
-	legr->AddEntry(&rr,"Reconstructed E_{QE}","lep");
+	legr->AddEntry(&rr,"Reconstruced E_{QE}","lep");
 	rr.Draw("E1 same");
 	rr.Draw("hist same");
 
@@ -462,7 +472,6 @@ int main(int argc, char** argv) {
 		errEff.at(b)=sqrt(alg2->Ep(b-1,b-1));  ;
 	}
 	
-	gStyle->SetEndErrorSize(4);
 	eff.SetError(&errEff[0]);
 	eff.GetXaxis()->SetTitleOffset(1.1);
 	eff.GetYaxis()->SetTitleOffset(1.1);
@@ -483,7 +492,8 @@ int main(int argc, char** argv) {
 	eff.GetXaxis()->SetLabelSize(0.09);
 	eff.Draw("E1");
 	eff.SetMinimum(0);
-	eff.SetMaximum(0.17);
+	eff.SetMaximum(0.2);
+	eff.GetXaxis()->SetRangeUser(min_en,max_en);
 
 
 
@@ -492,15 +502,18 @@ int main(int argc, char** argv) {
 	TH2D prob_MC = alg2->GetHistA();
 	gStyle->SetPalette(kInvertedDarkBodyRadiator);
 
-	prob_MC.GetYaxis()->SetTitle("Truth E_{#nu} Bin");
-	prob_MC.GetXaxis()->SetTitle("Reco E_{QE} Bin");
-	prob_MC.SetTitle("Response Matrix");
+	prob_MC.GetYaxis()->SetTitle("True E_{#nu_{e}} Bin");
+	prob_MC.GetXaxis()->SetTitle("Reconstructed E_{QE} Bin");
+	prob_MC.SetTitle("");
 	prob_MC.GetXaxis()->SetTitleOffset(1.1);
 	prob_MC.GetYaxis()->SetTitleOffset(1.1);
 
 	prob_MC.Draw("colz");
 	//prob_MC.GetXaxis()->SetRange(1,10);
 	//prob_MC.GetYaxis()->SetRange(1,10);
+	TLine * lres = new TLine(0,0,bins_reco.size()-2  , bins_truth.size()-2);
+	lres->SetLineColor(kBlack);
+	lres->Draw("same");
 
 
 	c_responce->SaveAs( (base_name+"_response.pdf").c_str(),"pdf");
@@ -705,6 +718,8 @@ int main(int argc, char** argv) {
 		us.at(k).GetXaxis()->SetTitle("True E_{#nu} [MeV]");
 		us.at(k).SetError(&err[0]);
 		us.at(k).SetLineColor(kBlack);
+		us.at(k).SetMarkerStyle(20);
+		us.at(k).SetMarkerSize(1);
 		us.at(k).SetLineWidth(2);
 		us.at(k).SetFillColor(cols.at(k));
 		us.at(k).Scale(1,"width");
@@ -721,7 +736,7 @@ int main(int argc, char** argv) {
 		us_stat.at(k).SetLineColor(kBlack);
 		us_stat.at(k).SetLineWidth(1);
 		us_stat.at(k).Scale(1,"width");
-		us_stat.at(k).Draw("same E1");
+		//us_stat.at(k).Draw("same E1");
 
 		truth.SetLineColor(kBlack);
 		truth.SetLineWidth(2);
@@ -730,8 +745,8 @@ int main(int argc, char** argv) {
 		truth.Draw("same hist");
 
 		leg.at(k) = new TLegend(0.5,0.65,0.89,0.89);
-		leg.at(k)->AddEntry(&us.at(k),"Raw excess","lef");
-		leg.at(k)->AddEntry(&truth,"MC True #nu_{e} spectra","l");
+		leg.at(k)->AddEntry(&us.at(k),"Unfolded spectra","pf");
+		leg.at(k)->AddEntry(&truth,"MiniBooNE MC E_{#nu} spectra","l");
 		leg.at(k)->SetFillStyle(0);
 		leg.at(k)->SetBorderSize(0);
 		leg.at(k)->Draw();
@@ -922,20 +937,26 @@ int main(int argc, char** argv) {
 		ss2<<std::setprecision(4)<< Nrefold_2;
 
 
-		std::string s_ch2 = "#chi^{2}/ndof : " + ss.str()+"/"+std::to_string(N_bins_reco) ;// " || " + std::to_string(ch2_lee)+"/"+std::to_string(N_bins_lee) +" || " + std::to_string(ch2_max)+"/"+std::to_string(1);
+		std::string s_ch2 = "     #chi^{2}/ndof : " + ss.str()+"/"+std::to_string(N_bins_reco) ;// " || " + std::to_string(ch2_lee)+"/"+std::to_string(N_bins_lee) +" || " + std::to_string(ch2_max)+"/"+std::to_string(1);
 		;
 		TLegend * legR = new TLegend(0.3,0.7,0.89,0.89);
 		legR->SetHeader(s_ch2.c_str() );
-		legR->AddEntry(&sig, ("MiniBooNE Excess: " + ss1.str()).c_str() ,"lp");
-		legR->AddEntry(&uR.at(k), ("Refolded Excess: "+ss2.str()).c_str(),"l");
+		legR->AddEntry(&sig, ("MiniBooNE data: " + ss1.str()).c_str() ,"lp");
+		legR->AddEntry(&uR.at(k), ("Refolded spectra: "+ss2.str()).c_str(),"l");
 		uR.at(k).Draw("hist");
-		sig.Draw("same");
+		sig.SetMarkerStyle(20);
+		sig.Draw("E1 same");
+		legR->SetLineColor(kWhite);
 		legR->Draw();
 		uR.at(k).GetXaxis()->SetRangeUser(bins_reco.front(),max_plot_bin_reco);
 		uR.at(k).SetMaximum(1.2);
+		uR.at(k).SetLineWidth(2);
+		uR.at(k).SetLineColor(kBlack);
 		uR.at(k).SetMinimum(0.0);
+		uR.at(k).GetXaxis()->SetTitle("Reconstructed E_{QE} [MeV]");
+		uR.at(k).GetYaxis()->SetTitle("Events/MeV");
 		uRleg.at(k) = (TLegend*)legR->Clone();
-
+		
 
 
 
@@ -952,8 +973,8 @@ int main(int argc, char** argv) {
 		uBias.at(k).SetFillColor(cols.at(k));
 		uBias.at(k).Scale(1,"width"); // should it be bias /MeV? doubt it really
 		uBias.at(k).Draw("E2");
-		uBias.at(k).GetXaxis()->SetRangeUser(bins_truth.front(),max_plot_bin_truth);
-		TLine * lbias = new TLine(bins_truth.front(), 0, max_plot_bin_truth,0);
+		uBias.at(k).GetXaxis()->SetRangeUser(bins_truth.front(),bins_truth.back());
+		TLine * lbias = new TLine(bins_truth.front(), 0, bins_truth.back(),0);
 		lbias->Draw();
 
 		/* At this point the standard
@@ -986,14 +1007,16 @@ int main(int argc, char** argv) {
 	us_stat.at(best_reg).SetFillColor(cols.at(best_reg)+2);
 	us_stat.at(best_reg).SetLineColor(cols.at(best_reg)+2);
 	us_stat.at(best_reg).SetMarkerColor(kBlack);
-	us_stat.at(best_reg).SetMarkerStyle(29);
-	us_stat.at(best_reg).SetMarkerSize(2);
 	TH1D  bfun = *(TH1D*)us.at(best_reg).Clone("bfun");
+	bfun.SetMarkerStyle(20);
+	bfun.SetMarkerSize(2);
 	bfun.SetTitle("");
 	bfun.Draw("E2");
-	us_stat.at(best_reg).Draw("same E1");
-	us_stat.at(best_reg).Draw("same P");
+	//us_stat.at(best_reg).Draw("same E1");
+	//us_stat.at(best_reg).Draw("same P");
 	truth.Draw("same hist");
+	
+
 	leg.at(best_reg)->Draw();
 	us.at(best_reg).GetXaxis()->SetRangeUser(bins_truth.front(), max_plot_bin_truth);
 
@@ -1002,7 +1025,7 @@ int main(int argc, char** argv) {
 	TH1D  bfbi = *(TH1D*)uBias.at(best_reg).Clone("bfbi");
 	bfbi.SetTitle("");
 	bfbi.Draw("E2");
-	TLine * lbias = new TLine(bins_truth.front(), 0, max_plot_bin_truth,0);
+	TLine * lbias = new TLine(bins_truth.front(), 0, bins_truth.back(),0);
 	lbias->Draw();
 
 
@@ -1169,10 +1192,56 @@ int main(int argc, char** argv) {
 	leg2->SetBorderSize(0.0);
 	leg2->Draw();
 
-	TLine *line = new TLine(bins_truth.front(),1,max_plot_bin_truth,1);
+	TLine *line = new TLine(bins_truth.front(),1,bins_truth.back(),1);
 	line->SetLineColor(kBlack);
 	line->SetLineStyle(2);
 	line->Draw();
+
+
+	//*********************** Nice ratio plot of final answer *******************
+	TCanvas *cr_sig = new TCanvas("crs","crs",1200,1200);	
+	
+	TPad *padcr1 = new TPad("padcr1", "padcr1", 0, 0.45, 1, 1.0);
+	padcr1->SetBottomMargin(0); // Upper and lower plot are joined
+	padcr1->Draw();             // Draw the upper pad: pad1
+	padcr1->cd();               // pad1 becomes the current pad
+	bfun.GetYaxis()->SetTitleSize(0.08);
+	bfun.GetXaxis()->SetLabelSize(0.075);
+	bfun.GetYaxis()->SetLabelSize(0.075);
+	bfun.GetYaxis()->SetTitleOffset(0);
+	bfun.SetMarkerStyle(29);
+	bfun.Draw("E2");
+	bfun.SetMinimum(0.001);
+	//bfun.Draw("E1 same");
+	//us_stat.at(best_reg).Draw("same E1");
+	//us_stat.at(best_reg).Draw("same P");
+	truth.Draw("same hist");
+	leg.at(best_reg)->Draw();
+
+	cr_sig->cd();          // Go back to the main canvas before defining pad2
+	TPad *padcr2 = new TPad("padcr2", "padcr2", 0, 0.05, 1, 0.45);
+	padcr2->SetTopMargin(0);
+	padcr2->SetBottomMargin(0.2);
+	padcr2->SetGridx(); // vertical grid
+	padcr2->Draw();
+	padcr2->cd();       // padcr2 becomes the current pad
+	TH1D new_ratio = ratio;
+	new_ratio.SetFillColor(cols.at(best_reg)-2);
+	new_ratio.GetYaxis()->SetTitle("Ratio Unfolded/MC truth");
+	new_ratio.SetTitle("");
+	new_ratio.Draw("E2");
+	new_ratio.GetXaxis()->SetTitleSize(0.08);
+	new_ratio.GetYaxis()->SetTitleSize(0.08);
+	new_ratio.GetXaxis()->SetLabelSize(0.075);
+	new_ratio.GetYaxis()->SetLabelSize(0.075);
+	new_ratio.GetYaxis()->SetTitleOffset(0.3);
+	new_ratio.SetMaximum(6.99);
+	line->Draw();
+
+
+	cr_sig->SaveAs((base_name+"_result.pdf").c_str(), "pdf");
+
+
 
 
 	TCanvas *cr_scaled = new TCanvas();
