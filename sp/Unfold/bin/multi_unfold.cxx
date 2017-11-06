@@ -7,6 +7,7 @@
 #include "Unfold/Algo/UnfoldAlgoSVD.h"
 #include "Unfold/Algo/ModelNueCCQE.h"
 #include "Unfold/Algo/ModelNCDelta.h"
+#include "Unfold/Algo/ModelNCpi0.h"
 
 #include "Combined/CombinedTypes.h"
 #include "Combined/CombinedUtil.h"
@@ -28,6 +29,7 @@
 
 #define MODEL_CCQE 0
 #define MODEL_DELTARES 1
+#define MODEL_NCPI0 2
 
 int main(int argc, char** argv) {
 	int c;
@@ -67,6 +69,7 @@ int main(int argc, char** argv) {
 				tin = optarg;//way to read in null terminated c strings and compare to known list
 				if(strcmp(tin, "ccqe")==0){ MODEL = MODEL_CCQE; model_name = "CCQE";}
 				if(strcmp(tin, "deltares")==0) {  MODEL = MODEL_DELTARES; model_name = "DELTARES";}
+				if(strcmp(tin, "ncpi0")==0) {MODEL = MODEL_NCPI0; model_name = "NCPI0";}
 				break;
 
 			case '?':
@@ -105,14 +108,27 @@ int main(int argc, char** argv) {
 
 
 	std::string use_file;
+
+	std::string true_name;
+	std::string reco_name;
+
 	switch(MODEL)
 	{
 		case MODEL_CCQE:
 			use_file = "rootfiles/filtered_all_nue_nuebar.root";
 			//use_file = "rootfiles/filterd_ccqe_nue_nuebar.root";
+			true_name = "True intrinsic E_{#nu_{e}}" ;
+			reco_name = "Reconstructed E_{QE}";
 			break;
 		case MODEL_DELTARES:
 			use_file= "rootfiles/filtered_nc_delta.root";
+			true_name = "True  E_{#nu}" ;
+			reco_name = "Reconstructed E_{QE}";
+			break;
+		case MODEL_NCPI0:
+			use_file = "rootfiles/filtered_ncpi0.root";
+			true_name = "True E_{#nu}";
+			reco_name = "Reconstructed E_{QE}";
 			break;
 	}
 
@@ -123,6 +139,7 @@ int main(int argc, char** argv) {
 
 	sp::ModelNueCCQE CCmodel;
 	sp::ModelNCDelta NCmodel;
+	sp::ModelNCpi0 NCPImodel;
 
 	switch(MODEL)
 	{
@@ -132,7 +149,10 @@ int main(int argc, char** argv) {
 		case MODEL_DELTARES:
 			a.set_model(&NCmodel);
 			break;
-	}
+		case MODEL_NCPI0:
+			a.set_model(&NCPImodel);
+			break;
+	}		
 
 
 	a.initialize();
@@ -154,18 +174,34 @@ int main(int argc, char** argv) {
 			break;
 		case MODEL_DELTARES:
 			//bins_truth =  {300,  475.,  550.,  675.,  800.,  950.,  1100.  ,1300. , 1500. ,2000, 2500,3500};
-			bins_truth =  {250,  500,  750, 1000,   1250,  1500,  1750, 2000,   3000};
-			bins_reco =  {200 ,300,  375. , 475.,  550.,  675.,  800.,  950.,  1100.  ,1300. , 1500. , 2000};
+			//bins_truth =  {250,  500,  750, 1000,  1500,  2000};
+			bins_truth =  {250,  500,  750, 1000,  1250,  1500,  2000, 3000};
+			bins_reco =  {200 ,300,  375. , 475.,  550.,  675.,  800.,  1000, 1200};
+			//bins_reco =  {200 , 300, 400, 500 , 600,   1000};
 			break;
+		case MODEL_NCPI0:
+			bins_truth =  {250,  500,600, 700, 900, 1100,  1250,  1500,  2000, 3000};
+			bins_reco =  {140,200 ,300,  375. , 475.,  550.,  675.,  800.,  1000, 1200};
+			break;
+
+
+
 	}
 
 	//double max_plot_bin_truth  = 1000; //CCQE
 	
 	double max_plot_bin_truth = 1500;//bins_truth.back() ;//2000;
 	if(MODEL == MODEL_DELTARES) max_plot_bin_truth = bins_truth.back();
+	if(MODEL == MODEL_NCPI0) max_plot_bin_truth = bins_truth.back();
 
 	double max_plot_bin_reco = bins_reco.back() ;//1500;
 	double max_ratio_height = 7;
+	double max_true_height = 12;
+	double max_reco_height = 1.2;
+	if(MODEL != MODEL_CCQE) max_true_height = 4;
+	if(MODEL == MODEL_NCPI0) {max_true_height = 300; max_reco_height = 1.6; max_ratio_height = 4;}
+
+
 	double min_en = bins_truth.front(); if(bins_truth.front()>bins_reco.front()) min_en = bins_reco.front();
 	double max_en = bins_truth.back(); if(bins_truth.back()<bins_reco.back()) min_en = bins_reco.back();
 
@@ -341,6 +377,7 @@ int main(int argc, char** argv) {
 	alg2->Setd(&mini_signal);
 	alg2->SetD(&sigcorr);
 	std::cout<<"juuust setting D"<<std::endl;
+	alg2->SetRegularization(1);
 	alg2->Unfold();
 
 
@@ -423,7 +460,7 @@ int main(int argc, char** argv) {
 	//tt.SetMaximum(5);
 
 	TLegend * legr = new TLegend(0.58,0.75,0.89,0.89);
-	legr->AddEntry(&tt,"True intrinsic E_{#nu_{e}} ","lep");
+	legr->AddEntry(&tt,true_name.c_str(),"lep");
 	legr->SetFillStyle(0);
 	legr->SetLineColor(kWhite);
 	//	legr->SetBorderSize(0.1);
@@ -434,6 +471,10 @@ int main(int argc, char** argv) {
 	legr->Draw();
 	tt.GetXaxis()->SetRangeUser(min_en,max_en);
 
+	if(MODEL==MODEL_NCPI0){
+		//pad1->SetLogy();
+	}
+	
 	TH1D rr = reco;
 	rr.SetMarkerStyle(20);
 	rr.SetMarkerSize(2);
@@ -450,7 +491,7 @@ int main(int argc, char** argv) {
 	//	rr.SetTitle("Reconstructed Variable");
 	//rr.SetMaximum(5);
 	//rr.GetXaxis()->SetRange(1,10);
-
+	
 
 	legr->AddEntry(&rr,"Reconstruced E_{QE}","lep");
 	rr.Draw("E1 same");
@@ -492,7 +533,13 @@ int main(int argc, char** argv) {
 	eff.GetXaxis()->SetLabelSize(0.09);
 	eff.Draw("E1");
 	eff.SetMinimum(0);
-	eff.SetMaximum(0.2);
+
+	double emax = 0.2;
+	if(MODEL == MODEL_NCPI0){
+		emax = 0.004;
+	}
+
+	eff.SetMaximum(emax);
 	eff.GetXaxis()->SetRangeUser(min_en,max_en);
 
 
@@ -515,6 +562,7 @@ int main(int argc, char** argv) {
 	lres->SetLineColor(kBlack);
 	lres->Draw("same");
 
+	
 
 	c_responce->SaveAs( (base_name+"_response.pdf").c_str(),"pdf");
 	c_eff->SaveAs( (base_name+"_eff.pdf").c_str(),"pdf");
@@ -592,7 +640,11 @@ int main(int argc, char** argv) {
 	TLegend * leg1 = new TLegend(0.58,0.6,0.89,0.89);
 	leg1->AddEntry(&sig,"6.46e20 POT #nu-mode data","lep");
 	//leg1->AddEntry(&reco,"MC intrinsic #nu_{e} CCQE","lef");
-	leg1->AddEntry(&reco,"MC intrinsic #nu_{e} event events");
+
+	std::string legname ="MC intrinsic #nu_{e} event"; 
+	if(MODEL != MODEL_CCQE) legname = "MC #Delta radiative decay";
+	if(MODEL == MODEL_NCPI0) legname = "MC NC #pi^{0}";
+	leg1->AddEntry(&reco,legname.c_str());
 	leg1->SetFillStyle(0);
 	leg1->SetBorderSize(0.0);
 	leg1->Draw();
@@ -669,12 +721,6 @@ int main(int argc, char** argv) {
 
 
 
-
-
-
-
-
-
 	std::vector<std::vector<int>> base_cols;
 	std::vector<int> tri_cols = {kRed, kMagenta,kBlue,kCyan,kGreen,kYellow};
 	std::vector<int> rec_cols = {kOrange, kPink,kViolet,kAzure,kTeal,kSpring};	
@@ -727,8 +773,8 @@ int main(int argc, char** argv) {
 
 		us.at(k).SetMinimum(0);
 		us.at(k).GetXaxis()->SetRangeUser(bins_truth.front(),max_plot_bin_truth);
-		double tm = 12;
-		if(kreg.at(k)> 6){ tm = 15;}
+		double tm = max_true_height;
+		if(kreg.at(k)> 6){ tm = max_true_height*2;}
 		us.at(k).SetMaximum(tm);//has to be after!
 
 		us_stat.at(k) = alg2->GetHistU();
@@ -949,7 +995,7 @@ int main(int argc, char** argv) {
 		legR->SetLineColor(kWhite);
 		legR->Draw();
 		uR.at(k).GetXaxis()->SetRangeUser(bins_reco.front(),max_plot_bin_reco);
-		uR.at(k).SetMaximum(1.2);
+		uR.at(k).SetMaximum(max_reco_height);
 		uR.at(k).SetLineWidth(2);
 		uR.at(k).SetLineColor(kBlack);
 		uR.at(k).SetMinimum(0.0);
@@ -1212,6 +1258,7 @@ int main(int argc, char** argv) {
 	bfun.SetMarkerStyle(29);
 	bfun.Draw("E2");
 	bfun.SetMinimum(0.001);
+	bfun.SetMaximum(max_true_height);
 	//bfun.Draw("E1 same");
 	//us_stat.at(best_reg).Draw("same E1");
 	//us_stat.at(best_reg).Draw("same P");
@@ -1234,8 +1281,8 @@ int main(int argc, char** argv) {
 	new_ratio.GetYaxis()->SetTitleSize(0.08);
 	new_ratio.GetXaxis()->SetLabelSize(0.075);
 	new_ratio.GetYaxis()->SetLabelSize(0.075);
-	new_ratio.GetYaxis()->SetTitleOffset(0.3);
-	new_ratio.SetMaximum(6.99);
+	new_ratio.GetYaxis()->SetTitleOffset(0.5);
+	new_ratio.SetMaximum(max_ratio_height*0.999);
 	line->Draw();
 
 
@@ -1251,12 +1298,15 @@ int main(int argc, char** argv) {
 
 	std::vector<double> bincenter;
 	std::vector<double> binval;
+	std::vector<double> binval_notscaled;
 
 
 	for(int i=0; i<ratio_scaled->GetNbinsX()+2; i++){
 		ratio_scaled->SetBinContent(i+1, ratio.GetBinContent(i+1)/gr->Eval(0.001*ratio.GetBinCenter(i+1) )  );
 		bincenter.push_back( ratio.GetBinCenter(i+1) );
 		binval.push_back(  ratio.GetBinContent(i+1)/gr->Eval(0.001*ratio.GetBinCenter(i+1) ));
+		binval_notscaled.push_back(  ratio.GetBinContent(i+1));
+		
 
 		std::cout<<"Ratio: "<<ratio.GetBinContent(i+1)<<" "<<ratio.GetBinCenter(i+1)<<" "<<gr->Eval(0.001*ratio.GetBinCenter(i+1) )<<std::endl; 
 		std::cout<<"Res: "<<ratio_scaled->GetBinContent(i+1)<<std::endl;
@@ -1287,7 +1337,7 @@ int main(int argc, char** argv) {
 	f_graph_out->cd();
 
 	ratio.Write();
-	TGraph * graph_out = new TGraph(bincenter.size(), &bincenter[0], &binval[0]  );
+	TGraph * graph_out = new TGraph(bincenter.size(), &bincenter[0], &binval_notscaled[0]  );
 
 	graph_out->Write();
 	f_graph_out->Close();
