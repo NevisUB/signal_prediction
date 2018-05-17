@@ -318,9 +318,10 @@ int main(int argc, char** argv) {
 	sig.SetTitle("Reconstructed E^{QE}" );
 	sig.GetYaxis()->SetTitle("Events/MeV");
 	sig.GetXaxis()->SetTitle("Reco E^{QE}_{#nu} [MeV]");
-	sig.SetLineColor(kRed-7);
-	sig.SetMarkerColor(kRed-7);
+	sig.SetLineColor(kBlack-7);
+	sig.SetMarkerColor(kBlack-7);
 	sig.SetMarkerStyle(21);
+	sig.SetMarkerSize(1);
 	sig.SetLineWidth(2);
 	sig.Draw("e1");
 	sig.GetXaxis()->SetRange(1,10);

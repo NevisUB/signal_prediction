@@ -34,9 +34,10 @@ namespace sp {
 
 
 	void Response::Fill(float weight, bool passosc) {
-
+		//This is me trying to seperate out smearing 
 		auto t_res = _true_param->Fill(weight,"truth");
 		if(passosc){
+
 			auto r_res = _reco_param->Fill(weight,"reco");
 			_response_h.Fill(r_res, t_res, weight);
 		}

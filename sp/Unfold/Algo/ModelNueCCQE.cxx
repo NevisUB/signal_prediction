@@ -17,7 +17,9 @@ namespace sp {
 	float ModelNueCCQE::Operate(std::string reco_or_truth){
 
 		if(reco_or_truth == "reco"){
-			return RecoEnuQE*1000;		
+			//In order to split the response matrix up a bit, we take trur - true to see efficiency 
+			//return NuMomT*1000;
+			return RecoEnuQE*1000;		 //this is correct one for main analysis
 
 		}else if (reco_or_truth == "truth"){
 

@@ -111,9 +111,12 @@ namespace sp {
 		SP_DEBUG()<<"Calculating a global efficiency vector."<<std::endl;
 		ep.Zero();
 		for(int b=0; b<n_t; b++){
+			double tpass = 0;
 			for(int l=0; l<n_r; l++){
-				ep(b) += A(l,b) ;
+				ep(b) += A(l,b);
+				tpass += N(l,b);
 			}
+
 			SP_DEBUG()<<"Efficiency is: "<<ep(b)<<" at bin "<<b<<" "<<std::endl;
 			if(ep(b)==0){
 				SP_CRITICAL()<<"Efficiency is: "<<ep(b)<<" at bin #"<<b<<" with t: "<<t(b)<<std::endl;
@@ -150,10 +153,19 @@ namespace sp {
 		for(int a=0;a<n_t; a++){
 			for(int i=0; i< n_r; i++){
 				for(int j=0; j< n_r; j++){
-					Ep(a,a) += covA.at(i).at(a).at(j);
+					//Ep(a,a) += covA.at(i).at(a).at(j);
 				}
 			}
 		}
+
+		for(int b=0; b<n_t; b++){
+			double tpass = 0;
+			for(int l=0; l<n_r; l++){
+				tpass += N(l,b);
+			}
+			Ep(b,b) = ep(b)*ep(b)*( pow(sqrt(t(b))/t(b),2)+ pow(sqrt(tpass)/tpass,2)) ;
+		}
+
 
 
 
@@ -355,6 +367,7 @@ namespace sp {
 
 		for(int i=0; i<n_r; i++){
 			hist_r->SetBinContent(i+1 , r(i));
+			//hist_r->SetErrorContent(i+1, );
 		}
 
 		return *hist_r;

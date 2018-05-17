@@ -122,7 +122,7 @@ int main(int argc, char** argv) {
 			break;
 		case MODEL_DELTARES:
 			use_file= "rootfiles/filtered_nc_delta.root";
-			true_name = "True  E_{#nu}" ;
+			true_name = "True NC #Delta #rightarrow N#gamma E_{#nu}" ;
 			reco_name = "Reconstructed E_{QE}";
 			break;
 		case MODEL_NCPI0:
@@ -157,8 +157,9 @@ int main(int argc, char** argv) {
 
 	a.initialize();
 
-	std::vector<std::string> var_truth = {"NuMomT"};
 	std::vector<std::string> var_reco = {"RecoEnuQE"};
+	//std::vector<std::string> var_reco = {"NuMomT"};
+	std::vector<std::string> var_truth = {"NuMomT"};
 
 
 
@@ -171,6 +172,7 @@ int main(int argc, char** argv) {
 		case MODEL_CCQE:
 			bins_reco = {200,300,  375. , 475.,  550.,  675.,  800.,  950.,  1100.  ,1300. , 1500.,1750 , 2000,2500};
 			bins_truth = {200,250,300,350,400,450, 500,600,  800.,1000,1500,2000,2500,3000};
+
 			break;
 		case MODEL_DELTARES:
 			//bins_truth =  {300,  475.,  550.,  675.,  800.,  950.,  1100.  ,1300. , 1500. ,2000, 2500,3500};
@@ -402,6 +404,13 @@ int main(int argc, char** argv) {
 	TH1D sig_events = alg2->GetHistD(); //pure for chi^2 calc
 
 	TH1D reco = alg2->GetHistR();
+	for(int i=0; i<N_bins_reco; i++){
+		reco.SetBinError(i+1, sqrt(reco.GetBinError(i+1)*reco.GetBinError(i+1)+   sum_bkg->GetBinError(i+1)*sum_bkg->GetBinError(i+1)) );
+	}
+
+
+
+
 	TH1D truth = alg2->GetHistT();
 	sig.SetLineColor(kRed); 
 	ans.SetLineColor(kBlue); 
@@ -423,8 +432,66 @@ int main(int argc, char** argv) {
 	TFile *f = new TFile("CCQE_ans.root","RECREATE");
 
 
+        //Error on reco should have total error of total 
 
 
+	/************************* Plot 2: Signal over chosen background **********************/
+
+	TCanvas *c_signal = new TCanvas("c_signal","c_signal",600,600);
+
+	sig.SetTitle("MiniBooNE excess, Photon-Like Model" );
+	sig.GetYaxis()->SetTitle("Events/MeV");
+	sig.GetXaxis()->SetTitle("Reco E^{QE}_{#nu} [MeV]");
+	//sig.SetLineColor(kWhite);
+	sig.SetLineColor(kBlack);
+	//sig.SetMarkerColor(kWhite);
+	sig.SetMarkerColor(kBlack);
+	sig.SetMarkerStyle(20);
+	sig.SetMarkerSize(1);
+	sig.SetLineWidth(2);
+	sig.Draw("e1");
+	sig.GetXaxis()->SetRangeUser(bins_reco.front(),max_plot_bin_reco);
+
+	sig.SetMinimum(0);
+
+	int bkgcol = kGreen-6;//for CCQE
+	if(MODEL != MODEL_CCQE) bkgcol = kOrange -9;
+
+
+	reco.SetFillColor(bkgcol);
+	reco.SetLineWidth(2);
+	reco.SetMarkerColor(kBlack);
+	reco.SetMarkerStyle(21);
+	//	reco.Draw("same e2");
+	reco.DrawCopy("same hist");
+	reco.SetFillStyle(3244);
+	reco.SetFillColor(kGray+1);
+	reco.SetMarkerSize(0);
+	reco.DrawCopy("E2 same");
+	reco.SetFillStyle(0);
+	reco.DrawCopy("same hist");
+	reco.SetFillStyle(1001);
+	reco.SetFillColor(bkgcol);
+	sig.Draw("same");
+
+
+
+
+	TLegend * leg1 = new TLegend(0.48,0.5,0.89,0.89);
+	leg1->AddEntry(&sig,"6.46e20 POT #nu-mode data","lep");
+	//leg1->AddEntry(&reco,"MC intrinsic #nu_{e} CCQE","lef");
+
+	std::string legname ="MC intrinsic #nu_{e} event"; 
+	if(MODEL != MODEL_CCQE) legname = "MC #Delta #rightarrow N#gamma decay";
+	if(MODEL == MODEL_NCPI0) legname = "MC NC #pi^{0}";
+	leg1->AddEntry(&reco,legname.c_str());
+	leg1->SetFillStyle(0);
+	leg1->SetBorderSize(0.0);
+	leg1->Draw();
+
+
+	c_signal->Write();
+	c_signal->SaveAs((base_name+"_signal.pdf").c_str(),"pdf");
 
 
 
@@ -444,29 +511,40 @@ int main(int argc, char** argv) {
 	pad1->cd();               // pad1 becomes the current pad
 
 	TH1D tt = truth;
-	tt.SetMarkerStyle(21);
-	tt.SetMarkerColor(kBlue-3);
-	tt.SetMarkerSize(2);
+	tt.SetMarkerSize(0);
 	tt.SetLineWidth(2);
-	tt.SetLineColor(kBlue-6);
+	tt.SetFillStyle(3344);
+	tt.SetFillColor(kBlue-9);
+	tt.SetLineColor(kBlue-4);
 	tt.GetXaxis()->SetTitle("Neutrino Energy [MeV]");
 	tt.GetYaxis()->SetTitle("Events/MeV");
 	tt.GetXaxis()->SetTitleSize(0.04);
 	tt.GetXaxis()->SetLabelSize(0.04);
 	tt.GetYaxis()->SetLabelSize(0.04);
 	tt.GetYaxis()->SetTitleOffset(1.45);
-	tt.SetMinimum(0);
+	tt.SetMinimum(0.001);
+	tt.SetMaximum(tt.GetMaximum()*1.3);
 	//.SetTitle("True Variable");
 	//tt.SetMaximum(5);
 
-	TLegend * legr = new TLegend(0.58,0.75,0.89,0.89);
-	legr->AddEntry(&tt,true_name.c_str(),"lep");
+//	legr->SetBorderSize(0.1);
+
+	tt.DrawCopy("hist");
+	tt.SetFillStyle(3144);
+	tt.SetFillColor(kGray+1);
+	tt.SetMarkerSize(0);
+	tt.DrawCopy("E2 same");
+	tt.SetFillStyle(0);
+	tt.DrawCopy("same hist");
+	tt.SetFillStyle(3344);
+	tt.SetFillColor(kBlue-4);
+
+	TLegend * legr = new TLegend(0.5,0.7,0.89,0.89);
+	legr->AddEntry(&tt,true_name.c_str(),"lf");
 	legr->SetFillStyle(0);
 	legr->SetLineColor(kWhite);
-	//	legr->SetBorderSize(0.1);
+	
 
-	tt.Draw("E1");
-	tt.Draw("hist same");
 	//rr.Draw("same ap");
 	legr->Draw();
 	tt.GetXaxis()->SetRangeUser(min_en,max_en);
@@ -476,24 +554,27 @@ int main(int argc, char** argv) {
 	}
 	
 	TH1D rr = reco;
-	rr.SetMarkerStyle(20);
-	rr.SetMarkerSize(2);
-	rr.SetMarkerColor(kRed-3);
+
+	rr.SetFillColor(bkgcol);
 	rr.SetLineWidth(2);
-	rr.SetLineColor(kRed-7);
-	//	rr.GetXaxis()->SetTitle("Neutrino Energy [MeV]");
-	//	rr.GetYaxis()->SetTitle("Events/MeV");
+	rr.SetMarkerColor(kBlack);
+	rr.SetMarkerStyle(21);
+	//	rr.Draw("same e2");
+	rr.DrawCopy("same hist");
+	rr.SetFillStyle(3244);
+	rr.SetFillColor(kGray+1);
+	rr.SetMarkerSize(0);
+	rr.DrawCopy("E2 same");
+	rr.SetFillStyle(0);
+	rr.SetFillStyle(1001);
+	rr.SetFillColor(bkgcol);
+
 	rr.GetXaxis()->SetTitleSize(0.04);
 	rr.GetXaxis()->SetLabelSize(0.04);
 	rr.GetYaxis()->SetLabelSize(0.04);
 	rr.GetYaxis()->SetTitleOffset(1.45);
-	rr.SetMinimum(0);
-	//	rr.SetTitle("Reconstructed Variable");
-	//rr.SetMaximum(5);
-	//rr.GetXaxis()->SetRange(1,10);
-	
 
-	legr->AddEntry(&rr,"Reconstruced E_{QE}","lep");
+	legr->AddEntry(&rr,"Reconstruced E_{QE}","lf");
 	rr.Draw("E1 same");
 	rr.Draw("hist same");
 
@@ -521,7 +602,7 @@ int main(int argc, char** argv) {
 	eff.SetMarkerStyle(20);
 
 
-	eff.GetYaxis()->SetTitle("Efficiency");
+	eff.GetYaxis()->SetTitle("True Efficiency");
 	eff.GetXaxis()->SetTitle("Neutrino Energy [MeV]");
 
 	eff.GetYaxis()->SetTitleOffset(0.6);
@@ -531,10 +612,10 @@ int main(int argc, char** argv) {
 	eff.GetXaxis()->SetTitleSize(0.09);
 	eff.GetYaxis()->SetLabelSize(0.07);
 	eff.GetXaxis()->SetLabelSize(0.09);
-	eff.Draw("E1");
-	eff.SetMinimum(0);
-
-	double emax = 0.2;
+	eff.SetFillStyle(3144);
+	eff.SetFillColor(kGray+1);
+	
+	double emax = 0.199;
 	if(MODEL == MODEL_NCPI0){
 		emax = 0.004;
 	}
@@ -544,16 +625,31 @@ int main(int argc, char** argv) {
 
 
 
+	eff.DrawCopy("E2");
+	eff.SetFillStyle(0);
+	eff.Draw("same hist");
+
+	eff.SetMinimum(0);
+
 
 	c_responce->cd()->SetRightMargin(0.175);
 	TH2D prob_MC = alg2->GetHistA();
 	gStyle->SetPalette(kInvertedDarkBodyRadiator);
 
-	prob_MC.GetYaxis()->SetTitle("True E_{#nu_{e}} Bin");
-	prob_MC.GetXaxis()->SetTitle("Reconstructed E_{QE} Bin");
-	prob_MC.SetTitle("");
-	prob_MC.GetXaxis()->SetTitleOffset(1.1);
-	prob_MC.GetYaxis()->SetTitleOffset(1.1);
+	for(int i=0; i < N_bins_reco; i++){
+		prob_MC.GetXaxis()->SetBinLabel(i+1,std::to_string((int)bins_reco.at(i)).c_str());
+	}
+	for(int a=0; a< N_bins_truth;a++){
+		prob_MC.GetYaxis()->SetBinLabel(a+1,std::to_string((int)bins_truth.at(a)).c_str());
+	}
+
+
+
+	prob_MC.GetYaxis()->SetTitle("True E_{#nu_{e}} [MeV]");
+	prob_MC.GetXaxis()->SetTitle("Reconstructed E_{QE} [MeV]");
+	prob_MC.SetTitle("Response Matrix, Photon-like Model");
+	prob_MC.GetXaxis()->SetTitleOffset(1.15);
+	prob_MC.GetYaxis()->SetTitleOffset(1.4);
 
 	prob_MC.Draw("colz");
 	//prob_MC.GetXaxis()->SetRange(1,10);
@@ -612,46 +708,6 @@ int main(int argc, char** argv) {
 
 
 
-
-
-	/************************* Plot 2: Signal over chosen background **********************/
-
-	TCanvas *c_signal = new TCanvas("c_signal","c_signal",1200,800);
-
-	sig.SetTitle("MiniBooNE excess" );
-	sig.GetYaxis()->SetTitle("Events/MeV");
-	sig.GetXaxis()->SetTitle("Reco E^{QE}_{#nu} [MeV]");
-	sig.SetLineColor(kRed-7);
-	sig.SetMarkerColor(kRed-7);
-	sig.SetMarkerStyle(21);
-	sig.SetLineWidth(2);
-	sig.Draw("e1");
-	sig.GetXaxis()->SetRangeUser(bins_reco.front(),max_plot_bin_reco);
-
-	sig.SetMinimum(0);
-
-	reco.SetFillColor(kGray);
-	reco.SetMarkerColor(kBlack);
-	reco.SetMarkerStyle(21);
-	//	reco.Draw("same e2");
-	reco.Draw("same hist");
-	sig.Draw("same");
-
-	TLegend * leg1 = new TLegend(0.58,0.6,0.89,0.89);
-	leg1->AddEntry(&sig,"6.46e20 POT #nu-mode data","lep");
-	//leg1->AddEntry(&reco,"MC intrinsic #nu_{e} CCQE","lef");
-
-	std::string legname ="MC intrinsic #nu_{e} event"; 
-	if(MODEL != MODEL_CCQE) legname = "MC #Delta radiative decay";
-	if(MODEL == MODEL_NCPI0) legname = "MC NC #pi^{0}";
-	leg1->AddEntry(&reco,legname.c_str());
-	leg1->SetFillStyle(0);
-	leg1->SetBorderSize(0.0);
-	leg1->Draw();
-
-
-	c_signal->Write();
-	c_signal->SaveAs((base_name+"_signal.pdf").c_str(),"pdf");
 
 
 	/************************* Plot 3s**********************/
@@ -726,6 +782,7 @@ int main(int argc, char** argv) {
 	std::vector<int> rec_cols = {kOrange, kPink,kViolet,kAzure,kTeal,kSpring};	
 
 
+
 	for(int k=0; k<kreg.size(); k++){
 		std::string nam = "Reg Number k: " +std::to_string(kreg.at(k)) ;
 
@@ -792,7 +849,7 @@ int main(int argc, char** argv) {
 
 		leg.at(k) = new TLegend(0.5,0.65,0.89,0.89);
 		leg.at(k)->AddEntry(&us.at(k),"Unfolded spectra","pf");
-		leg.at(k)->AddEntry(&truth,"MiniBooNE MC E_{#nu} spectra","l");
+		leg.at(k)->AddEntry(&truth,"MiniBooNE MC E_{#nu} spectra","lf");
 		leg.at(k)->SetFillStyle(0);
 		leg.at(k)->SetBorderSize(0);
 		leg.at(k)->Draw();
@@ -1256,14 +1313,36 @@ int main(int argc, char** argv) {
 	bfun.GetYaxis()->SetLabelSize(0.075);
 	bfun.GetYaxis()->SetTitleOffset(0);
 	bfun.SetMarkerStyle(29);
+	//Uncomment this next bit to make it a "bkg only plot"
+	/*bfun.SetLineColor(kWhite);
+	bfun.SetFillColor(kWhite);
+	bfun.SetMarkerColor(kWhite);
+	*/
+	// This bit above
+	bfun.SetTitle("Unfolded Result, Photon-like Model");
+
 	bfun.Draw("E2");
 	bfun.SetMinimum(0.001);
-	bfun.SetMaximum(max_true_height);
+	bfun.SetMaximum(max_true_height*0.8);
 	//bfun.Draw("E1 same");
 	//us_stat.at(best_reg).Draw("same E1");
 	//us_stat.at(best_reg).Draw("same P");
+	truth.SetFillColor(kBlue-7);
+	truth.SetLineWidth(2);
+	truth.SetFillStyle(3344);
 	truth.Draw("same hist");
 	leg.at(best_reg)->Draw();
+	truth.SetFillStyle(3144);
+	truth.SetFillColor(kGray+1);
+	truth.SetMarkerSize(0);
+	truth.DrawCopy("E2 same");
+	truth.SetFillStyle(0);
+	truth.DrawCopy("same hist");
+	truth.SetFillStyle(3344);
+	truth.SetFillColor(kBlue-4);
+
+
+
 
 	cr_sig->cd();          // Go back to the main canvas before defining pad2
 	TPad *padcr2 = new TPad("padcr2", "padcr2", 0, 0.05, 1, 0.45);
@@ -1274,7 +1353,7 @@ int main(int argc, char** argv) {
 	padcr2->cd();       // padcr2 becomes the current pad
 	TH1D new_ratio = ratio;
 	new_ratio.SetFillColor(cols.at(best_reg)-2);
-	new_ratio.GetYaxis()->SetTitle("Ratio Unfolded/MC truth");
+	new_ratio.GetYaxis()->SetTitle("Ratio Unfolded/MC Truth");
 	new_ratio.SetTitle("");
 	new_ratio.Draw("E2");
 	new_ratio.GetXaxis()->SetTitleSize(0.08);
@@ -1282,8 +1361,14 @@ int main(int argc, char** argv) {
 	new_ratio.GetXaxis()->SetLabelSize(0.075);
 	new_ratio.GetYaxis()->SetLabelSize(0.075);
 	new_ratio.GetYaxis()->SetTitleOffset(0.5);
-	new_ratio.SetMaximum(max_ratio_height*0.999);
-	line->Draw();
+	new_ratio.SetMaximum(max_ratio_height*1.1);
+	
+	TLine *line2 = new TLine(bins_truth.front(),1,3000,1);
+	line2->SetLineColor(kBlack);
+	line2->SetLineStyle(2);
+	line2->Draw();
+
+	line2->Draw();
 
 
 	cr_sig->SaveAs((base_name+"_result.pdf").c_str(), "pdf");
