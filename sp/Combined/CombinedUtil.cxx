@@ -36,8 +36,30 @@ namespace sp {
     return kBINVALID;
   }
  
-  std::string StackedBkgd2String(const StackedBkgdType_t bkgd) {
+
+  std::string StackedBkgd2PrettyString(const StackedBkgdType_t bkgd) {
+  //std::vector<std::string> temp_names = {"Other","#nu_{e} from K^{0}","#nu_{e} from K^{+}","#nu_{e} from K^{0}","#Delta #rightarrow N #gamma","#pi^{0} misid","Dirt"};
+    switch(bkgd) {
+    case kBKGD_INVALID: return "INVALID";
+    case kBKGD_DIRT:    return "Dirt";
+    case kBKGD_PI0:     return "#pi^{0} misid";
+    case kBKGD_DELTA:   return "#Delta #rightarrow N #gamma";
+    case kBKGD_NUEPIP:  return "#nu_{e} from #mu";
+    case kBKGD_NUEKP:   return "#nu_{e} from K^{+}";
+    case kBKGD_NUEK0:   return "#nu_{e} from K^{0}";
+    case kBKGD_OTHER:   return "Other";
+    case kBKGD_MAX:     return "MAX";
+    default:            return "INVALID";
+    }
     
+    return "INVALID";
+  }
+
+
+std::string StackedBkgd2String(const StackedBkgdType_t bkgd) {
+
+    
+    //std::vector<std::string> temp_names = {"Other","#nu_{e} from K^{0}","#nu_{e} from K^{+}","#nu_{e} from K^{0}","#Delta #rightarrow N #gamma","#pi^{0} misid","Dirt"};
     switch(bkgd) {
     case kBKGD_INVALID: return "INVALID";
     case kBKGD_DIRT:    return "DIRT";

@@ -10,6 +10,7 @@ namespace sp {
   BkgdType_t String2Bkgd(const std::string& name);
 
   std::string StackedBkgd2String(const StackedBkgdType_t bkgd);
+  std::string StackedBkgd2PrettyString(const StackedBkgdType_t bkgd);
   StackedBkgdType_t String2StackedBkgd(const std::string& name);
 
   std::string GEANT32String(const GEANT3Type_t particle);

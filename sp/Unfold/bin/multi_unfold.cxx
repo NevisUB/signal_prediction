@@ -44,19 +44,20 @@ int main(int argc, char** argv) {
 	std::string base_name = "CCQE_SVD";
 	std::string algo_name = "SVD";
 	std::string model_name = "CCQE";
-
+	std::string data_set = "old";
 
 	const struct option longopts[] = 
 	{
 		{"algo",	 	required_argument, 	0, 'a'},
 		{"model",		required_argument,	0, 'm'},
+		{"dataset",		required_argument,	0, 'd'},
 		{0,			no_argument, 		0,  0}
 	};
 	const char * tin;
 
 	while(iarg != -1)
 	{
-		iarg = getopt_long(argc,argv, "a:m:", longopts, &index);
+		iarg = getopt_long(argc,argv, "d:a:m:", longopts, &index);
 
 		switch(iarg)
 		{
@@ -71,7 +72,14 @@ int main(int argc, char** argv) {
 				if(strcmp(tin, "deltares")==0) {  MODEL = MODEL_DELTARES; model_name = "DELTARES";}
 				if(strcmp(tin, "ncpi0")==0) {MODEL = MODEL_NCPI0; model_name = "NCPI0";}
 				break;
+			case 'd':
+				tin = optarg;//way to read in null terminated c strings and compare to known list
+				if(strcmp(tin, "new")==0){ data_set = "new";}
+				if(strcmp(tin, "old")==0) {data_set = "old";}
+				if(strcmp(tin, "comb")==0) {data_set = "comb";}
+				break;
 
+				break;
 			case '?':
 				std::cout<<"Abandon hope all ye who enter this value. "<<std::endl;
 			case 'h':
@@ -79,6 +87,7 @@ int main(int argc, char** argv) {
 				std::cout<<"Allowed arguments:"<<std::endl;
 				std::cout<<"\t-m, --model\t\t\tSets the model, ncdelta or ccqe [default ccqe]"<<std::endl;
 				std::cout<<"\t-a, --algo\t\t\tSets the unfolding algo, svd or dag [default svd]"<<std::endl;
+				std::cout<<"\t-d, --dataset\t\t\tSets the dataset, new old or comb [default old]"<<std::endl;
 				std::cout<<"******************************************"<<std::endl;
 
 				return 0;
@@ -87,7 +96,7 @@ int main(int argc, char** argv) {
 	}
 
 	//Define naming scheme
-	base_name = model_name +"_"+algo_name;
+	base_name = model_name +"_"+algo_name+"_"+data_set;
 
 
 
@@ -103,7 +112,11 @@ int main(int argc, char** argv) {
 
 	std::string core = "/home/mark/work/uBooNE/lee_unfolding/";
 	std::string bkg_file = "rootfiles/filtered_passosc.root";
-	std::string data_file = "rootfiles/output_osc_data_detail_1.root";	
+	std::string data_file;
+	if(data_set == "old") data_file = "rootfiles/output_osc_data_detail_1.root";	
+	if(data_set == "new") data_file = "rootfiles/new/data_nue_new_corrected.root";	
+	if(data_set == "comb") data_file = "rootfiles/new/data_nue_combined_new_old.root";	
+
 	std::string dirt_file =  "rootfiles/merged_filtered_out_osc_mc_dirt.root";
 
 
@@ -197,9 +210,13 @@ int main(int argc, char** argv) {
 	if(MODEL == MODEL_NCPI0) max_plot_bin_truth = bins_truth.back();
 
 	double max_plot_bin_reco = bins_reco.back() ;//1500;
-	double max_ratio_height = 7;
-	double max_true_height = 12;
+	double max_ratio_height = 9;
+	double max_true_height =26;
 	double max_reco_height = 1.2;
+	if(data_set == "new") max_reco_height = 1.7;
+    if(data_set == "comb") max_reco_height = 3.5;
+
+
 	if(MODEL != MODEL_CCQE) max_true_height = 4;
 	if(MODEL == MODEL_NCPI0) {max_true_height = 300; max_reco_height = 1.6; max_ratio_height = 4;}
 
@@ -255,7 +272,21 @@ int main(int argc, char** argv) {
 	alg2->Initialize(&(a.Responses().front()));
 
 
-	double pot_scale = 6.46/41.10;
+	double pot_data_file =-99;
+    std::string pot_string = "BLARG";
+	if(data_set == "old"){
+        pot_data_file = 6.46;
+        pot_string = "6.46e20";
+    }
+	if(data_set == "new"){ pot_data_file = 6.38;
+        pot_string = "6.38e20";
+
+    }
+	if(data_set == "comb"){ pot_data_file = 6.46+6.38;
+        pot_string = "12.84e20";
+    }
+
+	double pot_scale = pot_data_file/41.10;
 
 
 	/******************************* all TH1's that we need ******************************/
@@ -299,10 +330,14 @@ int main(int argc, char** argv) {
 	sum_bkg->Merge(list);
 	sum_bkg->Scale(pot_scale);
 
+	std::cout<<"MCbreakdown"<<std::endl;
 	for(auto & v :th1d_v){
+			
 		for(int i=0; i< N_bins_reco;i++){
 			summed_mc.at(i) += v.GetBinContent(i+1)*pot_scale;
+			std::cout<<v.GetBinContent(i+1)*pot_scale<<" ";	
 		}
+		std::cout<<std::endl;
 
 	}
 	for(int i=0; i<N_bins_reco; i++){
@@ -328,30 +363,36 @@ int main(int argc, char** argv) {
 
 	std::cout<<"Loading Data"<<std::endl;
 	TFile * f_data = new TFile( (core+data_file).c_str());
-	TTree * data = (TTree*)f_data->Get("MiniBooNE_CCQE");
+	if ( f_data->IsOpen() ) printf("Data File opened successfully\n");
+	
+	TTree *data = (TTree*)f_data->Get("MiniBooNE_CCQE");
 	float d_Weight,d_Energy,d_CosTheta,d_RecoEnuQE;
-	data->SetBranchAddress("Weight",&d_Weight);
-	data->SetBranchAddress("Energy",&d_Energy);
-	data->SetBranchAddress("CosTheta",&d_CosTheta);
+	//data->SetBranchAddress("Weight",&d_Weight);
+	//data->SetBranchAddress("Energy",&d_Energy);
+	//data->SetBranchAddress("CosTheta",&d_CosTheta);
 	data->SetBranchAddress("RecoEnuQE", &d_RecoEnuQE);
-
 
 	for(int i=0; i< data->GetEntries();i++){
 		data->GetEntry(i);
-		h_data->Fill(1000*d_RecoEnuQE, d_Weight);
+		//h_data->Fill(d_RecoEnuQE);
+		h_data->Fill(1000*d_RecoEnuQE);
 	}
 
 
 
 
 
-
+	double total_mc = 0;
 	TVectorD mini_signal(N_bins_reco);
 	for(int i=0; i<N_bins_reco; i++){
 		//This one is the old working one
 		//mini_signal(i) = (miniobs.at(i)-minibkg.at(i))+alg2->r(i)*pot_scale    ;
 
 		h_excess->SetBinContent(i+1, h_data->GetBinContent(i+1)-summed_mc.at(i));
+		total_mc += summed_mc.at(i);
+
+
+		if(i< N_bins_reco-2) std::cout<<"CHECK: Data: "<<h_data->GetBinContent(i+1)<<" MC: "<<summed_mc.at(i)<<" EXCESS: "<<h_excess->GetBinContent(i+1)<<" EXCESS/bin: "<<h_excess->GetBinContent(i+1)/(bins_reco.at(i+1)- bins_reco.at(i))<<" BinW: "<<(bins_reco.at(i+1)- bins_reco.at(i))<<std::endl;
 
 		mini_signal(i) = (h_data->GetBinContent(i+1)-summed_mc.at(i))+alg2->r(i)*pot_scale    ;
 
@@ -369,6 +410,10 @@ int main(int argc, char** argv) {
 
 	}
 
+	std::cout<<"TOTAL: excess "<<h_excess->GetSumOfWeights()<<std::endl;
+	std::cout<<"TOTAL: data "<<h_data->GetSumOfWeights()<<std::endl;
+	std::cout<<"TOTAL: MC "<<total_mc<<std::endl;
+
 	TMatrixD sigcorr(N_bins_reco, N_bins_reco);
 	sigcorr.Zero();
 	for(int i=0; i<N_bins_reco;i++){
@@ -385,10 +430,6 @@ int main(int argc, char** argv) {
 
 	//	alg2->SetRegularization(3);
 	//	alg2->TestUnfolding("CCQE_poison_unfold_test");
-
-
-
-
 
 
 
@@ -438,26 +479,33 @@ int main(int argc, char** argv) {
 	/************************* Plot 2: Signal over chosen background **********************/
 
 	TCanvas *c_signal = new TCanvas("c_signal","c_signal",600,600);
+	TPad *p_signal = (TPad*)c_signal->cd();
 
-	sig.SetTitle("MiniBooNE excess, Photon-Like Model" );
+	sig.SetTitle("MiniBooNE excess, Electron-Like Model" );
+	if(MODEL != MODEL_CCQE) sig.SetTitle("MiniBooNE excess, Photon-Like Model" );
 	sig.GetYaxis()->SetTitle("Events/MeV");
+	//sig.GetYaxis()->SetTitle("A.U");
 	sig.GetXaxis()->SetTitle("Reco E^{QE}_{#nu} [MeV]");
 	//sig.SetLineColor(kWhite);
 	sig.SetLineColor(kBlack);
 	//sig.SetMarkerColor(kWhite);
+	
+	//sig.Scale(1.0/2.8);	
+
 	sig.SetMarkerColor(kBlack);
 	sig.SetMarkerStyle(20);
 	sig.SetMarkerSize(1);
 	sig.SetLineWidth(2);
 	sig.Draw("e1");
 	sig.GetXaxis()->SetRangeUser(bins_reco.front(),max_plot_bin_reco);
-
-	sig.SetMinimum(0);
+	sig.SetMaximum(sig.GetMaximum()*1.3);
+	if(MODEL != MODEL_CCQE) sig.SetMinimum(-0.05);
+	
 
 	int bkgcol = kGreen-6;//for CCQE
 	if(MODEL != MODEL_CCQE) bkgcol = kOrange -9;
 
-
+	
 	reco.SetFillColor(bkgcol);
 	reco.SetLineWidth(2);
 	reco.SetMarkerColor(kBlack);
@@ -472,13 +520,18 @@ int main(int argc, char** argv) {
 	reco.DrawCopy("same hist");
 	reco.SetFillStyle(1001);
 	reco.SetFillColor(bkgcol);
-	sig.Draw("same");
+	sig.Draw("e1 same");
 
 
+	TText *tsig = new TText(0.11, 0.86,"MiniBooNE Simulation and Data");
+	tsig->SetTextColor(kBlack);tsig->SetTextSize(0.035);
+	tsig->SetNDC();
+	tsig->Draw();
 
+	c_signal->RedrawAxis();
 
 	TLegend * leg1 = new TLegend(0.48,0.5,0.89,0.89);
-	leg1->AddEntry(&sig,"6.46e20 POT #nu-mode data","lep");
+	leg1->AddEntry(&sig,(pot_string+ " POT #nu-mode data").c_str(),"lep");
 	//leg1->AddEntry(&reco,"MC intrinsic #nu_{e} CCQE","lef");
 
 	std::string legname ="MC intrinsic #nu_{e} event"; 
@@ -488,6 +541,20 @@ int main(int argc, char** argv) {
 	leg1->SetFillStyle(0);
 	leg1->SetBorderSize(0.0);
 	leg1->Draw();
+
+    if(true){
+        for(double scaleor = 1.0; scaleor < 4; scaleor += 0.01){
+            double ankor=0.0;
+            for(int m =0; m < sig.GetNbinsX(); m++){
+                ankor += pow((sig.GetBinContent(m+1) - reco.GetBinContent(m+1)*scaleor)/(reco.GetBinError(m+1)+sig.GetBinError(m+1)),2);
+            }
+            std::cout<<"SIMPLE_SCALE "<<scaleor<<" "<<ankor<<std::endl;
+
+        }
+        
+
+    }
+
 
 
 	c_signal->Write();
@@ -528,6 +595,9 @@ int main(int argc, char** argv) {
 	//tt.SetMaximum(5);
 
 //	legr->SetBorderSize(0.1);
+	tt.SetTitle("MiniBooNE Monte Carlo Simulation, Electron-like Model");
+	if(MODEL != MODEL_CCQE) tt.SetTitle("MiniBooNE Monte Carlo Simulation, Photon-like Model");
+
 
 	tt.DrawCopy("hist");
 	tt.SetFillStyle(3144);
@@ -578,6 +648,13 @@ int main(int argc, char** argv) {
 	rr.Draw("E1 same");
 	rr.Draw("hist same");
 
+	TText *teff = new TText(0.12, 0.83,"MiniBooNE Simulation");
+	teff->SetTextColor(kBlack);//teff->SetTextSize(0.035);
+	teff->SetNDC();
+	teff->Draw();
+
+
+
 	c_eff->cd();          // Go back to the main canvas before defining pad2
 	TPad *pad2 = new TPad("pad2", "pad2", 0, 0.05, 1, 0.3);
 	pad2->SetTopMargin(0);
@@ -604,12 +681,14 @@ int main(int argc, char** argv) {
 
 	eff.GetYaxis()->SetTitle("True Efficiency");
 	eff.GetXaxis()->SetTitle("Neutrino Energy [MeV]");
+	c_eff->SetRightMargin(0.175);
+	c_eff->SetBottomMargin(0.18);
 
-	eff.GetYaxis()->SetTitleOffset(0.6);
+	eff.GetYaxis()->SetTitleOffset(0.3);
 //	eff.GetXaxis()->SetTitleOffset(2);
 
-	eff.GetYaxis()->SetTitleSize(0.07);
-	eff.GetXaxis()->SetTitleSize(0.09);
+	eff.GetYaxis()->SetTitleSize(0.1);
+	eff.GetXaxis()->SetTitleSize(0.1);
 	eff.GetYaxis()->SetLabelSize(0.07);
 	eff.GetXaxis()->SetLabelSize(0.09);
 	eff.SetFillStyle(3144);
@@ -644,10 +723,11 @@ int main(int argc, char** argv) {
 	}
 
 
-
 	prob_MC.GetYaxis()->SetTitle("True E_{#nu_{e}} [MeV]");
 	prob_MC.GetXaxis()->SetTitle("Reconstructed E_{QE} [MeV]");
-	prob_MC.SetTitle("Response Matrix, Photon-like Model");
+	prob_MC.SetTitle("MiniBooNE Response Matrix, Electron-like Model");
+	if(MODEL != MODEL_CCQE) prob_MC.SetTitle("MiniBooNE Response Matrix, Photon-like Model");
+
 	prob_MC.GetXaxis()->SetTitleOffset(1.15);
 	prob_MC.GetYaxis()->SetTitleOffset(1.4);
 
@@ -659,6 +739,14 @@ int main(int argc, char** argv) {
 	lres->Draw("same");
 
 	
+	TText *tresp = new TText(0.12, 0.86,"MiniBooNE Simulation");
+	tresp->SetTextColor(kBlack);tresp->SetTextSize(0.035);
+	tresp->SetNDC();
+	tresp->Draw();
+
+
+
+
 
 	c_responce->SaveAs( (base_name+"_response.pdf").c_str(),"pdf");
 	c_eff->SaveAs( (base_name+"_eff.pdf").c_str(),"pdf");
@@ -686,7 +774,7 @@ int main(int argc, char** argv) {
 
 	sum_bkg->Draw("hist");
 	h_data->Draw("same E1");
-	sum_bkg->SetMaximum(2.5);
+	sum_bkg->SetMaximum(3);
 
 	c_obsv->SaveAs( (base_name+ "_obsv.pdf").c_str(),"pdf");
 
@@ -737,7 +825,8 @@ int main(int argc, char** argv) {
 
 
 	std::vector<int> kreg = {1,2,3,4,5,6,7,8,9};
-	std::vector<int> cols = {kBlue-7,kGreen-6,kRed-7, kOrange-3, kMagenta-3, kGreen+3, kTeal, kAzure, kOrange};
+	//std::vector<int> cols = {kBlue-7,kGreen-6,kRed-7, kOrange-3, kMagenta-3, kGreen+3, kTeal, kAzure, kOrange};
+	std::vector<int> cols = {kOrange-2,kGreen-6,kRed-7, kOrange-3, kMagenta-3, kGreen+3, kTeal, kAzure, kOrange};
 	std::vector<TH1D> us(kreg.size());
 	std::vector<TMatrixT<double>> UU(kreg.size());
 	std::vector<TH2D> U_full_cov(kreg.size());
@@ -848,7 +937,7 @@ int main(int argc, char** argv) {
 		truth.Draw("same hist");
 
 		leg.at(k) = new TLegend(0.5,0.65,0.89,0.89);
-		leg.at(k)->AddEntry(&us.at(k),"Unfolded spectra","pf");
+		leg.at(k)->AddEntry(&us.at(k),"Unfolded MiniBooNE spectra","pf");
 		leg.at(k)->AddEntry(&truth,"MiniBooNE MC E_{#nu} spectra","lf");
 		leg.at(k)->SetFillStyle(0);
 		leg.at(k)->SetBorderSize(0);
@@ -1135,9 +1224,55 @@ int main(int argc, char** argv) {
 	c_bf_refold->cd();
 	TH1D  bfre = *(TH1D*)uR.at(best_reg).Clone("bfre");
 	bfre.SetTitle("");
-	bfre.Draw("hist");
-	sig.Draw("same");
+    bfre.SetMaximum(max_reco_height);
+	bfre.SetFillColor(bkgcol);
+
+    bfre.SetTitle("MiniBooNE excess, Refolded Electron-Like Model" );
+	if(MODEL != MODEL_CCQE) sig.SetTitle("MiniBooNE excess, Refolded Photon-Like Model" );
+	bfre.GetYaxis()->SetTitle("Events/MeV");
+	bfre.GetXaxis()->SetTitle("Reco E^{QE}_{#nu} [MeV]");
+
+	sig.SetMarkerColor(kBlack);
+	sig.SetMarkerStyle(20);
+	sig.SetMarkerSize(1);
+	sig.SetLineWidth(2);
+    sig.Draw("e1");
+	sig.GetXaxis()->SetRangeUser(bins_reco.front(),max_plot_bin_reco);
+	sig.SetMaximum(sig.GetMaximum()*1.3);
+	if(MODEL != MODEL_CCQE) sig.SetMinimum(-0.05);
+	
+	bfre.SetFillColor(bkgcol);
+	bfre.SetLineWidth(2);
+	bfre.SetMarkerColor(kBlack);
+	bfre.SetMarkerStyle(21);
+	//bfre.Draw("same e2");
+	bfre.DrawCopy("same hist");
+	bfre.SetFillStyle(3244);
+	bfre.SetFillColor(kGray+1);
+	bfre.SetMarkerSize(0);
+	bfre.DrawCopy("E2 same");
+	bfre.SetFillStyle(0);
+	bfre.DrawCopy("same hist");
+	bfre.SetFillStyle(1001);
+	bfre.SetFillColor(bkgcol);
+	sig.Draw("e1 same");
+
+	TText *tsig2 = new TText(0.11, 0.86,"MicroBooNE Simulation and Data");
+	tsig2->SetTextColor(kBlack);tsig2->SetTextSize(0.035);
+	tsig2->SetNDC();
+	tsig2->Draw();
+
+	c_bf_refold->RedrawAxis();
+
+	TLegend * leg1a = new TLegend(0.48,0.2,0.89,0.69);
+	leg1a->AddEntry(&sig,(pot_string+ " POT #nu-mode data").c_str(),"lep");
+	leg1a->AddEntry(&bfre,"Refolded LEE signal","lef");
 	uRleg.at(best_reg)->Draw();
+	leg1a->SetFillStyle(0);
+	leg1a->SetBorderSize(0.0);
+	leg1a->Draw();
+
+
 
 	c_bf_corr->cd();
 	TH2D  bfcorr = *(TH2D*)U_corr.at(best_reg).Clone("bfcorr");
@@ -1155,7 +1290,7 @@ int main(int argc, char** argv) {
 
 
 
-	int use_chol = 2;//best_reg;
+	int use_chol = best_reg;
 	us.at(use_chol).Draw("E1");
 	truth.Draw("same hist");
 	us.at(use_chol).GetXaxis()->SetRangeUser(bins_truth.front(), max_plot_bin_truth);
@@ -1178,7 +1313,7 @@ int main(int argc, char** argv) {
 
 
 
-	int use_chols_ratio = 2;//best_reg;
+	int use_chols_ratio = best_reg;
 	u_chols_ratio.at(use_chols_ratio).at(0).Draw("hist");
 	u_chols_ratio.at(use_chols_ratio).at(0).GetXaxis()->SetRangeUser(bins_truth.front(), max_plot_bin_truth);
 	u_chols_ratio.at(use_chols_ratio).at(0).SetMaximum(8);
@@ -1304,6 +1439,7 @@ int main(int argc, char** argv) {
 	//*********************** Nice ratio plot of final answer *******************
 	TCanvas *cr_sig = new TCanvas("crs","crs",1200,1200);	
 	
+	TFile *fratio = new TFile((base_name+"_result_ratio.root").c_str(),"recreate");
 	TPad *padcr1 = new TPad("padcr1", "padcr1", 0, 0.45, 1, 1.0);
 	padcr1->SetBottomMargin(0); // Upper and lower plot are joined
 	padcr1->Draw();             // Draw the upper pad: pad1
@@ -1319,11 +1455,13 @@ int main(int argc, char** argv) {
 	bfun.SetMarkerColor(kWhite);
 	*/
 	// This bit above
-	bfun.SetTitle("Unfolded Result, Photon-like Model");
+	bfun.SetTitle("Unfolded Result in MiniBooNE, Electron-like Model");
+	if(MODEL != MODEL_CCQE) bfun.SetTitle("Unfolded Result in MiniBooNE, Photon-like Model");
+
 
 	bfun.Draw("E2");
 	bfun.SetMinimum(0.001);
-	bfun.SetMaximum(max_true_height*0.8);
+	bfun.SetMaximum(max_true_height);
 	//bfun.Draw("E1 same");
 	//us_stat.at(best_reg).Draw("same E1");
 	//us_stat.at(best_reg).Draw("same P");
@@ -1341,7 +1479,10 @@ int main(int argc, char** argv) {
 	truth.SetFillStyle(3344);
 	truth.SetFillColor(kBlue-4);
 
-
+	TText *tres = new TText(0.12, 0.85,"MicroBooNE Preliminary");
+	tres->SetTextColor(kBlack);//t90->SetTextSize(0.12);
+	tres->SetNDC();
+	tres->Draw();
 
 
 	cr_sig->cd();          // Go back to the main canvas before defining pad2
@@ -1353,6 +1494,7 @@ int main(int argc, char** argv) {
 	padcr2->cd();       // padcr2 becomes the current pad
 	TH1D new_ratio = ratio;
 	new_ratio.SetFillColor(cols.at(best_reg)-2);
+	//new_ratio.SetFillColor(kYellow-9);
 	new_ratio.GetYaxis()->SetTitle("Ratio Unfolded/MC Truth");
 	new_ratio.SetTitle("");
 	new_ratio.Draw("E2");
@@ -1372,7 +1514,10 @@ int main(int argc, char** argv) {
 
 
 	cr_sig->SaveAs((base_name+"_result.pdf").c_str(), "pdf");
-
+	fratio->cd();
+	new_ratio.Write();
+	fratio->Close();
+	
 
 
 

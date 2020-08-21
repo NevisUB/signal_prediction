@@ -8,23 +8,40 @@
 #include "TLine.h"
 #include "THStack.h"
 #include "TLegend.h"
+#include "TText.h"
 
 #include <iostream>
 
 int main(int argc, char** argv) {
-	std::string fname(argv[1]);
-	std::string fname_dirt(argv[2]);
-	std::string fname_data(argv[3]);
+	//std::string fname(argv[1]);
+	//std::string fname_dirt(argv[2]);
+	//std::string fname_data(argv[3]);
+
+	std::string fname  = "/home/mark/work/uBooNE/lee_unfolding/rootfiles/filtered_passosc.root";
+	std::string fname_dirt  = "/home/mark/work/uBooNE/lee_unfolding/rootfiles/merged_filtered_out_osc_mc_dirt.root";
+//	std::string fname_data  = "/home/mark/work/uBooNE/lee_unfolding/rootfiles/output_osc_data_detail_1.root";
+  std::string fname_data  = "/home/mark/work/uBooNE/lee_unfolding/rootfiles/new/data_nue_combined_new_old.root";	
+//    std::string fname_data  = "/home/mark/work/uBooNE/lee_unfolding/rootfiles/new/data_nue_new_corrected.root";	
+
+
 
 	std::string param = "RecoEnuQE";
-	std::vector<double> bins_reco = {200,300.,375.,475.,550.,675.,800.,950.,1100.,1300.,1500.,3000.};
+	//std::vector<double> bins_reco = {200,250,300.,350,400,450,500,550,600,650,700,750,800,850,900,950,1000,1100.,1200.,1300,1400,1500.,3000.};//50
+	//std::vector<double> bins_reco = {200,225,250,275,300.,325,350,375,400,425,450,475,500,550,600,650,700,750,800,850,900,950,1000,1100.,1200.,1300,1400,1500.,3000.}; //25 mev
+	//std::vector<double> bins_reco = {200,250,300.,350,400,450,500,550,600,650,700,750,800,850,900,950,1000,1100.,1200.,1300,1400,1500.,3000.};//50
+ //   std::vector<double> bins_reco = {200,300.,375.,475.,550.,675.,800.,950.,1100.,1300.,1500.,3000.};
 	//std::vector<double> bins_reco = {150,200,300.,375.,475.,550.,675.,800.,950.,1100.,1300.,1500.,3000.};
 	//std::vector<double> bins_reco = {150,200,250,300.,350,400,450,500,550,600,650,700,750,800.,850,900,950.,1000,1100.,1300.,1500.,3000.};
-	//std::vector<double> bins_reco = {150,175,200,225,250,275,300.,325,350,375,400,425,450,475,500,525,550,575,600,650,700,750,800.,850,900,950.,1000,1100.,1300.,1500.,3000.};
+	std::vector<double> bins_reco = {150,175,200,225,250,275,300.,325,350,375,400,425,450,475,500,525,550,575,600,650,700,750,800.,850,900,950.,1000,1100.,1300.,1500.,3000.};
 	
 	std::vector<double> summed_mc(bins_reco.size()-1,0.0);
 
-	double pot_scale = 6.46/41.10;
+	double pot_scale = 12.84/41.10;
+    //double pot_scale = 6.38/41.10;
+
+    //set == "old") pot_data_file = 6.46;
+	//if(data_set == "new") pot_data_file = 6.38;
+
 	//Published total backgrounds
 	std::vector<double> minibkg = {180.80171,108.22448,120.03353,63.887782,89.806966,67.249431,69.855878,57.014477,51.846417,38.586738,69.381391};
 
@@ -35,16 +52,17 @@ int main(int argc, char** argv) {
 	TFile * f_data = new TFile( (fname_data).c_str());
 	TTree * data = (TTree*)f_data->Get("MiniBooNE_CCQE");
 	float d_Weight,d_Energy,d_CosTheta,d_RecoEnuQE;
-	data->SetBranchAddress("Weight",&d_Weight);
-	data->SetBranchAddress("Energy",&d_Energy);
-	data->SetBranchAddress("CosTheta",&d_CosTheta);
+//	data->SetBranchAddress("Weight",&d_Weight);
+//	data->SetBranchAddress("Energy",&d_Energy);
+//	data->SetBranchAddress("CosTheta",&d_CosTheta);
 	data->SetBranchAddress("RecoEnuQE", &d_RecoEnuQE);
 
 	TH1D * h_data = new TH1D("h_data","h_data", bins_reco.size()-1,  &bins_reco[0] );
 
 	for(int i=0; i< data->GetEntries();i++){
 		data->GetEntry(i);
-		h_data->Fill(1000*d_RecoEnuQE, d_Weight);
+		h_data->Fill(1000*d_RecoEnuQE);
+		//h_data->Fill(1000*d_RecoEnuQE, d_Weight);
 	}
 
 	std::vector<double>summed_data;
@@ -52,6 +70,7 @@ int main(int argc, char** argv) {
 
 	for(int i=0; i<bins_reco.size()-1;i++){
 		summed_data.push_back(h_data->GetBinContent(i+1));		
+        std::cout<<"Data: "<<i<<" "<<summed_data.at(i)<<std::endl;
 	}
 
 
@@ -91,8 +110,11 @@ int main(int argc, char** argv) {
 
 
 	THStack ths("ths","");
-	TLegend tl(0.5,0.6,0.89,0.89);
+	TLegend tl(0.35,0.45,0.89,0.89);
+    tl.SetFillStyle(0);
 	tl.SetLineColor(kWhite);
+	tl.SetLineWidth(0);
+
 
 	for(size_t bkgd_id = (size_t) sp::kBKGD_MAX-1 ; bkgd_id >0 ; --bkgd_id) {
 		if ((sp::StackedBkgdType_t)bkgd_id == sp::kBKGD_INVALID) continue;
@@ -120,15 +142,16 @@ int main(int argc, char** argv) {
 		th1d.SetLineColor(kBlack);
 		th1d.SetFillColor( nicer_colors.at(bkgd_id)  );
 		ths.Add(&th1d);
-		tl.AddEntry(&th1d, sp::StackedBkgd2String((sp::StackedBkgdType_t)bkgd_id).c_str(), "f");
+		tl.AddEntry(&th1d, sp::StackedBkgd2PrettyString((sp::StackedBkgdType_t)bkgd_id).c_str(), "f");
 	}
 
-	tl.AddEntry(h_data,"MiniBooNE Data 6.46e20 POT","lp");
+	tl.AddEntry(h_data,"MiniBooNE Data 12.84e20 POT","lp");
+	//tl.AddEntry(h_data,"MiniBooNE Data 12.84e20 POT","lp");
+//	tl.AddEntry(h_data,"MiniBooNE Data 6.38e20 POT","lp");
 
 	for(int i=0; i< summed_mc.size();i++){
 		//std::cout<<"Sum: "<<bins_reco.at(i)<<" Ours: "<<summed_mc.at(i)<<" Ratio: "<<summed_mc.at(i)/minibkg.at(i)<<std::endl;
 	}
-
 
 
 	std::vector<double> excess_err;
@@ -146,8 +169,10 @@ int main(int argc, char** argv) {
 
 	ths.Draw("hist");
 	ths.GetXaxis()->SetRangeUser(bins_reco.front()  ,1000);
-	ths.SetMaximum(3);
+	ths.SetMaximum(6);
+	ths.SetMinimum(0.001);//used to be 3
 	ths.GetYaxis()->SetTitle("Events/MeV");
+    ths.GetYaxis()->SetTitleOffset(1.2);
 
 	h_data->SetMarkerColor(kBlack);
 	h_data->SetMarkerStyle(20);
@@ -156,6 +181,13 @@ int main(int argc, char** argv) {
 	h_data->SetMarkerSize(1);
 	h_data->Scale(1,"width");	
 	h_data->Draw("E1 same");
+	
+	TText *tresp = new TText(0.11, 0.915,"MiniBooNE Simulation and Data");
+	tresp->SetTextColor(kBlack);tresp->SetTextSize(0.035);
+	tresp->SetNDC();
+	tresp->Draw();
+
+
 
 	tl.Draw("sames");
 	//	c.Update();
