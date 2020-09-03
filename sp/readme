@@ -1,0 +1,20 @@
+arxiv: Backup of the state of affairs when we wrote the technotes? Check
+Base: Basic-Input output, error messages, loggin exeptions
+bin: Ignore
+Combined: Actual code from Original MiniBooNE CombinnedFitter.
+    CombinedTypes.cxx : Types for old C style identification
+    CombinedFunctions.cxx : Functions for defining what type of background is which, calculationg E_Nu_QE via different methods
+    CombinedUtil.cxx : some simple utility functions. Convienance.    
+lib: Just a bunch of libraries that are made
+mac: Vic added some things for his local mac build
+Makefile: Bunch of make things
+
+
+Unfold/mac: Vics local things
+
+Unfold/Core: Whats a response matrix? Whats a Model? Whats an Algortihm? base classes everything else inheritis from
+Unfold/Algo: Where the actuall algorithms are defined
+
+Unfold/bin: 
+    multi_unfold.cxx | Does everything
+    stacked_backgrounds.cxx |expect make a plot
