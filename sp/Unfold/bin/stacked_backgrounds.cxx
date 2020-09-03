@@ -17,10 +17,10 @@ int main(int argc, char** argv) {
 	//std::string fname_dirt(argv[2]);
 	//std::string fname_data(argv[3]);
 
-	std::string fname  = "/home/mark/work/uBooNE/lee_unfolding/rootfiles/filtered_passosc.root";
-	std::string fname_dirt  = "/home/mark/work/uBooNE/lee_unfolding/rootfiles/merged_filtered_out_osc_mc_dirt.root";
+	std::string fname  = "/a/data/westside/markross/Lee_Unfolding_2020/datasets/filtered_passosc.root";
+	std::string fname_dirt  = "/a/data/westside/markross/Lee_Unfolding_2020/datasets/merged_filtered_out_osc_mc_dirt.root";
 //	std::string fname_data  = "/home/mark/work/uBooNE/lee_unfolding/rootfiles/output_osc_data_detail_1.root";
-  std::string fname_data  = "/home/mark/work/uBooNE/lee_unfolding/rootfiles/new/data_nue_combined_new_old.root";	
+  std::string fname_data  = "/a/data/westside/markross/Lee_Unfolding_2020/datasets/new/data_nue_combined_new_old.root";	
 //    std::string fname_data  = "/home/mark/work/uBooNE/lee_unfolding/rootfiles/new/data_nue_new_corrected.root";	
 
 
@@ -29,10 +29,10 @@ int main(int argc, char** argv) {
 	//std::vector<double> bins_reco = {200,250,300.,350,400,450,500,550,600,650,700,750,800,850,900,950,1000,1100.,1200.,1300,1400,1500.,3000.};//50
 	//std::vector<double> bins_reco = {200,225,250,275,300.,325,350,375,400,425,450,475,500,550,600,650,700,750,800,850,900,950,1000,1100.,1200.,1300,1400,1500.,3000.}; //25 mev
 	//std::vector<double> bins_reco = {200,250,300.,350,400,450,500,550,600,650,700,750,800,850,900,950,1000,1100.,1200.,1300,1400,1500.,3000.};//50
- //   std::vector<double> bins_reco = {200,300.,375.,475.,550.,675.,800.,950.,1100.,1300.,1500.,3000.};
+    std::vector<double> bins_reco = {200,300.,375.,475.,550.,675.,800.,950.,1100.,1300.,1500.,3000.};
 	//std::vector<double> bins_reco = {150,200,300.,375.,475.,550.,675.,800.,950.,1100.,1300.,1500.,3000.};
 	//std::vector<double> bins_reco = {150,200,250,300.,350,400,450,500,550,600,650,700,750,800.,850,900,950.,1000,1100.,1300.,1500.,3000.};
-	std::vector<double> bins_reco = {150,175,200,225,250,275,300.,325,350,375,400,425,450,475,500,525,550,575,600,650,700,750,800.,850,900,950.,1000,1100.,1300.,1500.,3000.};
+//	std::vector<double> bins_reco = {150,175,200,225,250,275,300.,325,350,375,400,425,450,475,500,525,550,575,600,650,700,750,800.,850,900,950.,1000,1100.,1300.,1500.,3000.};
 	
 	std::vector<double> summed_mc(bins_reco.size()-1,0.0);
 
@@ -73,9 +73,6 @@ int main(int argc, char** argv) {
         std::cout<<"Data: "<<i<<" "<<summed_data.at(i)<<std::endl;
 	}
 
-
-
-
 	sp::SPIO spio;
 	spio.set_verbosity((sp::msg::Level_t)0);
 
@@ -102,12 +99,7 @@ int main(int argc, char** argv) {
 	}
 
 
-
-
-
-
 	TApplication app("app", 0, 0);
-
 
 	THStack ths("ths","");
 	TLegend tl(0.35,0.45,0.89,0.89);

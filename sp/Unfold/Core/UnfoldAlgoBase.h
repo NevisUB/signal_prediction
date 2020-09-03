@@ -44,6 +44,7 @@ namespace sp {
 
 			TVectorD b;  // bias of unfolded spectrum; b=E(u) - u' (u'=actual nature truth) (n_r)
 			TMatrixD B; // uncertainty on bias
+
 			TVectorD ep; // efficiency (n_t)
 			TMatrixD Ep; // Covariance of efficiency (n_t x n_t)
 

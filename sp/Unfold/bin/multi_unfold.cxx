@@ -110,14 +110,14 @@ int main(int argc, char** argv) {
 	a.set_verbosity((sp::msg::Level_t)0);
 
 
-	std::string core = "/home/mark/work/uBooNE/lee_unfolding/";
-	std::string bkg_file = "rootfiles/filtered_passosc.root";
+	std::string core = "/a/data/westside/markross/Lee_Unfolding_2020/datasets/";
+	std::string bkg_file = "filtered_passosc.root";
 	std::string data_file;
-	if(data_set == "old") data_file = "rootfiles/output_osc_data_detail_1.root";	
-	if(data_set == "new") data_file = "rootfiles/new/data_nue_new_corrected.root";	
-	if(data_set == "comb") data_file = "rootfiles/new/data_nue_combined_new_old.root";	
+	if(data_set == "old") data_file = "output_osc_data_detail_1.root";	
+	if(data_set == "new") data_file = "new/data_nue_new_corrected.root";	
+	if(data_set == "comb") data_file = "new/data_nue_combined_new_old.root";	
 
-	std::string dirt_file =  "rootfiles/merged_filtered_out_osc_mc_dirt.root";
+	std::string dirt_file =  "merged_filtered_out_osc_mc_dirt.root";
 
 
 	std::string use_file;
@@ -128,18 +128,18 @@ int main(int argc, char** argv) {
 	switch(MODEL)
 	{
 		case MODEL_CCQE:
-			use_file = "rootfiles/filtered_all_nue_nuebar.root";
+			use_file = "filtered_all_nue_nuebar.root";
 			//use_file = "rootfiles/filterd_ccqe_nue_nuebar.root";
 			true_name = "True intrinsic E_{#nu_{e}}" ;
 			reco_name = "Reconstructed E_{QE}";
 			break;
 		case MODEL_DELTARES:
-			use_file= "rootfiles/filtered_nc_delta.root";
+			use_file= "filtered_nc_delta.root";
 			true_name = "True NC #Delta #rightarrow N#gamma E_{#nu}" ;
 			reco_name = "Reconstructed E_{QE}";
 			break;
 		case MODEL_NCPI0:
-			use_file = "rootfiles/filtered_ncpi0.root";
+			use_file = "filtered_ncpi0.root";
 			true_name = "True E_{#nu}";
 			reco_name = "Reconstructed E_{QE}";
 			break;
